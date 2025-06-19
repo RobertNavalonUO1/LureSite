@@ -18,13 +18,54 @@ const Checkout = () => {
     const [cartItems] = useState(initialCartItems);
     const [total] = useState(initialTotal);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+
+    const isGuest = !auth?.user;
+
     const [selectedAddressId, setSelectedAddressId] = useState(
-        addresses.find(addr => addr.id === auth.user.default_address_id)?.id || addresses[0]?.id || null
+        addresses.find(addr => addr.id === auth?.user?.default_address_id)?.id || addresses[0]?.id || null
     );
 
     const selectedAddress = addresses.find(addr => addr.id === selectedAddressId);
+
+    const [guestAddress, setGuestAddress] = useState({
+        street: '',
+        city: '',
+        province: '',
+        zip_code: '',
+        country: ''
+    });
+    const [guestAddressSaved, setGuestAddressSaved] = useState(false);
+    const [savingGuest, setSavingGuest] = useState(false);
+
     const formatAddress = (addr) =>
         `${addr.street}, ${addr.city}, ${addr.province}, ${addr.zip_code}, ${addr.country}`;
+
+    const handleGuestAddressSubmit = async (e) => {
+        e.preventDefault();
+        setSavingGuest(true);
+
+        try {
+            const response = await fetch('/checkout/guest-address', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify(guestAddress),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setGuestAddressSaved(true);
+            } else {
+                console.error('Error al guardar dirección:', data);
+            }
+        } catch (err) {
+            console.error('Error al enviar dirección:', err);
+        } finally {
+            setSavingGuest(false);
+        }
+    };
 
     const handleStripePayment = async () => {
         const stripe = await stripePromise;
@@ -52,7 +93,6 @@ const Checkout = () => {
     };
 
     const handlePayPalPayment = async () => {
-        console.log("Iniciando pago con PayPal...");
         try {
             const response = await fetch('/checkout/paypal', {
                 method: 'POST',
@@ -62,11 +102,7 @@ const Checkout = () => {
                 },
                 body: JSON.stringify({ address_id: selectedAddressId }),
             });
-
-            // Revisa la respuesta en la pestaña Network y en consola
             const data = await response.json();
-            console.log("Respuesta de PayPal:", data);
-
             if (data.approvalLink) {
                 window.location.href = data.approvalLink;
             } else {
@@ -76,7 +112,6 @@ const Checkout = () => {
             console.error('Error al iniciar el pago con PayPal:', err);
         }
     };
-
 
     return (
         <div className="bg-gray-100 min-h-screen">
@@ -104,55 +139,87 @@ const Checkout = () => {
 
                 <div className="border-b pb-4 mb-4">
                     <h3 className="text-lg font-semibold mb-2">Información de entrega</h3>
-                    {addresses.length > 0 ? (
-                        <select
-                            value={selectedAddressId}
-                            onChange={(e) => setSelectedAddressId(Number(e.target.value))}
-                            className="w-full p-3 rounded border bg-gray-100 mb-2"
-                        >
-                            {addresses.map((addr) => (
-                                <option key={addr.id} value={addr.id}>
-                                    {formatAddress(addr)}
-                                </option>
-                            ))}
-                        </select>
-                    ) : (
-                        <p className="text-gray-600 mb-2">No tienes direcciones guardadas.</p>
-                    )}
 
-                    <div className="bg-gray-200 p-4 rounded-lg flex justify-between items-center">
-                        <div>
-                            <p className="font-semibold">{auth.user.name}</p>
-                            <p className="text-gray-600">{auth.user.email}</p>
-                            <p className="text-gray-600">
-                                Dirección de entrega:{' '}
-                                <span className="font-bold">
-                                    {selectedAddress ? formatAddress(selectedAddress) : "Ninguna seleccionada"}
-                                </span>
-                            </p>
-                        </div>
-                        <button onClick={() => setIsAddressModalOpen(true)} className="bg-blue-500 text-white px-4 py-2 rounded">
-                            Añadir nueva
-                        </button>
-                    </div>
+                    {!isGuest ? (
+                        <>
+                            {addresses.length > 0 ? (
+                                <select
+                                    value={selectedAddressId}
+                                    onChange={(e) => setSelectedAddressId(Number(e.target.value))}
+                                    className="w-full p-3 rounded border bg-gray-100 mb-2"
+                                >
+                                    {addresses.map((addr) => (
+                                        <option key={addr.id} value={addr.id}>
+                                            {formatAddress(addr)}
+                                        </option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <p className="text-gray-600 mb-2">No tienes direcciones guardadas.</p>
+                            )}
+
+                            <div className="bg-gray-200 p-4 rounded-lg flex justify-between items-center">
+                                <div>
+                                    <p className="font-semibold">{auth.user.name}</p>
+                                    <p className="text-gray-600">{auth.user.email}</p>
+                                    <p className="text-gray-600">
+                                        Dirección de entrega:{' '}
+                                        <span className="font-bold">
+                                            {selectedAddress ? formatAddress(selectedAddress) : "Ninguna seleccionada"}
+                                        </span>
+                                    </p>
+                                </div>
+                                <button onClick={() => setIsAddressModalOpen(true)} className="bg-blue-500 text-white px-4 py-2 rounded">
+                                    Añadir nueva
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <form onSubmit={handleGuestAddressSubmit} className="space-y-4">
+                            {['street', 'city', 'province', 'zip_code', 'country'].map(field => (
+                                <input
+                                    key={field}
+                                    type="text"
+                                    placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                                    value={guestAddress[field]}
+                                    onChange={(e) => setGuestAddress({ ...guestAddress, [field]: e.target.value })}
+                                    className="w-full p-3 rounded border bg-white"
+                                    required
+                                />
+                            ))}
+                            <button
+                                type="submit"
+                                disabled={savingGuest}
+                                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                            >
+                                {savingGuest ? "Guardando..." : "Guardar Dirección de Envío"}
+                            </button>
+                        </form>
+                    )}
                 </div>
 
                 <div className="text-xl font-bold text-right pb-4">Total: ${total}</div>
 
-                <div className="flex flex-col gap-4">
-                    <button
-                        onClick={handleStripePayment}
-                        className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-                    >
-                        Pagar con Tarjeta (Stripe)
-                    </button>
-                    <button
-                        onClick={handlePayPalPayment}
-                        className="w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600"
-                    >
-                        Pagar con PayPal
-                    </button>
-                </div>
+                {!isGuest || guestAddressSaved ? (
+                    <div className="flex flex-col gap-4">
+                        <button
+                            onClick={handleStripePayment}
+                            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                        >
+                            Pagar con Tarjeta (Stripe)
+                        </button>
+                        <button
+                            onClick={handlePayPalPayment}
+                            className="w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600"
+                        >
+                            Pagar con PayPal
+                        </button>
+                    </div>
+                ) : (
+                    <p className="text-center text-gray-500 mt-4">
+                        Por favor, ingresa y guarda una dirección antes de continuar con el pago.
+                    </p>
+                )}
             </div>
             <Footer />
 

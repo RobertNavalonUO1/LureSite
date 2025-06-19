@@ -5,70 +5,73 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
 
 class CartController extends Controller
 {
-    // Mostrar el carrito
+    /**
+     * Mostrar el contenido del carrito.
+     */
     public function index()
     {
         $cartItems = session()->get('cart', []);
+        $total = collect($cartItems)->sum(fn($item) => $item['price'] * $item['quantity']);
+        $cartCount = array_sum(array_column($cartItems, 'quantity'));
 
-        // Calcular el total
-        $total = array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $cartItems));
+        Log::info('Vista del carrito accedida', ['cartCount' => $cartCount]);
 
-        return inertia('CartPage', [
-            'cartItems' => $cartItems,
-            'cartCount' => array_sum(array_column($cartItems, 'quantity')),
-            'total' => number_format($total, 2),
+        return Inertia::render('CartPage', [
+            'cartItems' => array_values($cartItems),
+            'cartCount' => $cartCount,
+            'total'     => number_format($total, 2),
         ]);
     }
 
-    // Agregar un producto al carrito
+    /**
+     * Agregar un producto al carrito (o incrementar si ya existe).
+     */
     public function addToCart($productId)
     {
         $product = Product::findOrFail($productId);
-
-        // Obtener el carrito actual
         $cart = session()->get('cart', []);
 
-        // Si el producto ya está en el carrito, aumentar la cantidad
         if (isset($cart[$productId])) {
             $cart[$productId]['quantity']++;
         } else {
-            // Si no está en el carrito, agregarlo con una cantidad inicial de 1
             $cart[$productId] = [
-                'id' => $product->id,
-                'title' => $product->name, // Cambio de 'name' a 'title' para mantener consistencia con el frontend
-                'price' => $product->price,
+                'id'        => $product->id,
+                'title'     => $product->name,
+                'price'     => $product->price,
                 'image_url' => $product->image_url ?? '/default-image.jpg',
-
-                'quantity' => 1,
+                'quantity'  => 1,
             ];
         }
 
-        // Guardar el carrito actualizado en la sesión
         session()->put('cart', $cart);
+        Log::info("Producto agregado al carrito", ['product_id' => $productId]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Producto agregado al carrito.');
     }
 
-    // Eliminar un producto del carrito
+    /**
+     * Eliminar un producto del carrito.
+     */
     public function removeFromCart($productId)
     {
-        // Obtener el carrito de la sesión
         $cart = session()->get('cart', []);
 
-        // Verificar si el producto existe en el carrito y eliminarlo
         if (isset($cart[$productId])) {
             unset($cart[$productId]);
-            // Guardar el carrito actualizado en la sesión
             session()->put('cart', $cart);
+            Log::info("Producto eliminado del carrito", ['product_id' => $productId]);
         }
 
         return redirect()->back();
     }
 
-    // Incrementar la cantidad de un producto en el carrito
+    /**
+     * Incrementar cantidad de un producto en el carrito.
+     */
     public function incrementQuantity($productId)
     {
         $cart = session()->get('cart', []);
@@ -76,12 +79,15 @@ class CartController extends Controller
         if (isset($cart[$productId])) {
             $cart[$productId]['quantity']++;
             session()->put('cart', $cart);
+            Log::info("Cantidad incrementada", ['product_id' => $productId]);
         }
 
         return redirect()->back();
     }
 
-    // Decrementar la cantidad de un producto en el carrito
+    /**
+     * Decrementar cantidad o eliminar si llega a 0.
+     */
     public function decreaseQuantity($productId)
     {
         $cart = session()->get('cart', []);
@@ -89,9 +95,10 @@ class CartController extends Controller
         if (isset($cart[$productId])) {
             if ($cart[$productId]['quantity'] > 1) {
                 $cart[$productId]['quantity']--;
+                Log::info("Cantidad reducida", ['product_id' => $productId]);
             } else {
-                // Si la cantidad es 1, eliminar el producto del carrito
                 unset($cart[$productId]);
+                Log::info("Producto eliminado por cantidad 0", ['product_id' => $productId]);
             }
             session()->put('cart', $cart);
         }
@@ -99,18 +106,8 @@ class CartController extends Controller
         return redirect()->back();
     }
 
-    // Procesar el checkout
-    public function checkout()
-    {
-        return inertia('CheckoutPage');
-    }
-
-    // Confirmar la compra
-    public function confirmOrder(Request $request)
-    {
-        // Vaciar el carrito después de confirmar la compra
-        session()->forget('cart');
-
-        return redirect()->route('home')->with('success', 'Pedido confirmado!');
-    }
+    /**
+     * 🚫 Eliminado: checkout() y confirmOrder()
+     * Mantenemos esa lógica en CheckoutController para evitar duplicación.
+     */
 }

@@ -2,53 +2,54 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Address;
+use Laravel\Sanctum\HasApiTokens;
+
+// 👇 Importación del modelo de cookies
+use App\Models\CookiePreference;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
+    /**
+     * Atributos que se pueden asignar en masa.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'default_address_id', // Campo para la dirección predeterminada
     ];
 
+    /**
+     * Atributos que deben ocultarse en arrays/JSON.
+     *
+     * @var array<int, string>
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-        ];
-    }
+    /**
+     * Atributos que deben ser convertidos a tipos nativos.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
 
-    // Relación con las direcciones del usuario
-    public function addresses(): HasMany
+    /**
+     * Relación 1 a 1: el usuario tiene una preferencia de cookies.
+     */
+    public function cookiePreference()
     {
-        return $this->hasMany(Address::class);
-    }
-
-    // Relación con la dirección predeterminada
-    public function defaultAddress(): BelongsTo
-    {
-        return $this->belongsTo(Address::class, 'default_address_id');
-    }
-
-    // Establece una dirección como predeterminada
-    public function setDefaultAddress(Address $address): void
-    {
-        $this->default_address_id = $address->id;
-        $this->save();
+        return $this->hasOne(CookiePreference::class);
     }
 }
