@@ -19,18 +19,13 @@ const AddressModal = ({ closeModal, onAddressAdded }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('AddressModal submit, form:', form);
-
         Inertia.post('/addresses/store', form, {
-            onSuccess: (page) => {
-                console.log('AddressModal onSuccess:', page.props);
-                if (page.props.flash?.success && page.props.newAddress) {
-                    onAddressAdded(page.props.newAddress);
-                    closeModal();
-                }
+            onSuccess: () => {
+                if (onAddressAdded) onAddressAdded(); // ✅ Llama al padre para recargar props
+                closeModal(); // ✅ Cierra el modal
             },
             onError: (err) => {
-                console.error('AddressModal onError:', err);
+                console.error('Errores de validación:', err);
                 setErrors(err);
             },
         });

@@ -17,46 +17,41 @@ use PayPalCheckoutSdk\Orders\OrdersCreateRequest;
 
 class CheckoutController extends Controller
 {
-    /**
-     * Mostrar vista de checkout con dirección y resumen del carrito.
-     */
     public function index()
     {
         $cart = session()->get('cart', []);
         $total = array_reduce($cart, fn($sum, $item) => $sum + $item['price'] * $item['quantity'], 0);
-        $user = Auth::user();
-        $addresses = $user?->addresses ?? [];
 
-        Log::info('Checkout accedido', [
-            'autenticado' => (bool) $user,
-            'cart_count' => count($cart),
-        ]);
+        $user = Auth::user()?->load('addresses');
 
         return Inertia::render('Checkout', [
-            'cartItems'        => $cart,
-            'total'            => number_format($total, 2),
-            'auth'             => ['user' => $user],
-            'addresses'        => $addresses,
+            'cartItems' => $cart,
+            'total' => number_format($total, 2),
+            'auth' => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone ?? null,
+                    'default_address_id' => $user->default_address_id,
+                ] : null,
+            ],
+            'addresses' => $user?->addresses ?? [],
             'defaultAddressId' => $user?->default_address_id,
         ]);
     }
 
-    /**
-     * Guardar dirección de envío de invitado en sesión.
-     */
     public function storeGuestAddress(Request $request)
     {
         $validated = $request->validate([
-            'street'   => 'required|string|max:255',
-            'city'     => 'required|string|max:255',
+            'street' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
             'province' => 'required|string|max:255',
             'zip_code' => 'required|string|max:255',
-            'country'  => 'required|string|max:255',
+            'country' => 'required|string|max:255',
         ]);
 
         session()->put('guest_address', (object) $validated);
-
-        Log::info('Dirección de invitado guardada en sesión', $validated);
 
         return response()->json([
             'success' => true,
@@ -65,9 +60,6 @@ class CheckoutController extends Controller
         ]);
     }
 
-    /**
-     * Iniciar pago con Stripe.
-     */
     public function stripeCheckout(Request $request)
     {
         try {
@@ -93,9 +85,9 @@ class CheckoutController extends Controller
 
             $lineItems = array_map(fn($item) => [
                 'price_data' => [
-                    'currency'     => 'usd',
+                    'currency' => 'usd',
                     'product_data' => [
-                        'name'   => $item['title'],
+                        'name' => $item['title'],
                         'images' => [$item['image_url']],
                     ],
                     'unit_amount' => $item['price'] * 100,
@@ -105,13 +97,13 @@ class CheckoutController extends Controller
 
             $session = Session::create([
                 'payment_method_types' => ['card'],
-                'line_items'           => $lineItems,
-                'mode'                 => 'payment',
-                'success_url'          => route('checkout.success', [], true),
-                'cancel_url'           => route('checkout.cancel', [], true),
-                'customer_email'       => $user?->email ?? 'invitado@correo.com',
-                'metadata'             => [
-                    'user_id'    => $user?->id ?? null,
+                'line_items' => $lineItems,
+                'mode' => 'payment',
+                'success_url' => route('checkout.success', [], true),
+                'cancel_url' => route('checkout.cancel', [], true),
+                'customer_email' => $user?->email ?? 'invitado@correo.com',
+                'metadata' => [
+                    'user_id' => $user?->id ?? null,
                     'address_id' => $address->id ?? null,
                 ],
             ]);
@@ -119,10 +111,8 @@ class CheckoutController extends Controller
             session()->put('stripe_session_id', $session->id);
             session()->put('selected_address', $address);
 
-            Log::info('Sesión Stripe creada', ['session_id' => $session->id]);
-
             return response()->json([
-                'sessionId'       => $session->id,
+                'sessionId' => $session->id,
                 'stripePublicKey' => env('STRIPE_KEY'),
             ]);
         } catch (\Exception $e) {
@@ -131,9 +121,6 @@ class CheckoutController extends Controller
         }
     }
 
-    /**
-     * Iniciar pago con PayPal.
-     */
     public function paypalCheckout(Request $request)
     {
         try {
@@ -184,8 +171,6 @@ class CheckoutController extends Controller
             session()->put('paypal_order_id', $response->result->id);
             session()->put('selected_address', $address);
 
-            Log::info('Sesión PayPal creada', ['order_id' => $response->result->id]);
-
             return response()->json(['approvalLink' => $approvalLink]);
         } catch (\Exception $e) {
             Log::error('Error en PayPal Checkout: ' . $e->getMessage());
@@ -193,9 +178,6 @@ class CheckoutController extends Controller
         }
     }
 
-    /**
-     * Confirmar y guardar pedido tras pago exitoso.
-     */
     public function success()
     {
         $cart = session()->get('cart', []);
@@ -204,7 +186,6 @@ class CheckoutController extends Controller
         $paypalOrderId = session()->get('paypal_order_id');
 
         if (empty($cart) || !$address || (!$stripeSessionId && !$paypalOrderId)) {
-            Log::warning('Datos faltantes en éxito de checkout');
             return redirect()->route('dashboard')->with('error', 'Faltan datos para completar la compra.');
         }
 
@@ -232,8 +213,6 @@ class CheckoutController extends Controller
 
             session()->forget(['cart', 'selected_address', 'guest_address', 'stripe_session_id', 'paypal_order_id']);
 
-            Log::info('Orden registrada correctamente', ['order_id' => $order->id]);
-
             return redirect()->route('dashboard')->with('success', '¡Pago completado con éxito!');
         } catch (\Exception $e) {
             Log::error('Error al guardar la orden: ' . $e->getMessage());
@@ -241,26 +220,19 @@ class CheckoutController extends Controller
         }
     }
 
-    /**
-     * Cancelar el pago (Stripe/PayPal).
-     */
     public function cancel()
     {
-        Log::info('Pago cancelado por el usuario');
         return redirect()->route('checkout')->with('error', 'El pago fue cancelado.');
     }
 
-    /**
-     * Guardar nueva dirección para usuario autenticado.
-     */
     public function storeAddress(Request $request)
     {
         $validated = $request->validate([
-            'street'       => 'required|string|max:255',
-            'city'         => 'required|string|max:255',
-            'province'     => 'required|string|max:255',
-            'zip_code'     => 'required|string|max:255',
-            'country'      => 'required|string|max:255',
+            'street' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'province' => 'required|string|max:255',
+            'zip_code' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
             'make_default' => 'sometimes|boolean',
         ]);
 

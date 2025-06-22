@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import { loadStripe } from '@stripe/stripe-js';
+import { Inertia } from '@inertiajs/inertia';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import AddressModal from '../components/AddressModal';
@@ -12,60 +13,23 @@ const Checkout = () => {
         cartItems: initialCartItems = {},
         total: initialTotal = 0,
         auth,
-        addresses = []
+        addresses = [],
+        defaultAddressId
     } = usePage().props;
 
+    const user = auth?.user;
     const [cartItems] = useState(initialCartItems);
     const [total] = useState(initialTotal);
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-
-    const isGuest = !auth?.user;
+    const isGuest = !user;
 
     const [selectedAddressId, setSelectedAddressId] = useState(
-        addresses.find(addr => addr.id === auth?.user?.default_address_id)?.id || addresses[0]?.id || null
+        user?.default_address_id || addresses[0]?.id || null
     );
-
     const selectedAddress = addresses.find(addr => addr.id === selectedAddressId);
-
-    const [guestAddress, setGuestAddress] = useState({
-        street: '',
-        city: '',
-        province: '',
-        zip_code: '',
-        country: ''
-    });
-    const [guestAddressSaved, setGuestAddressSaved] = useState(false);
-    const [savingGuest, setSavingGuest] = useState(false);
 
     const formatAddress = (addr) =>
         `${addr.street}, ${addr.city}, ${addr.province}, ${addr.zip_code}, ${addr.country}`;
-
-    const handleGuestAddressSubmit = async (e) => {
-        e.preventDefault();
-        setSavingGuest(true);
-
-        try {
-            const response = await fetch('/checkout/guest-address', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-                body: JSON.stringify(guestAddress),
-            });
-
-            const data = await response.json();
-            if (response.ok) {
-                setGuestAddressSaved(true);
-            } else {
-                console.error('Error al guardar dirección:', data);
-            }
-        } catch (err) {
-            console.error('Error al enviar dirección:', err);
-        } finally {
-            setSavingGuest(false);
-        }
-    };
 
     const handleStripePayment = async () => {
         const stripe = await stripePromise;
@@ -119,6 +83,7 @@ const Checkout = () => {
             <div className="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
                 <h2 className="text-3xl font-bold text-center mb-6">Checkout</h2>
 
+                {/* Resumen del pedido */}
                 <div className="border-b pb-4 mb-4">
                     <h3 className="text-lg font-semibold mb-2">Resumen del pedido</h3>
                     <ul>
@@ -137,12 +102,20 @@ const Checkout = () => {
                     </ul>
                 </div>
 
-                <div className="border-b pb-4 mb-4">
-                    <h3 className="text-lg font-semibold mb-2">Información de entrega</h3>
+                {/* Información de entrega */}
+                {!isGuest ? (
+                    <div className="border-b pb-4 mb-4">
+                        <h3 className="text-lg font-semibold mb-2">Datos del Usuario</h3>
 
-                    {!isGuest ? (
-                        <>
-                            {addresses.length > 0 ? (
+                        <div className="bg-gray-50 p-4 border rounded mb-4">
+                            <p><strong>Nombre:</strong> {user.name} {user.lastname}</p>
+                            <p><strong>Email:</strong> {user.email}</p>
+                            <p><strong>Teléfono:</strong> {user.phone || 'No disponible'}</p>
+                        </div>
+
+                        <h3 className="text-lg font-semibold mb-2">Dirección de Envío</h3>
+                        {addresses.length > 0 ? (
+                            <>
                                 <select
                                     value={selectedAddressId}
                                     onChange={(e) => setSelectedAddressId(Number(e.target.value))}
@@ -154,53 +127,33 @@ const Checkout = () => {
                                         </option>
                                     ))}
                                 </select>
-                            ) : (
-                                <p className="text-gray-600 mb-2">No tienes direcciones guardadas.</p>
-                            )}
-
-                            <div className="bg-gray-200 p-4 rounded-lg flex justify-between items-center">
-                                <div>
-                                    <p className="font-semibold">{auth.user.name}</p>
-                                    <p className="text-gray-600">{auth.user.email}</p>
-                                    <p className="text-gray-600">
-                                        Dirección de entrega:{' '}
-                                        <span className="font-bold">
-                                            {selectedAddress ? formatAddress(selectedAddress) : "Ninguna seleccionada"}
-                                        </span>
-                                    </p>
+                                <div className="text-sm text-gray-600">
+                                    <strong>Seleccionada:</strong> {selectedAddress ? formatAddress(selectedAddress) : 'Ninguna'}
                                 </div>
-                                <button onClick={() => setIsAddressModalOpen(true)} className="bg-blue-500 text-white px-4 py-2 rounded">
-                                    Añadir nueva
-                                </button>
-                            </div>
-                        </>
-                    ) : (
-                        <form onSubmit={handleGuestAddressSubmit} className="space-y-4">
-                            {['street', 'city', 'province', 'zip_code', 'country'].map(field => (
-                                <input
-                                    key={field}
-                                    type="text"
-                                    placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                                    value={guestAddress[field]}
-                                    onChange={(e) => setGuestAddress({ ...guestAddress, [field]: e.target.value })}
-                                    className="w-full p-3 rounded border bg-white"
-                                    required
-                                />
-                            ))}
-                            <button
-                                type="submit"
-                                disabled={savingGuest}
-                                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                            >
-                                {savingGuest ? "Guardando..." : "Guardar Dirección de Envío"}
-                            </button>
-                        </form>
-                    )}
-                </div>
+                            </>
+                        ) : (
+                            <p className="text-gray-600 mb-2">No tienes direcciones guardadas.</p>
+                        )}
 
+                        <div className="mt-4 text-right">
+                            <button
+                                onClick={() => setIsAddressModalOpen(true)}
+                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                            >
+                                Añadir nueva dirección
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="border-b pb-4 mb-4">
+                        <p className="text-red-600">Debes iniciar sesión para completar el proceso de compra.</p>
+                    </div>
+                )}
+
+                {/* Total y botones de pago */}
                 <div className="text-xl font-bold text-right pb-4">Total: ${total}</div>
 
-                {!isGuest || guestAddressSaved ? (
+                {!isGuest && addresses.length > 0 ? (
                     <div className="flex flex-col gap-4">
                         <button
                             onClick={handleStripePayment}
@@ -217,7 +170,7 @@ const Checkout = () => {
                     </div>
                 ) : (
                     <p className="text-center text-gray-500 mt-4">
-                        Por favor, ingresa y guarda una dirección antes de continuar con el pago.
+                        Inicia sesión y añade una dirección para continuar con el pago.
                     </p>
                 )}
             </div>
@@ -226,7 +179,9 @@ const Checkout = () => {
             {isAddressModalOpen && (
                 <AddressModal
                     closeModal={() => setIsAddressModalOpen(false)}
-                    onAddressAdded={() => window.location.reload()}
+                    onAddressAdded={() =>
+                        Inertia.reload({ only: ['addresses', 'defaultAddressId'] })
+                    }
                 />
             )}
         </div>

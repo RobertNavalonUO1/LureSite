@@ -7,6 +7,7 @@ import LoginModal from '@/Components/LoginModal';
 import RegistrarModal from '@/Components/RegistrarModal';
 import ForgotPassword from '@/Components/ForgotPassword';
 import TopBanner from '@/Components/TopBanner';
+import TopNavMenu from '@/Components/TopNavMenu';
 
 // ✅ Nuevos modales de cookies
 import CookieConsentModal from '@/Components/CookieConsentModal';
@@ -117,7 +118,7 @@ const Home = () => {
           )}
         </nav>
       </header>
-
+<TopNavMenu />
       {/* CONTENIDO PRINCIPAL */}
       <div className="flex flex-grow">
         {/* SIDEBAR DE CATEGORÍAS */}
