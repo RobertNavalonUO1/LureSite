@@ -24,6 +24,7 @@ class User extends Authenticatable
         'phone',
         'password',
         'default_address_id',
+        'avatar', // ✅ NUEVO: avatar del usuario (imagen)
     ];
 
     /**

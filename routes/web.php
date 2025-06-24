@@ -13,13 +13,14 @@ use App\Http\Controllers\{
 use Inertia\Inertia;
 use App\Models\{Product, Category};
 use Illuminate\Support\Facades\Auth;
-
+use App\Http\Controllers\AvatarController;
 // Datos globales para Inertia
 Inertia::share([
     'cartItems' => fn() => session()->has('cart') ? array_values(session('cart')) : [],
     'cartCount' => fn() => session()->has('cart') ? array_sum(array_column(session('cart'), 'quantity')) : 0,
     'total'     => fn() => session()->has('cart') ? collect(session('cart'))->sum(fn($item) => $item['price'] * $item['quantity']) : 0,
 ]);
+Route::post('/api/avatar-upload', [AvatarController::class, 'store'])->middleware('auth');
 
 /**
  * 🌐 RUTAS PÚBLICAS

@@ -1,72 +1,65 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 
-function AvatarModel({ shirtColor, pantsColor }) {
-  const bodyRef = useRef();
+const RotatingBox = () => {
+  const ref = useRef();
 
   useFrame(() => {
-    if (bodyRef.current) {
-      bodyRef.current.rotation.y += 0.005;
-    }
+    if (ref.current) ref.current.rotation.y += 0.01;
   });
 
   return (
-    <group ref={bodyRef}>
-      {/* Cuerpo base */}
-      <mesh position={[0, 1, 0]}>
-        <cylinderBufferGeometry args={[0.5, 0.5, 1.2, 32]} />
-        <meshStandardMaterial color="#f5d7b2" />
-      </mesh>
-
-      {/* Cabeza */}
-      <mesh position={[0, 2, 0]}>
-        <sphereBufferGeometry args={[0.4, 32, 32]} />
-        <meshStandardMaterial color="#f5d7b2" />
-      </mesh>
-
-      {/* Camiseta */}
-      <mesh position={[0, 1.4, 0]}>
-        <boxBufferGeometry args={[1, 0.6, 0.6]} />
-        <meshStandardMaterial color={shirtColor} />
-      </mesh>
-
-      {/* Piernas */}
-      <mesh position={[-0.2, 0.3, 0]}>
-        <boxBufferGeometry args={[0.2, 0.6, 0.2]} />
-        <meshStandardMaterial color={pantsColor} />
-      </mesh>
-      <mesh position={[0.2, 0.3, 0]}>
-        <boxBufferGeometry args={[0.2, 0.6, 0.2]} />
-        <meshStandardMaterial color={pantsColor} />
-      </mesh>
-    </group>
+    <mesh ref={ref}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="orange" />
+    </mesh>
   );
-}
+};
 
-export default function Avatar3DViewer() {
-  const [shirtColor, setShirtColor] = useState('#ff0000');
-  const [pantsColor, setPantsColor] = useState('#0000ff');
+export default function Avatar3DViewer({ isOpen, onClose }) {
+  const backgroundRef = useRef();
 
-  return (
-    <div className="w-full h-[500px]">
-      <Canvas camera={{ position: [0, 2, 5], fov: 50 }}>
-        <ambientLight />
-        <directionalLight position={[2, 5, 2]} intensity={1} />
-        <OrbitControls enablePan={false} />
-        <AvatarModel shirtColor={shirtColor} pantsColor={pantsColor} />
-      </Canvas>
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (backgroundRef.current && e.target === backgroundRef.current) {
+        onClose();
+      }
+    };
 
-      <div className="mt-4 flex justify-center space-x-4">
-        <div>
-          <label className="block mb-1">Color Camiseta</label>
-          <input type="color" value={shirtColor} onChange={(e) => setShirtColor(e.target.value)} />
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose]);
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div
+      ref={backgroundRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity"
+    >
+      <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl relative animate-fade-in">
+        <h2 className="text-2xl font-semibold text-center mb-4">Vista 3D del Avatar</h2>
+
+        <div className="w-full h-[400px] bg-gray-100 rounded-lg overflow-hidden border">
+          <Canvas camera={{ position: [0, 2, 5], fov: 50 }}>
+            <ambientLight />
+            <directionalLight position={[3, 5, 2]} intensity={1.2} />
+            <OrbitControls enablePan={false} />
+            <RotatingBox />
+          </Canvas>
         </div>
-        <div>
-          <label className="block mb-1">Color Pantalón</label>
-          <input type="color" value={pantsColor} onChange={(e) => setPantsColor(e.target.value)} />
-        </div>
+
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-xl"
+          title="Cerrar"
+        >
+          ×
+        </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -49,11 +49,8 @@ const Dashboard = () => {
               onClick={() => setAvatarModalOpen(true)}
               title="Haz clic para cambiar tu avatar"
             >
-              <img
-                src={user.avatar || '/default-avatar.png'}
-                alt="Avatar"
-                className="w-24 h-24 rounded-full border-4 border-sky-400 object-cover transition duration-300 group-hover:brightness-75"
-              />
+<img src={auth.user.avatar || "/default-avatar.png"} alt="User Avatar" className="w-16 h-16 rounded-full border object-cover" />
+
               <div className="absolute bottom-0 right-0 bg-sky-600 p-1 rounded-full border-2 border-white shadow">
                 <Pencil className="w-4 h-4 text-white" />
               </div>

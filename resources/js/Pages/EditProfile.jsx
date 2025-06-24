@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
-import { Pencil, Trash2, Save, Plus } from 'lucide-react';
+import { Pencil, Trash2, Save, Plus, Camera } from 'lucide-react';
 import countryData from '../utils/countries';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import AvatarCreatorModal from '../components/AvatarCreatorModal'; // ✅ Importar modal
 
 export default function EditProfile() {
   const { auth, addresses, paymentMethods } = usePage().props;
@@ -16,12 +17,14 @@ export default function EditProfile() {
     phone: user.phone || '',
     phone_prefix: '+34',
     payment_method: paymentMethods?.default || 'stripe',
+    avatar: user.avatar || '', // ✅ avatar
   });
 
   const [editingField, setEditingField] = useState(null);
   const [editingAddressId, setEditingAddressId] = useState(null);
   const [localAddresses, setLocalAddresses] = useState(addresses);
   const [showModal, setShowModal] = useState(false);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false); // ✅ Modal Avatar
   const [newAddress, setNewAddress] = useState({
     street: '', city: '', province: '', zip_code: '', country: 'España'
   });
@@ -90,12 +93,33 @@ export default function EditProfile() {
     });
   };
 
+  const handleAvatarSelect = (avatarUrl) => {
+    setData('avatar', avatarUrl);
+    setAvatarModalOpen(false);
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen">
       <Header />
 
       <div className="max-w-5xl mx-auto p-6 bg-white rounded shadow mt-8">
         <h2 className="text-3xl font-bold mb-6">Editar Perfil</h2>
+
+        {/* ✅ Sección de avatar */}
+        <div className="flex items-center space-x-4 mb-6">
+          <img
+            src={data.avatar || '/default-avatar.png'}
+            alt="Avatar"
+            className="w-20 h-20 rounded-full border object-cover"
+          />
+          <button
+            onClick={() => setAvatarModalOpen(true)}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            <Camera className="mr-2" size={18} />
+            Cambiar Avatar
+          </button>
+        </div>
 
         <form onSubmit={handleProfileSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {['name', 'lastname', 'email'].map((field) => (
@@ -260,6 +284,13 @@ export default function EditProfile() {
           </div>
         </div>
       )}
+
+      {/* ✅ Modal para crear avatar */}
+      <AvatarCreatorModal
+        isOpen={avatarModalOpen}
+        onClose={() => setAvatarModalOpen(false)}
+        onSelect={handleAvatarSelect}
+      />
 
       <Footer />
     </div>
