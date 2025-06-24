@@ -10,13 +10,12 @@ use Inertia\Inertia;
 class DashboardController extends Controller
 {
     /**
-     * Muestra el dashboard del usuario con todos sus pedidos.
+     * Muestra el dashboard del usuario con todos sus pedidos y carrito.
      */
     public function index()
     {
         $user = Auth::user();
 
-        // Obtener pedidos del usuario ordenados por fecha descendente
         $orders = Order::where('user_id', $user->id)
             ->with('items.product')
             ->orderBy('created_at', 'desc')
@@ -26,7 +25,6 @@ class DashboardController extends Controller
                     'id'     => $order->id,
                     'date'   => $order->created_at->format('Y-m-d'),
                     'total'  => number_format($order->total, 2),
-                    // En este caso usamos el campo payment_method como indicador de estado
                     'status' => $order->payment_method,
                     'items'  => $order->items->map(function ($item) {
                         return [
@@ -40,24 +38,29 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Obtener carrito desde la sesión (si lo necesitas)
         $cart = session()->get('cart', []);
 
         return Inertia::render('Dashboard', [
-            'auth'      => ['user' => $user],
-            'orders'    => $orders,
+            'auth' => [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'avatar' => $user->avatar ?? '/default-avatar.png',
+                ]
+            ],
+            'orders' => $orders,
             'cartItems' => array_values($cart),
         ]);
     }
 
     /**
-     * Muestra solo los pedidos enviados (donde payment_method es 'shipped').
+     * Muestra solo los pedidos enviados (payment_method = 'shipped').
      */
     public function shipped()
     {
         $user = Auth::user();
 
-        // Obtener pedidos del usuario ordenados por fecha descendente
         $orders = Order::where('user_id', $user->id)
             ->with('items.product')
             ->orderBy('created_at', 'desc')
@@ -80,10 +83,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Filtrar pedidos donde payment_method es 'shipped'
-        $shippedOrders = $orders->filter(function ($order) {
-            return $order['status'] === 'shipped';
-        })->values(); // Reindexamos el array
+        $shippedOrders = $orders->filter(fn($o) => $o['status'] === 'shipped')->values();
 
         return Inertia::render('ShippedOrders', [
             'orders' => $shippedOrders,

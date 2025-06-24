@@ -11,7 +11,7 @@ use Inertia\Inertia;
 class ProfileController extends Controller
 {
     /**
-     * Mostrar formulario de edición del perfil.
+     * Muestra el formulario de edición del perfil.
      */
     public function edit()
     {
@@ -29,6 +29,7 @@ class ProfileController extends Controller
                     'lastname' => $user->lastname,
                     'email' => $user->email,
                     'phone' => $user->phone,
+                    'avatar' => $user->avatar ?? '/default-avatar.png',
                     'default_address_id' => $user->default_address_id,
                 ],
             ],
@@ -41,28 +42,30 @@ class ProfileController extends Controller
     }
 
     /**
-     * Actualizar perfil de usuario.
+     * Actualiza el perfil del usuario (nombre, avatar, etc.).
      */
     public function update(Request $request)
     {
         $user = Auth::user();
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
             'lastname' => ['nullable', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'regex:/^\+\d{1,4}\s\d{6,15}$/'],
+            'avatar' => ['nullable', 'string', 'max:255'], // Ruta del avatar (URL o asset local)
             'payment_method' => ['nullable', 'in:stripe,paypal'],
             'default_address_id' => ['nullable', 'exists:addresses,id'],
         ]);
 
-        $user->update($validated);
+        $user->fill($validated);
+        $user->save();
 
-        return Redirect::route('profile.edit')->with('success', 'Perfil actualizado correctamente.');
+        return back()->with('success', 'Perfil actualizado correctamente.');
     }
 
     /**
-     * Actualizar dirección del usuario.
+     * Actualiza una dirección existente del usuario.
      */
     public function updateAddress(Request $request, Address $address)
     {
@@ -82,7 +85,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Eliminar dirección del usuario si tiene más de una.
+     * Elimina una dirección del usuario (si tiene más de una).
      */
     public function destroyAddress(Address $address)
     {
@@ -104,7 +107,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Establecer dirección predeterminada.
+     * Define la dirección predeterminada del usuario.
      */
     public function setDefaultAddress(Request $request, Address $address)
     {
