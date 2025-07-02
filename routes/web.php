@@ -14,6 +14,34 @@ use Inertia\Inertia;
 use App\Models\{Product, Category};
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AvatarController;
+
+use App\Http\Controllers\PythonScriptController;
+use App\Http\Controllers\ProductMigrationController;
+use Illuminate\Support\Facades\File;
+
+Route::get('/api/scripts', function () {
+    $scripts = collect(File::files(base_path('python_scripts')))
+        ->filter(fn($file) => $file->getExtension() === 'py')
+        ->map(fn($file) => $file->getFilename())
+        ->values();
+
+    return response()->json($scripts);
+});
+Route::get('/migrate-products', [ProductMigrationController::class, 'index'])->name('migrate.products');
+Route::post('/migrate-products/{id}', [ProductMigrationController::class, 'migrate'])->name('migrate.product');
+Route::post('/bulk-migrate-products', [ProductMigrationController::class, 'bulkMigrate'])->name('bulk.migrate.products');Route::get('/agregador-enlaces', fn() => Inertia::render('AgregadorEnlaces'));
+Route::post('/run-script', [PythonScriptController::class, 'run']);
+
+Route::get('/deals/today', fn () => Inertia::render('DealsToday'))->name('deals.today');
+Route::get('/superdeal', fn () => Inertia::render('SuperDeal'))->name('superdeal');
+Route::get('/fast-shipping', fn () => Inertia::render('FastShipping'))->name('fast.shipping');
+Route::get('/new-arrivals', fn () => Inertia::render('NewArrivals'))->name('new.arrivals');
+Route::get('/seasonal', fn () => Inertia::render('SeasonalProducts'))->name('seasonal');
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/orders', [DashboardController::class, 'adminOrders'])->name('admin.orders');
+    Route::post('/admin/orders/{order}/mark-shipped', [DashboardController::class, 'markAsShipped']);
+    Route::post('/admin/orders/{order}/mark-delivered', [DashboardController::class, 'markAsDelivered']);
+});
 // Datos globales para Inertia
 Inertia::share([
     'cartItems' => fn() => session()->has('cart') ? array_values(session('cart')) : [],

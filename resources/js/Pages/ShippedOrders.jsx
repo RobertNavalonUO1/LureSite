@@ -2,18 +2,28 @@ import React from 'react';
 import { usePage } from '@inertiajs/react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Truck, Clock, PackageCheck, MapPin, ArrowLeftCircle } from 'lucide-react';
+import {
+  Truck,
+  Clock,
+  PackageCheck,
+  MapPin,
+  ArrowLeftCircle
+} from 'lucide-react';
 
-// Define pasos del seguimiento
-const progressSteps = ['Pendiente', 'Procesando', 'Enviado', 'En camino', 'Entregado'];
+// Nuevos pasos del seguimiento
+const progressSteps = [
+  'Pendiente de Envío',
+  'Enviado',
+  'Entregado',
+  'Confirmado por Usuario'
+];
 
 const getProgressStep = (status) => {
   switch (status) {
-    case 'pendiente': return 0;
-    case 'procesando': return 1;
-    case 'enviado': return 2;
-    case 'en_camino': return 3;
-    case 'entregado': return 4;
+    case 'pendiente_envio': return 0;
+    case 'enviado': return 1;
+    case 'entregado': return 2;
+    case 'confirmado': return 3;
     default: return 0;
   }
 };
@@ -104,6 +114,18 @@ export default function ShippedOrders() {
                     ))}
                   </ul>
                 </div>
+
+                {/* Botón de confirmación visible solo si status === 'entregado' */}
+                {order.status === 'entregado' && (
+                  <form method="POST" action={`/orders/${order.id}/confirm`} className="mt-6">
+                    <button
+                      type="submit"
+                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                    >
+                      Confirmar que he recibido este pedido
+                    </button>
+                  </form>
+                )}
               </div>
             ))}
           </div>

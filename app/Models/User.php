@@ -38,9 +38,10 @@ class User extends Authenticatable
     /**
      * Atributos que deben convertirse a tipos nativos.
      */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+protected $casts = [
+    'email_verified_at' => 'datetime',
+    'is_admin' => 'boolean',
+];
 
     /**
      * Relación: el usuario tiene preferencias de cookies.

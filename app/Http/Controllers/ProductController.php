@@ -21,7 +21,9 @@ class ProductController extends Controller
 
         return Inertia::render('SelectProducts', [
             'temporaryProducts' => $temporaryProducts,
-            'categories' => $categories
+            'categories' => $categories,
+            'migratedProducts' => session('migratedProducts') ?? [],
+            'error' => session('error'),
         ]);
     }
 
@@ -54,16 +56,24 @@ class ProductController extends Controller
             $validated = $request->validate([
                 'selected_products' => 'required|array',
                 'selected_products.*.id' => 'required|exists:temporary_products,id',
+                'selected_products.*.name' => 'required|string|max:255',
+                'selected_products.*.description' => 'nullable|string',
+                'selected_products.*.price' => 'required|numeric',
+                'selected_products.*.image_url' => 'nullable|string|max:255',
                 'selected_products.*.stock' => 'required|integer|min:0',
                 'selected_products.*.category_id' => 'required|exists:categories,id',
                 'selected_products.*.is_adult' => 'boolean',
+                'selected_products.*.link' => 'nullable|string|max:255',
             ]);
 
             Log::info("🔹 Validación exitosa", ['data' => $validated]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error("❌ Error de validación", ['errors' => $e->errors()]);
-            return redirect()->route('products.select')->with('error', 'Error de validación: ' . json_encode($e->errors()));
+            return redirect()->route('products.select')
+                ->with('error', 'Error de validación: ' . json_encode($e->errors()));
         }
+
+        $migratedProducts = [];
 
         DB::beginTransaction();
         try {
@@ -75,31 +85,35 @@ class ProductController extends Controller
                     continue;
                 }
 
-                Log::info("🔹 Creando producto desde temporal", ['temp' => $temp]);
-
                 $product = Product::create([
-                    'name' => $temp->title,
-                    'price' => $temp->price,
-                    'image_url' => $temp->image_url,
-                    'description' => "Descuento: {$temp->discount} | Vendidos: {$temp->sold_count} | Valoración: {$temp->rating}",
+                    'name' => $productData['name'],
+                    'description' => $productData['description'] ?? '',
+                    'price' => $productData['price'],
+                    'image_url' => $productData['image_url'] ?? '',
                     'stock' => $productData['stock'],
                     'category_id' => $productData['category_id'],
-                    'is_adult' => $productData['is_adult'] ?? false,
-                    'link' => $temp->product_url ?? '/product/' . str_replace(' ', '-', strtolower($temp->title))
+                    'is_adult' => $productData['is_adult'],
+                    'link' => $productData['link'] ?? null,
                 ]);
 
-                Log::info("✅ Producto migrado con éxito", ['product' => $product]);
+                Log::info("✅ Producto migrado", ['product' => $product]);
+
+                $migratedProducts[] = $product->name;
 
                 $temp->delete();
                 Log::info("🗑️ Producto temporal eliminado", ['id' => $temp->id]);
             }
 
             DB::commit();
-            return redirect()->route('products.select')->with('success', 'Productos migrados con éxito.');
+
+            return redirect()->route('products.select')
+                ->with('migratedProducts', $migratedProducts);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("❌ Error al migrar productos: " . $e->getMessage());
-            return redirect()->route('products.select')->with('error', 'Hubo un error al migrar los productos.');
+
+            return redirect()->route('products.select')
+                ->with('error', 'Hubo un error al migrar los productos.');
         }
     }
 }

@@ -200,6 +200,10 @@ class CheckoutController extends Controller
             $order->payment_method = $stripeSessionId ? 'Stripe' : 'PayPal';
             $order->total = array_reduce($cart, fn($sum, $item) => $sum + ($item['price'] * $item['quantity']), 0);
             $order->transaction_id = $stripeSessionId ?? $paypalOrderId;
+
+            // ✅ Estado inicial del pedido
+            $order->status = 'pendiente_envio';
+
             $order->save();
 
             foreach ($cart as $item) {

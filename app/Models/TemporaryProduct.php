@@ -2,22 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TemporaryProduct extends Model
 {
-    use HasFactory;
+    protected $table = 'temporary_products';
 
     protected $fillable = [
         'title',
+        'seo_title',
+        'seo_description',
         'price',
-        'original_price',
-        'discount',
-        'sold_count',
-        'rating',
         'image_url',
-        'product_url',
     ];
-
 }

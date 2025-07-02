@@ -64,7 +64,7 @@ const Dashboard = () => {
             <NavCard icon={<ShoppingBag />} label="Mis Pedidos" href="/orders" />
             <NavCard icon={<Truck />} label="Pedidos Enviados" href="/orders/shipped" />
             <NavCard icon={<CreditCard />} label="Pedidos Pagados" href="/orders/paid" />
-            <NavCard icon={<ShoppingCart />} label="Mi Carrito" href="/cart" badge={cartItems.length} />
+            <NavCard icon={<ShoppingCart />} label="Mi Carrito" href="/checkout" badge={cartItems.length} />
             <NavCard icon={<Settings />} label="Editar Perfil" href="/profile" />
             <NavCard icon={<PlusCircle />} label="Agregar Producto" href="/products/add" />
             <NavCard icon={<Search />} label="Buscar Productos" href="/search" />
@@ -120,7 +120,7 @@ const Dashboard = () => {
                     ${(item.price * item.quantity).toFixed(2)}
                   </p>
                   <a
-                    href="/cart"
+                    href="/checkout"
                     className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition"
                   >
                     Ver Carrito

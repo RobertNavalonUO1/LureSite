@@ -9,30 +9,45 @@ import ForgotPassword from '@/Components/ForgotPassword';
 import TopBanner from '@/Components/TopBanner';
 import TopNavMenu from '@/Components/TopNavMenu';
 
-// ✅ Nuevos modales de cookies
+import ProductCard from '@/Components/ProductCard';
+import ActiveFilters from '@/Components/ActiveFilters';
+import AdvancedSearch from '@/Components/AdvancedSearch';
+import ProductSkeletonCard from '@/Components/ProductSkeletonCard';
+import Loader from '@/Components/Loader';
+
 import CookieConsentModal from '@/Components/CookieConsentModal';
 import CustomizeCookiesModal from '@/Components/CustomizeCookiesModal';
+
+import UI_CONFIG from '@/config/ui.config';
 
 const Home = () => {
   const { categories, products, auth } = usePage().props;
 
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [favorites, setFavorites] = useState([]);
+
   const [modalMessage, setModalMessage] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
-  // ✅ Estados para cookies
   const [showCookiesModal, setShowCookiesModal] = useState(false);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
 
-  // ✅ Mostrar cookies solo si no ha sido aceptado o rechazado aún
   useEffect(() => {
     const accepted = localStorage.getItem('cookiesAccepted');
-    if (!accepted) setShowCookiesModal(true);
+    if (!accepted && UI_CONFIG.cookies.showConsentByDefault) {
+      setShowCookiesModal(true);
+    }
+
+    const timer = setTimeout(() => setIsLoading(false), UI_CONFIG.loader.delay);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleAcceptCookies = () => {
@@ -50,9 +65,19 @@ const Home = () => {
     setShowCookiesModal(false);
   };
 
+  const toggleFavorite = (productId) => {
+    setFavorites(prev =>
+      prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(search.toLowerCase()) &&
-    (!selectedCategory || product.category.id === selectedCategory)
+    (!selectedCategory || product.category.id === selectedCategory) &&
+    (minPrice === '' || product.price >= parseFloat(minPrice)) &&
+    (maxPrice === '' || product.price <= parseFloat(maxPrice))
   );
 
   const addToCart = (productId) => {
@@ -84,20 +109,21 @@ const Home = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* HEADER */}
-      <header className="bg-blue-600 text-white py-4 px-6 flex justify-between items-center">
-        <h1 className="text-xl font-bold">Mi Aplicación</h1>
+      <header className="bg-blue-600 text-white py-4 px-6 flex flex-wrap justify-between items-center gap-4">
+        <h1 className="text-2xl font-bold">WorldExpense</h1>
 
-        <div className="flex items-center space-x-4 flex-grow mx-6">
-          <input
-            type="text"
-            placeholder="Buscar productos..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="px-3 py-2 border rounded text-gray-700 flex-grow"
+        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:space-x-4 flex-grow mx-6 w-full sm:w-auto">
+          <AdvancedSearch
+            search={search}
+            setSearch={setSearch}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            minPrice={minPrice}
+            setMinPrice={setMinPrice}
+            maxPrice={maxPrice}
+            setMaxPrice={setMaxPrice}
+            categories={categories}
           />
-          <button className="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100">
-            Buscar
-          </button>
         </div>
 
         <nav className="flex items-center space-x-4">
@@ -118,15 +144,17 @@ const Home = () => {
           )}
         </nav>
       </header>
-<TopNavMenu />
-      {/* CONTENIDO PRINCIPAL */}
+
+      <TopNavMenu />
+
+      {/* CONTENIDO */}
       <div className="flex flex-grow">
-        {/* SIDEBAR DE CATEGORÍAS */}
-        <aside className="w-64 bg-white shadow-md p-4">
+        {/* SIDEBAR */}
+        <aside className="w-64 bg-white shadow-md p-4 hidden lg:block">
           <h2 className="text-xl font-semibold mb-4">Categorías</h2>
-          <ul>
+          <ul className="space-y-1">
             <li
-              className={`py-2 px-3 rounded cursor-pointer ${!selectedCategory ? 'bg-gray-200' : 'hover:bg-gray-200'}`}
+              className={`py-2 px-3 rounded cursor-pointer ${!selectedCategory ? 'bg-blue-100 font-bold' : 'hover:bg-gray-100'}`}
               onClick={() => setSelectedCategory(null)}
             >
               Todas las categorías
@@ -134,7 +162,7 @@ const Home = () => {
             {categories.map(category => (
               <li
                 key={category.id}
-                className={`py-2 px-3 rounded cursor-pointer ${selectedCategory === category.id ? 'bg-gray-300' : 'hover:bg-gray-200'}`}
+                className={`py-2 px-3 rounded cursor-pointer ${selectedCategory === category.id ? 'bg-blue-200 font-semibold' : 'hover:bg-gray-100'}`}
                 onClick={() => setSelectedCategory(category.id)}
               >
                 {category.name}
@@ -143,40 +171,42 @@ const Home = () => {
           </ul>
         </aside>
 
-        {/* PRODUCTOS */}
+        {/* PRINCIPAL */}
         <main className="flex-grow p-6">
-          <div className="hidden sm:block">
-            <TopBanner height="h-96" />
-          </div>
-          <h1 className="text-2xl font-bold mb-4">Productos Destacados</h1>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredProducts.length > 0 ? (
+          <TopBanner height="h-96" />
+
+          <h1 className="text-3xl font-bold mb-2 text-blue-800">Productos Destacados</h1>
+          <p className="text-gray-500 mb-4">Descubre lo mejor de nuestra tienda</p>
+
+          <ActiveFilters
+            selectedCategory={selectedCategory}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            categories={categories}
+            onClear={() => {
+              setSelectedCategory(null);
+              setMinPrice('');
+              setMaxPrice('');
+            }}
+          />
+
+<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {isLoading ? (
+              Array.from({ length: UI_CONFIG.loader.skeletonCount }).map((_, i) => (
+                <ProductSkeletonCard key={i} />
+              ))
+            ) : filteredProducts.length > 0 ? (
               filteredProducts.map(product => (
-                <div key={product.id} className="bg-white p-4 shadow-md rounded-lg">
-                  <a href={product.link || `/product/${product.id}`}>
-                    <picture>
-                      <source srcSet={product.image_url} type="image/avif" />
-                      <img
-                        src={product.image_url.replace('.avif', '.jpg')}
-                        alt={product.name}
-                        className="w-full h-40 object-cover rounded-md"
-                      />
-                    </picture>
-                  </a>
-                  <h3 className="text-lg font-semibold mt-2">{product.name}</h3>
-                  <p className="text-gray-500 text-sm">{product.category.name}</p>
-                  <p className="text-blue-600 font-bold mt-2">${product.price}</p>
-                  <button
-                    className="mt-3 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
-                    onClick={() => addToCart(product.id)}
-                    disabled={product.stock === 0}
-                  >
-                    {product.stock > 0 ? "🛒 Agregar al carrito" : "Agotado"}
-                  </button>
-                </div>
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={addToCart}
+                  isFavorite={favorites.includes(product.id)}
+                  onToggleFavorite={toggleFavorite}
+                />
               ))
             ) : (
-              <p className="text-gray-500 text-lg col-span-3">No hay productos en esta categoría.</p>
+              <Loader text="No se encontraron productos que coincidan con tu búsqueda." />
             )}
           </div>
         </main>
@@ -213,7 +243,7 @@ const Home = () => {
         onClose={() => setIsForgotPasswordOpen(false)}
       />
 
-      {/* ✅ MODALES DE COOKIES */}
+      {/* MODALES DE COOKIES */}
       {showCookiesModal && (
         <CookieConsentModal
           onAccept={handleAcceptCookies}
