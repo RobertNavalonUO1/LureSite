@@ -18,7 +18,20 @@ use App\Http\Controllers\AvatarController;
 use App\Http\Controllers\PythonScriptController;
 use App\Http\Controllers\ProductMigrationController;
 use Illuminate\Support\Facades\File;
+use App\Http\Controllers\Api\MobileApiController;
 
+Route::post('/mobile/register', [MobileApiController::class, 'register']);
+Route::post('/mobile/login', [MobileApiController::class, 'login']);
+
+Route::middleware('auth:sanctum')->prefix('mobile')->group(function () {
+    Route::get('/products', [MobileApiController::class, 'products']);
+    Route::get('/categories', [MobileApiController::class, 'categories']);
+    Route::post('/place-order', [MobileApiController::class, 'placeOrder']);
+    Route::get('/orders', [MobileApiController::class, 'myOrders']);
+    Route::post('/addresses', [MobileApiController::class, 'saveAddress']);
+    Route::get('/addresses', [MobileApiController::class, 'getAddresses']);
+    Route::get('/me', [MobileApiController::class, 'me']);
+});
 Route::get('/api/scripts', function () {
     $scripts = collect(File::files(base_path('python_scripts')))
         ->filter(fn($file) => $file->getExtension() === 'py')
@@ -29,7 +42,8 @@ Route::get('/api/scripts', function () {
 });
 Route::get('/migrate-products', [ProductMigrationController::class, 'index'])->name('migrate.products');
 Route::post('/migrate-products/{id}', [ProductMigrationController::class, 'migrate'])->name('migrate.product');
-Route::post('/bulk-migrate-products', [ProductMigrationController::class, 'bulkMigrate'])->name('bulk.migrate.products');Route::get('/agregador-enlaces', fn() => Inertia::render('AgregadorEnlaces'));
+Route::post('/bulk-migrate-products', [ProductMigrationController::class, 'bulkMigrate'])->name('bulk.migrate.products');
+Route::get('/agregador-enlaces', fn() => Inertia::render('AgregadorEnlaces'));
 Route::post('/run-script', [PythonScriptController::class, 'run']);
 
 Route::get('/deals/today', fn () => Inertia::render('DealsToday'))->name('deals.today');
@@ -37,17 +51,20 @@ Route::get('/superdeal', fn () => Inertia::render('SuperDeal'))->name('superdeal
 Route::get('/fast-shipping', fn () => Inertia::render('FastShipping'))->name('fast.shipping');
 Route::get('/new-arrivals', fn () => Inertia::render('NewArrivals'))->name('new.arrivals');
 Route::get('/seasonal', fn () => Inertia::render('SeasonalProducts'))->name('seasonal');
+
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/orders', [DashboardController::class, 'adminOrders'])->name('admin.orders');
     Route::post('/admin/orders/{order}/mark-shipped', [DashboardController::class, 'markAsShipped']);
     Route::post('/admin/orders/{order}/mark-delivered', [DashboardController::class, 'markAsDelivered']);
 });
+
 // Datos globales para Inertia
 Inertia::share([
     'cartItems' => fn() => session()->has('cart') ? array_values(session('cart')) : [],
     'cartCount' => fn() => session()->has('cart') ? array_sum(array_column(session('cart'), 'quantity')) : 0,
     'total'     => fn() => session()->has('cart') ? collect(session('cart'))->sum(fn($item) => $item['price'] * $item['quantity']) : 0,
 ]);
+
 Route::post('/api/avatar-upload', [AvatarController::class, 'store'])->middleware('auth');
 
 /**
@@ -85,15 +102,18 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-// Detalles y páginas estáticas
-Route::get('/product/{id}', fn($id) => Inertia::render('ProductDetails', ['product' => Product::findOrFail($id)]))->name('product.details');
+// Detalles del producto (usa nuevo layout con carrito lateral)
+Route::get('/product/{id}', fn($id) => Inertia::render('Layouts/ProductPageLayout', [
+    'product' => \App\Models\Product::with('category')->findOrFail($id)
+]))->name('product.details');
+
 Route::get('/about', fn() => Inertia::render('About'))->name('about');
 Route::get('/contact', fn() => Inertia::render('Contact'))->name('contact');
 
 // Búsqueda
 Route::get('/search', [SearchController::class, 'search'])->name('search');
 
-// Productos temporales (scraping o admin)
+// Productos temporales
 Route::get('/products/add', [AddProdukController::class, 'create'])->name('products.create');
 Route::post('/products/store', [AddProdukController::class, 'store'])->name('products.store');
 Route::get('/select-products', [ProductController::class, 'showTemporaryProducts'])->name('products.select');
@@ -107,38 +127,32 @@ Route::post('/cart/{productId}/remove', [CartController::class, 'removeFromCart'
 Route::post('/cart/{productId}/increment', [CartController::class, 'incrementQuantity']);
 Route::post('/cart/{productId}/decrement', [CartController::class, 'decreaseQuantity']);
 
-// Checkout (Invitado y Autenticado)
+// Checkout
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout/guest-address', [CheckoutController::class, 'storeGuestAddress'])->name('checkout.guest_address');
-
-// Direcciones públicas (auto-completar, etc.)
 Route::get('/addresses/search', [CheckoutController::class, 'getAddresses']);
 
 /**
- * 🔒 RUTAS PROTEGIDAS (requieren login)
+ * 🔒 RUTAS PROTEGIDAS
  */
 Route::middleware(['auth'])->group(function () {
-    // Perfil y usuario
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/orders', [DashboardController::class, 'index'])->name('orders.index');
     Route::get('/orders/shipped', [DashboardController::class, 'shipped'])->name('orders.shipped');
 
-    // Checkout pago (procesamiento)
     Route::post('/checkout/stripe', [CheckoutController::class, 'stripeCheckout'])->name('checkout.stripe');
     Route::post('/checkout/paypal', [CheckoutController::class, 'paypalCheckout'])->name('checkout.paypal');
     Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
     Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
 
-    // Direcciones privadas
     Route::post('/addresses/store', [CheckoutController::class, 'storeAddress'])->name('addresses.store');
 
-    // Perfil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Autenticación (Laravel Breeze, Jetstream, etc.)
+// Autenticación
 require __DIR__ . '/auth.php';
 
 // Ruta de prueba

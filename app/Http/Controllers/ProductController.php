@@ -116,4 +116,36 @@ class ProductController extends Controller
                 ->with('error', 'Hubo un error al migrar los productos.');
         }
     }
+
+    // Mostrar detalle del producto tipo AliExpress
+    public function show($id)
+    {
+        $product = Product::with('category')->findOrFail($id);
+
+        return Inertia::render('ProductDetails', [
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'description' => $product->description,
+                'price' => $product->price,
+                'original_price' => $product->original_price ?? ($product->price * 1.3),
+                'discount' => '30%',
+                'stock' => $product->stock,
+                'sold_count' => 159, // o usa $product->sold_count si existe
+                'rating' => 4.6, // o usa $product->rating si existe
+                'image_url' => $product->image_url,
+                'gallery' => [
+                    $product->image_url,
+                    $product->image_url,
+                    $product->image_url
+                ],
+                'colors' => ['Verde', 'Azul', 'Rosa', 'Negro'],
+                'sizes' => ['A3', 'A4', 'A5'],
+                'category' => [
+                    'id' => optional($product->category)->id,
+                    'name' => optional($product->category)->name,
+                ],
+            ]
+        ]);
+    }
 }
