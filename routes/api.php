@@ -1,8 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\MobileApiController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -10,12 +9,18 @@ use App\Http\Controllers\Api\MobileApiController;
 |--------------------------------------------------------------------------
 */
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\MobileApiController;
+
 Route::post('/mobile/register', [MobileApiController::class, 'register']);
 Route::post('/mobile/login', [MobileApiController::class, 'login']);
 
+// 👇 Rutas públicas (sin token)
+Route::get('/mobile/products', [MobileApiController::class, 'products']);
+Route::get('/mobile/categories', [MobileApiController::class, 'categories']);
+
+// 👇 Rutas protegidas (requieren token válido)
 Route::middleware('auth:sanctum')->prefix('mobile')->group(function () {
-    Route::get('/products', [MobileApiController::class, 'products']);
-    Route::get('/categories', [MobileApiController::class, 'categories']);
     Route::post('/place-order', [MobileApiController::class, 'placeOrder']);
     Route::get('/orders', [MobileApiController::class, 'myOrders']);
     Route::post('/addresses', [MobileApiController::class, 'saveAddress']);
