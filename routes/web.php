@@ -8,30 +8,16 @@ use App\Http\Controllers\{
     CheckoutController,
     SearchController,
     ProductController,
-    AddProdukController
+    AddProdukController,
+    AvatarController,
+    PythonScriptController,
+    ProductMigrationController
 };
 use Inertia\Inertia;
 use App\Models\{Product, Category};
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\AvatarController;
-
-use App\Http\Controllers\PythonScriptController;
-use App\Http\Controllers\ProductMigrationController;
 use Illuminate\Support\Facades\File;
-use App\Http\Controllers\Api\MobileApiController;
 
-Route::post('/mobile/register', [MobileApiController::class, 'register']);
-Route::post('/mobile/login', [MobileApiController::class, 'login']);
-
-Route::middleware('auth:sanctum')->prefix('mobile')->group(function () {
-    Route::get('/products', [MobileApiController::class, 'products']);
-    Route::get('/categories', [MobileApiController::class, 'categories']);
-    Route::post('/place-order', [MobileApiController::class, 'placeOrder']);
-    Route::get('/orders', [MobileApiController::class, 'myOrders']);
-    Route::post('/addresses', [MobileApiController::class, 'saveAddress']);
-    Route::get('/addresses', [MobileApiController::class, 'getAddresses']);
-    Route::get('/me', [MobileApiController::class, 'me']);
-});
 Route::get('/api/scripts', function () {
     $scripts = collect(File::files(base_path('python_scripts')))
         ->filter(fn($file) => $file->getExtension() === 'py')
@@ -58,7 +44,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/orders/{order}/mark-delivered', [DashboardController::class, 'markAsDelivered']);
 });
 
-// Datos globales para Inertia
 Inertia::share([
     'cartItems' => fn() => session()->has('cart') ? array_values(session('cart')) : [],
     'cartCount' => fn() => session()->has('cart') ? array_sum(array_column(session('cart'), 'quantity')) : 0,
@@ -67,11 +52,6 @@ Inertia::share([
 
 Route::post('/api/avatar-upload', [AvatarController::class, 'store'])->middleware('auth');
 
-/**
- * 🌐 RUTAS PÚBLICAS
- */
-
-// Página principal
 Route::get('/', function () {
     $cartItems = session()->get('cart', []);
     $cartCount = array_sum(array_column($cartItems, 'quantity'));
@@ -102,7 +82,6 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-// Detalles del producto (usa nuevo layout con carrito lateral)
 Route::get('/product/{id}', fn($id) => Inertia::render('Layouts/ProductPageLayout', [
     'product' => \App\Models\Product::with('category')->findOrFail($id)
 ]))->name('product.details');
@@ -110,31 +89,24 @@ Route::get('/product/{id}', fn($id) => Inertia::render('Layouts/ProductPageLayou
 Route::get('/about', fn() => Inertia::render('About'))->name('about');
 Route::get('/contact', fn() => Inertia::render('Contact'))->name('contact');
 
-// Búsqueda
 Route::get('/search', [SearchController::class, 'search'])->name('search');
 
-// Productos temporales
 Route::get('/products/add', [AddProdukController::class, 'create'])->name('products.create');
 Route::post('/products/store', [AddProdukController::class, 'store'])->name('products.store');
 Route::get('/select-products', [ProductController::class, 'showTemporaryProducts'])->name('products.select');
 Route::post('/migrate-selected-products', [ProductController::class, 'migrateSelectedProducts'])->name('products.migrate');
 Route::post('/add-temporary-product', [ProductController::class, 'storeTemporaryProduct'])->name('products.storeTemporary');
 
-// Carrito
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/{productId}/add', [CartController::class, 'addToCart'])->name('cart.add');
 Route::post('/cart/{productId}/remove', [CartController::class, 'removeFromCart']);
 Route::post('/cart/{productId}/increment', [CartController::class, 'incrementQuantity']);
 Route::post('/cart/{productId}/decrement', [CartController::class, 'decreaseQuantity']);
 
-// Checkout
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout/guest-address', [CheckoutController::class, 'storeGuestAddress'])->name('checkout.guest_address');
 Route::get('/addresses/search', [CheckoutController::class, 'getAddresses']);
 
-/**
- * 🔒 RUTAS PROTEGIDAS
- */
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/orders', [DashboardController::class, 'index'])->name('orders.index');
@@ -152,8 +124,6 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Autenticación
 require __DIR__ . '/auth.php';
 
-// Ruta de prueba
 Route::get('/test', fn() => Inertia::render('ShippedOrders', ['message' => '¡Hola Inertia!']));
