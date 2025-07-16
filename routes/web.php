@@ -17,7 +17,22 @@ use Inertia\Inertia;
 use App\Models\{Product, Category};
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 
+// routes/web.php
+use App\Http\Controllers\Auth\FirebaseLoginController;
+
+Route::middleware(['web'])->group(function () {
+    Route::post('/auth/firebase', [FirebaseLoginController::class, 'handle'])->name('auth.firebase');
+});
+/*
+Route::middleware(['auth'])->group(function () {
+    Route::get('/checkout', function () {
+        Gate::authorize('verified', auth()->user());
+        return view('checkout');
+    });
+});
+*/
 Route::get('/api/scripts', function () {
     $scripts = collect(File::files(base_path('python_scripts')))
         ->filter(fn($file) => $file->getExtension() === 'py')

@@ -28,6 +28,7 @@
         "@react-three/drei": "^10.3.0",
         "@react-three/fiber": "^9.1.2",
         "@stripe/stripe-js": "^1.54.2",
+        "firebase": "^11.10.0",
         "font-awesome": "^4.7.0",
         "framer-motion": "^12.18.1",
         "lucide-react": "^0.475.0",

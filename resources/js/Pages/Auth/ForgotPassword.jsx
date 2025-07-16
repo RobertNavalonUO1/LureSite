@@ -2,51 +2,61 @@ import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
+import { useState } from 'react';
+import { sendResetEmail } from '@/utils/firebaseLogin';
 
-export default function ForgotPassword({ status }) {
-    const { data, setData, post, processing, errors } = useForm({
-        email: '',
-    });
+export default function ForgotPassword() {
+    const [email, setEmail] = useState('');
+    const [success, setSuccess] = useState(false);
+    const [error, setError] = useState(null);
+    const [processing, setProcessing] = useState(false);
 
-    const submit = (e) => {
+    const submit = async (e) => {
         e.preventDefault();
+        setProcessing(true);
+        setError(null);
 
-        post(route('password.email'));
+        try {
+            await sendResetEmail(email);
+            setSuccess(true);
+        } catch (err) {
+            setError('No se pudo enviar el enlace de recuperación.');
+        } finally {
+            setProcessing(false);
+        }
     };
 
     return (
         <GuestLayout>
-            <Head title="Forgot Password" />
+            <Head title="Recuperar contraseña" />
 
             <div className="mb-4 text-sm text-gray-600">
-                Forgot your password? No problem. Just let us know your email
-                address and we will email you a password reset link that will
-                allow you to choose a new one.
+                Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
             </div>
 
-            {status && (
+            {success && (
                 <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
+                    Enlace enviado correctamente. Revisa tu bandeja de entrada.
                 </div>
             )}
+
+            {error && <InputError message={error} className="mt-2" />}
 
             <form onSubmit={submit}>
                 <TextInput
                     id="email"
                     type="email"
                     name="email"
-                    value={data.email}
+                    value={email}
                     className="mt-1 block w-full"
                     isFocused={true}
-                    onChange={(e) => setData('email', e.target.value)}
+                    onChange={(e) => setEmail(e.target.value)}
                 />
-
-                <InputError message={errors.email} className="mt-2" />
 
                 <div className="mt-4 flex items-center justify-end">
                     <PrimaryButton className="ms-4" disabled={processing}>
-                        Email Password Reset Link
+                        Enviar enlace
                     </PrimaryButton>
                 </div>
             </form>

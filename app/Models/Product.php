@@ -13,8 +13,16 @@ class Product extends Model
         'name', 'description', 'price', 'image_url', 'stock', 'category_id', 'is_adult', 'link'
     ];
 
+    protected $appends = ['image_url_full'];
+
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    // 🔽 Esto genera la URL completa
+    public function getImageUrlFullAttribute()
+    {
+        return url('storage/' . $this->image_url);
     }
 }

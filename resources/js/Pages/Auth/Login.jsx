@@ -5,6 +5,8 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { loginWithEmail, loginWithGoogle, loginWithFacebook } from '@/utils/firebaseLogin';
+import axios from 'axios';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -18,6 +20,20 @@ export default function Login({ status, canResetPassword }) {
         post(route('login'), {
             onFinish: () => reset('password'),
         });
+    };
+
+    const handleFirebaseLogin = async (provider) => {
+        try {
+            const idToken = provider === 'google'
+                ? await loginWithGoogle()
+                : await loginWithFacebook();
+
+            await axios.post('/api/auth/firebase', { id_token: idToken });
+            window.location.href = '/dashboard';
+        } catch (err) {
+            console.error(err);
+            alert("Error al iniciar sesión con Firebase");
+        }
     };
 
     return (
@@ -93,6 +109,15 @@ export default function Login({ status, canResetPassword }) {
                         <Link href={route('register')} className="text-blue-500 hover:underline">
                             Regístrate
                         </Link>
+                    </div>
+
+                    <div className="mt-6 space-y-2">
+                        <button onClick={() => handleFirebaseLogin('google')} className="w-full bg-red-500 text-white py-2 rounded">
+                            Iniciar sesión con Google
+                        </button>
+                        <button onClick={() => handleFirebaseLogin('facebook')} className="w-full bg-blue-600 text-white py-2 rounded">
+                            Iniciar sesión con Facebook
+                        </button>
                     </div>
                 </div>
             </div>

@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 | API Routes
 |--------------------------------------------------------------------------
 */
+// routes/api.php
+use App\Http\Controllers\Auth\FirebaseLoginController;
+
+
+Route::post('/auth/firebase-mobile', [FirebaseLoginController::class, 'handleMobile']); // App móvil
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\MobileApiController;
