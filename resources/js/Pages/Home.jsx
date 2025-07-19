@@ -130,18 +130,56 @@ const Home = () => {
           <a href="/about" className="hover:underline">Acerca de</a>
           <a href="/contact" className="hover:underline">Contacto</a>
           <CartDropdown />
-          {auth.user ? (
-            <a href="/dashboard" className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-900">
-              Perfil
-            </a>
-          ) : (
-            <button
-              onClick={() => setIsLoginOpen(true)}
-              className="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100"
-            >
-              Iniciar Sesión
-            </button>
-          )}
+{auth.user ? (
+  <div className="relative">
+    <button
+      onClick={toggleProfileMenu}
+      className="flex items-center space-x-2 focus:outline-none"
+    >
+      {auth.user.photo_url && (
+        <img
+          src={auth.user.photo_url}
+          alt="Avatar"
+          className="w-8 h-8 rounded-full object-cover"
+        />
+      )}
+      <span className="text-sm text-white">{auth.user.email}</span>
+      <svg
+        className="w-4 h-4 text-white"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+
+    {isProfileMenuOpen && (
+      <div className="absolute right-0 mt-2 w-40 bg-white rounded shadow-lg z-50">
+        <a
+          href="/dashboard"
+          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+        >
+          Panel
+        </a>
+        <button
+          onClick={handleLogout}
+          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    )}
+  </div>
+) : (
+  <button
+    onClick={() => setIsLoginOpen(true)}
+    className="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100"
+  >
+    Iniciar Sesión
+  </button>
+)}
+
         </nav>
       </header>
 

@@ -6,7 +6,6 @@ import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { loginWithEmail, loginWithGoogle, loginWithFacebook } from '@/utils/firebaseLogin';
-import axios from 'axios';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -22,14 +21,36 @@ export default function Login({ status, canResetPassword }) {
         });
     };
 
+    const submitFirebaseToken = async (idToken) => {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/auth/firebase';
+
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = 'id_token';
+        tokenInput.value = idToken;
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = csrfToken;
+
+        form.appendChild(tokenInput);
+        form.appendChild(csrfInput);
+
+        document.body.appendChild(form);
+        form.submit();
+    };
+
     const handleFirebaseLogin = async (provider) => {
         try {
             const idToken = provider === 'google'
                 ? await loginWithGoogle()
                 : await loginWithFacebook();
 
-            await axios.post('/api/auth/firebase', { id_token: idToken });
-            window.location.href = '/dashboard';
+            await submitFirebaseToken(idToken); // 🟢 Redirección segura con cookie Laravel
         } catch (err) {
             console.error(err);
             alert("Error al iniciar sesión con Firebase");
