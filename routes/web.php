@@ -18,46 +18,21 @@ use App\Models\{Product, Category};
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Http\Request;
 
-// 🔐 Firebase login
+// routes/web.php
 use App\Http\Controllers\Auth\FirebaseLoginController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
-Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
-    ->middleware('auth')
-    ->name('logout');
 Route::middleware(['web'])->group(function () {
     Route::post('/auth/firebase', [FirebaseLoginController::class, 'handle'])->name('auth.firebase');
 });
-
-// ✅ NUEVO: ruta para completar datos faltantes después de login con Firebase
+/*
 Route::middleware(['auth'])->group(function () {
-    Route::get('/complete-profile', function () {
-        return Inertia::render('CompleteProfile', [
-            'user' => Auth::user(),
-        ]);
-    });
-
-    Route::post('/complete-profile', function (Request $request) {
-        $request->validate([
-            'lastname' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'address' => 'nullable|string|max:255',
-        ]);
-
-        $user = Auth::user();
-        $user->update([
-            'lastname' => $request->lastname,
-            'phone' => $request->phone,
-        ]);
-
-        // Puedes guardar la dirección en otra tabla si corresponde
-        return redirect('/dashboard');
+    Route::get('/checkout', function () {
+        Gate::authorize('verified', auth()->user());
+        return view('checkout');
     });
 });
-
-// === SCRIPTS & MIGRACIÓN ===
+*/
 Route::get('/api/scripts', function () {
     $scripts = collect(File::files(base_path('python_scripts')))
         ->filter(fn($file) => $file->getExtension() === 'py')
@@ -66,15 +41,12 @@ Route::get('/api/scripts', function () {
 
     return response()->json($scripts);
 });
-
 Route::get('/migrate-products', [ProductMigrationController::class, 'index'])->name('migrate.products');
 Route::post('/migrate-products/{id}', [ProductMigrationController::class, 'migrate'])->name('migrate.product');
 Route::post('/bulk-migrate-products', [ProductMigrationController::class, 'bulkMigrate'])->name('bulk.migrate.products');
-
 Route::get('/agregador-enlaces', fn() => Inertia::render('AgregadorEnlaces'));
 Route::post('/run-script', [PythonScriptController::class, 'run']);
 
-// === LANDING PAGES ===
 Route::get('/deals/today', fn () => Inertia::render('DealsToday'))->name('deals.today');
 Route::get('/superdeal', fn () => Inertia::render('SuperDeal'))->name('superdeal');
 Route::get('/fast-shipping', fn () => Inertia::render('FastShipping'))->name('fast.shipping');
@@ -95,7 +67,6 @@ Inertia::share([
 
 Route::post('/api/avatar-upload', [AvatarController::class, 'store'])->middleware('auth');
 
-// === HOME ===
 Route::get('/', function () {
     $cartItems = session()->get('cart', []);
     $cartCount = array_sum(array_column($cartItems, 'quantity'));
@@ -132,28 +103,25 @@ Route::get('/product/{id}', fn($id) => Inertia::render('Layouts/ProductPageLayou
 
 Route::get('/about', fn() => Inertia::render('About'))->name('about');
 Route::get('/contact', fn() => Inertia::render('Contact'))->name('contact');
+
 Route::get('/search', [SearchController::class, 'search'])->name('search');
 
-// === PRODUCTOS ===
 Route::get('/products/add', [AddProdukController::class, 'create'])->name('products.create');
 Route::post('/products/store', [AddProdukController::class, 'store'])->name('products.store');
 Route::get('/select-products', [ProductController::class, 'showTemporaryProducts'])->name('products.select');
 Route::post('/migrate-selected-products', [ProductController::class, 'migrateSelectedProducts'])->name('products.migrate');
 Route::post('/add-temporary-product', [ProductController::class, 'storeTemporaryProduct'])->name('products.storeTemporary');
 
-// === CARRITO ===
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/{productId}/add', [CartController::class, 'addToCart'])->name('cart.add');
 Route::post('/cart/{productId}/remove', [CartController::class, 'removeFromCart']);
 Route::post('/cart/{productId}/increment', [CartController::class, 'incrementQuantity']);
 Route::post('/cart/{productId}/decrement', [CartController::class, 'decreaseQuantity']);
 
-// === CHECKOUT ===
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout/guest-address', [CheckoutController::class, 'storeGuestAddress'])->name('checkout.guest_address');
 Route::get('/addresses/search', [CheckoutController::class, 'getAddresses']);
 
-// === USUARIO AUTENTICADO ===
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/orders', [DashboardController::class, 'index'])->name('orders.index');
@@ -171,6 +139,6 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// === RUTAS ADICIONALES ===
 require __DIR__ . '/auth.php';
+
 Route::get('/test', fn() => Inertia::render('ShippedOrders', ['message' => '¡Hola Inertia!']));

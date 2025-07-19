@@ -26,26 +26,21 @@ class FirebaseLoginController extends Controller
             $verifiedToken = $auth->verifyIdToken($idToken);
             $firebaseUser = $auth->getUser($verifiedToken->claims()->get('sub'));
 
-            $user = User::updateOrCreate(
+            $user = User::firstOrCreate(
                 ['email' => $firebaseUser->email],
                 [
                     'firebase_uid' => $firebaseUser->uid,
                     'name' => $firebaseUser->displayName ?? 'Usuario',
-                    'photo_url' => $firebaseUser->photoUrl ?? null,
                     'password' => Hash::make(Str::random(32)),
                 ]
             );
 
             auth()->login($user);
 
-            return redirect('/')->with([
-                'success' => 'Sesión iniciada correctamente',
-                'avatar' => $user->photo_url,
-                'email' => $user->email,
-            ]);
+            return redirect('/')->with('success', 'Sesión iniciada correctamente');
 
         } catch (\Throwable $e) {
-            return redirect('/')->with('firebase_error', 'Error al validar con Firebase. Intenta nuevamente.');
+            return redirect('/login')->with('error', 'Error al validar con Firebase. Intenta nuevamente.');
         }
     }
 
@@ -64,12 +59,11 @@ class FirebaseLoginController extends Controller
             $verifiedToken = $auth->verifyIdToken($idToken);
             $firebaseUser = $auth->getUser($verifiedToken->claims()->get('sub'));
 
-            $user = User::updateOrCreate(
+            $user = User::firstOrCreate(
                 ['email' => $firebaseUser->email],
                 [
                     'firebase_uid' => $firebaseUser->uid,
                     'name' => $firebaseUser->displayName ?? 'Usuario',
-                    'photo_url' => $firebaseUser->photoUrl ?? null,
                     'password' => Hash::make(Str::random(32)),
                 ]
             );

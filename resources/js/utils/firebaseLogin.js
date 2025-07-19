@@ -23,14 +23,10 @@ export async function registerWithEmail(name, email, password) {
 
 export async function loginWithGoogle() {
     const result = await signInWithPopup(auth, googleProvider);
-    const token = await result.user.getIdToken();
-    console.debug('[DEBUG] Token Google:', token);
-    return token;
+    return await result.user.getIdToken();
 }
 
 export async function loginWithFacebook() {
     const result = await signInWithPopup(auth, facebookProvider);
-    const token = await result.user.getIdToken();
-    console.debug('[DEBUG] Token Facebook:', token);
-    return token;
+    return await result.user.getIdToken();
 }
