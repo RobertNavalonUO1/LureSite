@@ -7,63 +7,102 @@ use Illuminate\Http\Request;
 use Kreait\Firebase\Factory;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Session;
 
 class FirebaseLoginController extends Controller
 {
     /**
-     * Autenticación Firebase para WEB (cookies + redirect + flash).
+     * Autenticación Firebase para la web (login persistente).
      */
     public function handle(Request $request)
     {
         $idToken = $request->input('id_token');
 
-        $auth = (new Factory)
-            ->withServiceAccount(storage_path('app/firebase/firebase_credentials.json'))
-            ->createAuth();
+        if (!$idToken) {
+            Log::warning('❌ ID token no recibido en la solicitud');
+            return redirect('/login')->with('error', 'No se recibió token de Firebase.');
+        }
 
         try {
-            $verifiedToken = $auth->verifyIdToken($idToken);
-            $firebaseUser = $auth->getUser($verifiedToken->claims()->get('sub'));
+            $auth = (new Factory)
+                ->withServiceAccount(storage_path('app/firebase/firebase_credentials.json'))
+                ->createAuth();
 
-            $user = User::firstOrCreate(
+            // ✅ 1. Verificar token
+            $verifiedToken = $auth->verifyIdToken($idToken);
+            $uid = $verifiedToken->claims()->get('sub');
+
+            // ✅ 2. Obtener usuario desde Firebase
+            $firebaseUser = $auth->getUser($uid);
+
+            if (!$firebaseUser->email) {
+                Log::error('❌ Firebase user no tiene email');
+                return redirect('/login')->with('error', 'No se pudo recuperar el email del usuario.');
+            }
+
+            Log::info('✅ Usuario Firebase autenticado', [
+                'uid' => $firebaseUser->uid,
+                'email' => $firebaseUser->email,
+                'name' => $firebaseUser->displayName,
+            ]);
+
+            // ✅ 3. Crear o actualizar usuario en base de datos
+            $user = User::updateOrCreate(
                 ['email' => $firebaseUser->email],
                 [
                     'firebase_uid' => $firebaseUser->uid,
                     'name' => $firebaseUser->displayName ?? 'Usuario',
-                    'password' => Hash::make(Str::random(32)),
+                    'photo_url' => $firebaseUser->photoUrl ?? null,
+                    'password' => Hash::make(Str::random(32)), // aleatoria
                 ]
             );
 
-            auth()->login($user);
+            // ✅ 4. Iniciar sesión en Laravel (recordar sesión)
+            auth()->login($user, true); // <- `true` asegura persistencia
+
+            Log::info('✅ Usuario autenticado en Laravel', [
+                'user_id' => $user->id,
+                'session_id' => session()->getId(),
+                'session_data' => session()->all(),
+            ]);
 
             return redirect('/')->with('success', 'Sesión iniciada correctamente');
 
         } catch (\Throwable $e) {
+            report($e);
+            Log::error('❌ Error al autenticar con Firebase', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return redirect('/login')->with('error', 'Error al validar con Firebase. Intenta nuevamente.');
         }
     }
 
     /**
-     * Autenticación Firebase para APP (token con Sanctum).
+     * Autenticación Firebase para apps móviles con Sanctum.
      */
     public function handleMobile(Request $request)
     {
         $idToken = $request->input('id_token');
 
-        $auth = (new Factory)
-            ->withServiceAccount(storage_path('app/firebase/firebase_credentials.json'))
-            ->createAuth();
-
         try {
-            $verifiedToken = $auth->verifyIdToken($idToken);
-            $firebaseUser = $auth->getUser($verifiedToken->claims()->get('sub'));
+            $auth = (new Factory)
+                ->withServiceAccount(storage_path('app/firebase/firebase_credentials.json'))
+                ->createAuth();
 
-            $user = User::firstOrCreate(
+            $verifiedToken = $auth->verifyIdToken($idToken);
+            $uid = $verifiedToken->claims()->get('sub');
+            $firebaseUser = $auth->getUser($uid);
+
+            $user = User::updateOrCreate(
                 ['email' => $firebaseUser->email],
                 [
                     'firebase_uid' => $firebaseUser->uid,
                     'name' => $firebaseUser->displayName ?? 'Usuario',
+                    'photo_url' => $firebaseUser->photoUrl ?? null,
                     'password' => Hash::make(Str::random(32)),
                 ]
             );
@@ -76,6 +115,12 @@ class FirebaseLoginController extends Controller
             ]);
 
         } catch (\Throwable $e) {
+            report($e);
+            Log::error('❌ Error en autenticación móvil Firebase', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return response()->json(['error' => 'Token inválido'], 401);
         }
     }

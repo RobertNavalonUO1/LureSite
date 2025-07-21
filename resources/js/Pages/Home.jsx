@@ -22,6 +22,7 @@ import UI_CONFIG from '@/config/ui.config';
 
 const Home = () => {
   const { categories, products, auth } = usePage().props;
+  const user = auth?.user;
 
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -106,6 +107,10 @@ const Home = () => {
 
   const modalClass = modalMessage.includes('error') ? 'bg-red-500' : 'bg-green-500';
 
+  const handleLogout = () => {
+    Inertia.post('/logout');
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* HEADER */}
@@ -130,10 +135,23 @@ const Home = () => {
           <a href="/about" className="hover:underline">Acerca de</a>
           <a href="/contact" className="hover:underline">Contacto</a>
           <CartDropdown />
-          {auth.user ? (
-            <a href="/dashboard" className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-900">
-              Perfil
-            </a>
+          {user ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm hidden sm:inline">Hola, {user.name}</span>
+              <a href="/dashboard" title="Perfil">
+                <img
+                  src={user.avatar || user.photo_url || '/default-avatar.png'}
+                  alt="Avatar"
+                  className="w-8 h-8 rounded-full border border-white object-cover"
+                />
+              </a>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+              >
+                Cerrar sesión
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => setIsLoginOpen(true)}
@@ -190,7 +208,7 @@ const Home = () => {
             }}
           />
 
-<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {isLoading ? (
               Array.from({ length: UI_CONFIG.loader.skeletonCount }).map((_, i) => (
                 <ProductSkeletonCard key={i} />

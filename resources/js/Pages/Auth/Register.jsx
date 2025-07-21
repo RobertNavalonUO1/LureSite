@@ -3,7 +3,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { registerWithEmail, loginWithGoogle, loginWithFacebook } from '@/utils/firebaseLogin';
 
 export default function Register() {
@@ -14,6 +14,9 @@ export default function Register() {
         password_confirmation: '',
     });
 
+    const { props } = usePage();
+    const serverError = props?.errors?.default || props?.flash?.error;
+
     const submit = (e) => {
         e.preventDefault();
         post(route('register'), {
@@ -21,7 +24,14 @@ export default function Register() {
         });
     };
 
-    const submitFirebaseToken = async (idToken) => {
+    const submitFirebaseToken = (idToken) => {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        if (!csrfToken) {
+            alert('CSRF token no encontrado. Recarga la página.');
+            return;
+        }
+
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '/auth/firebase';
@@ -31,7 +41,6 @@ export default function Register() {
         tokenInput.name = 'id_token';
         tokenInput.value = idToken;
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         const csrfInput = document.createElement('input');
         csrfInput.type = 'hidden';
         csrfInput.name = '_token';
@@ -39,7 +48,6 @@ export default function Register() {
 
         form.appendChild(tokenInput);
         form.appendChild(csrfInput);
-
         document.body.appendChild(form);
         form.submit();
     };
@@ -56,16 +64,22 @@ export default function Register() {
                 idToken = await registerWithEmail(data.name, data.email, data.password);
             }
 
-            await submitFirebaseToken(idToken); // 🔁 submit como formulario
+            submitFirebaseToken(idToken);
         } catch (err) {
             console.error(err);
-            alert("Error al registrar con Firebase");
+            alert('Error al registrar con Firebase: ' + err.message);
         }
     };
 
     return (
         <GuestLayout>
             <Head title="Register" />
+
+            {serverError && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    {serverError}
+                </div>
+            )}
 
             <form onSubmit={submit}>
                 <div>

@@ -24,7 +24,9 @@ class User extends Authenticatable
         'phone',
         'password',
         'default_address_id',
-        'avatar', // ✅ NUEVO: avatar del usuario (imagen)
+        'avatar',
+        'firebase_uid',  // ✅ Nuevo: ID único del usuario en Firebase
+        'photo_url',     // ✅ Nuevo: foto de perfil de Google/Firebase
     ];
 
     /**
@@ -38,10 +40,10 @@ class User extends Authenticatable
     /**
      * Atributos que deben convertirse a tipos nativos.
      */
-protected $casts = [
-    'email_verified_at' => 'datetime',
-    'is_admin' => 'boolean',
-];
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'is_admin' => 'boolean',
+    ];
 
     /**
      * Relación: el usuario tiene preferencias de cookies.

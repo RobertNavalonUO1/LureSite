@@ -8,14 +8,15 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('lastname')->nullable();
+            $table->string('firebase_uid')->nullable()->after('id')->unique();
+            $table->string('photo_url')->nullable()->after('avatar');
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('lastname');
+            $table->dropColumn(['firebase_uid', 'photo_url']);
         });
     }
 };

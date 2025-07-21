@@ -53,6 +53,36 @@ class DashboardController extends Controller
             'cartItems' => array_values($cart),
         ]);
     }
+public function orders()
+{
+    $user = Auth::user();
+
+    $orders = Order::where('user_id', $user->id)
+        ->with('items.product')
+        ->orderByDesc('created_at')
+        ->get()
+        ->map(function ($order) {
+            return [
+                'id'     => $order->id,
+                'date'   => $order->created_at->format('Y-m-d'),
+                'total'  => number_format($order->total, 2),
+                'status' => $order->status,
+                'items'  => $order->items->map(function ($item) {
+                    return [
+                        'id'       => $item->product->id,
+                        'name'     => $item->product->name,
+                        'image'    => $item->product->image,
+                        'quantity' => $item->quantity,
+                        'price'    => $item->price,
+                    ];
+                }),
+            ];
+        });
+
+    return Inertia::render('Orders/Index', [
+        'orders' => $orders,
+    ]);
+}
 
     /**
      * Muestra solo los pedidos enviados o entregados.
