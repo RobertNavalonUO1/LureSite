@@ -8,20 +8,21 @@ import RegistrarModal from '@/Components/RegistrarModal';
 import ForgotPassword from '@/Components/ForgotPassword';
 import TopBanner from '@/Components/TopBanner';
 import TopNavMenu from '@/Components/TopNavMenu';
-
+import Header from '@/Components/Header';
 import ProductCard from '@/Components/ProductCard';
+import RecommendationBlock from '@/Components/RecommendationBlock';
 import ActiveFilters from '@/Components/ActiveFilters';
 import AdvancedSearch from '@/Components/AdvancedSearch';
 import ProductSkeletonCard from '@/Components/ProductSkeletonCard';
 import Loader from '@/Components/Loader';
-
 import CookieConsentModal from '@/Components/CookieConsentModal';
 import CustomizeCookiesModal from '@/Components/CustomizeCookiesModal';
-
 import UI_CONFIG from '@/config/ui.config';
+import CategoryCards from '@/Components/CategoryCards';
+import SidebarBanners from '@/Components/SidebarBanners';
 
 const Home = () => {
-  const { categories, products, auth } = usePage().props;
+  const { categories, products, banners, auth } = usePage().props;
   const user = auth?.user;
 
   const [search, setSearch] = useState('');
@@ -38,15 +39,36 @@ const Home = () => {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
+  // Estado para mostrar el bloque de recomendaciones
+  const [showRecommendations, setShowRecommendations] = useState(false);
+
+  // Detecta si el usuario ha hecho scroll más de 2 pantallas
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > window.innerHeight * 2) {
+        setShowRecommendations(true);
+      } else {
+        setShowRecommendations(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Productos nuevos para el bloque de recomendaciones
+  const newProducts = products
+    .filter(p => p.is_new)
+    .slice(0, 6);
   const [showCookiesModal, setShowCookiesModal] = useState(false);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
+
+  const [dropdownElement, setDropdownElement] = useState(null);
 
   useEffect(() => {
     const accepted = localStorage.getItem('cookiesAccepted');
     if (!accepted && UI_CONFIG.cookies.showConsentByDefault) {
       setShowCookiesModal(true);
     }
-
     const timer = setTimeout(() => setIsLoading(false), UI_CONFIG.loader.delay);
     return () => clearTimeout(timer);
   }, []);
@@ -105,139 +127,90 @@ const Home = () => {
     }, 2000);
   };
 
-  const modalClass = modalMessage.includes('error') ? 'bg-red-500' : 'bg-green-500';
-
-  const handleLogout = () => {
-    Inertia.post('/logout');
-  };
+  const modalClass = modalMessage.includes('error') ? 'bg-error' : 'bg-success';
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* HEADER */}
-      <header className="bg-blue-600 text-white py-4 px-6 flex flex-wrap justify-between items-center gap-4">
-        <h1 className="text-2xl font-bold">WorldExpense</h1>
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:space-x-4 flex-grow mx-6 w-full sm:w-auto">
-          <AdvancedSearch
-            search={search}
-            setSearch={setSearch}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            minPrice={minPrice}
-            setMinPrice={setMinPrice}
-            maxPrice={maxPrice}
-            setMaxPrice={setMaxPrice}
-            categories={categories}
-          />
-        </div>
-
-        <nav className="flex items-center space-x-4">
-          <a href="/about" className="hover:underline">Acerca de</a>
-          <a href="/contact" className="hover:underline">Contacto</a>
-          <CartDropdown />
-          {user ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm hidden sm:inline">Hola, {user.name}</span>
-              <a href="/dashboard" title="Perfil">
-                <img
-                  src={user.avatar || user.photo_url || '/default-avatar.png'}
-                  alt="Avatar"
-                  className="w-8 h-8 rounded-full border border-white object-cover"
-                />
-              </a>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-              >
-                Cerrar sesión
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsLoginOpen(true)}
-              className="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100"
-            >
-              Iniciar Sesión
-            </button>
-          )}
-        </nav>
-      </header>
-
+    <div className="flex flex-col min-h-screen bg-neutral-lighter text-neutral">
+      <Header />
       <TopNavMenu />
 
-      {/* CONTENIDO */}
-      <div className="flex flex-grow">
-        {/* SIDEBAR */}
-        <aside className="w-64 bg-white shadow-md p-4 hidden lg:block">
-          <h2 className="text-xl font-semibold mb-4">Categorías</h2>
-          <ul className="space-y-1">
-            <li
-              className={`py-2 px-3 rounded cursor-pointer ${!selectedCategory ? 'bg-blue-100 font-bold' : 'hover:bg-gray-100'}`}
-              onClick={() => setSelectedCategory(null)}
-            >
-              Todas las categorías
-            </li>
-            {categories.map(category => (
-              <li
-                key={category.id}
-                className={`py-2 px-3 rounded cursor-pointer ${selectedCategory === category.id ? 'bg-blue-200 font-semibold' : 'hover:bg-gray-100'}`}
-                onClick={() => setSelectedCategory(category.id)}
-              >
-                {category.name}
-              </li>
-            ))}
-          </ul>
-        </aside>
-
-        {/* PRINCIPAL */}
-        <main className="flex-grow p-6">
-          <TopBanner height="h-96" />
-
-          <h1 className="text-3xl font-bold mb-2 text-blue-800">Productos Destacados</h1>
-          <p className="text-gray-500 mb-4">Descubre lo mejor de nuestra tienda</p>
-
-          <ActiveFilters
-            selectedCategory={selectedCategory}
-            minPrice={minPrice}
-            maxPrice={maxPrice}
-            categories={categories}
-            onClear={() => {
-              setSelectedCategory(null);
-              setMinPrice('');
-              setMaxPrice('');
-            }}
-          />
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {isLoading ? (
-              Array.from({ length: UI_CONFIG.loader.skeletonCount }).map((_, i) => (
-                <ProductSkeletonCard key={i} />
-              ))
-            ) : filteredProducts.length > 0 ? (
-              filteredProducts.map(product => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={addToCart}
-                  isFavorite={favorites.includes(product.id)}
-                  onToggleFavorite={toggleFavorite}
-                />
-              ))
-            ) : (
-              <Loader text="No se encontraron productos que coincidan con tu búsqueda." />
-            )}
-          </div>
-        </main>
+      <div className="bg-white shadow-sm border-b relative z-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <CategoryCards categories={categories} renderDropdown={(dropdown) => setDropdownElement(dropdown)} />
+        </div>
       </div>
 
-      {/* MODAL DE MENSAJES */}
+      <div className="flex-grow">
+        <div className="grid grid-cols-[1fr_1.5fr_10fr_1.5fr_1fr] gap-4 w-full max-w-[1800px] mx-auto px-2 lg:px-4">
+          <div className="hidden lg:block" />
+
+          <aside className="hidden lg:block p-4 card border-r self-start top-24 h-fit">
+            <h2 className="text-lg font-semibold mb-4 text-primary">Categorías</h2>
+            <ul className="space-y-2">
+              <li className={`py-2 px-3 rounded cursor-pointer ${!selectedCategory ? 'bg-primary-light text-primary font-bold' : 'hover:bg-neutral-light'}`} onClick={() => setSelectedCategory(null)}>
+                Todas las categorías
+              </li>
+              {categories.map(category => (
+                <li
+                  key={category.id}
+                  className={`py-2 px-3 rounded cursor-pointer ${selectedCategory === category.id ? 'bg-primary-light font-semibold' : 'hover:bg-neutral-light'}`}
+                  onClick={() => setSelectedCategory(category.id)}
+                >
+                  {category.name}
+                </li>
+              ))}
+            </ul>
+          </aside>
+
+          <main className="p-4 sm:p-6">
+            <TopBanner height="h-96" />
+            <h2 className="text-3xl font-bold mb-2 text-primary-dark">Productos Destacados</h2>
+            <p className="text-neutral text-sm mb-4">Descubre lo mejor de nuestra tienda</p>
+            <ActiveFilters
+              selectedCategory={selectedCategory}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              categories={categories}
+              onClear={() => {
+                setSelectedCategory(null);
+                setMinPrice('');
+                setMaxPrice('');
+              }}
+            />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+              {isLoading ? (
+                Array.from({ length: UI_CONFIG.loader.skeletonCount }).map((_, i) => (
+                  <ProductSkeletonCard key={i} />
+                ))
+              ) : filteredProducts.length > 0 ? (
+                filteredProducts.map(product => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={addToCart}
+                    isFavorite={favorites.includes(product.id)}
+                    onToggleFavorite={toggleFavorite}
+                  />
+                ))
+              ) : (
+                <Loader text="No se encontraron productos que coincidan con tu búsqueda." />
+              )}
+            </div>
+          </main>
+
+          <SidebarBanners banners={banners} />
+          <div className="hidden lg:block" />
+        </div>
+      </div>
+
+      {dropdownElement}
+
       {isModalVisible && (
-        <div className={`${modalClass} fixed bottom-10 left-1/2 transform -translate-x-1/2 text-white p-4 rounded-lg shadow-md`}>
-          <p>{modalMessage}</p>
+        <div className={`${modalClass} fixed bottom-10 left-1/2 transform -translate-x-1/2 text-white px-6 py-3 rounded-lg shadow-lg`}>
+          <p className="text-sm">{modalMessage}</p>
         </div>
       )}
 
-      {/* MODALES DE AUTENTICACIÓN */}
       <LoginModal
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
@@ -250,18 +223,9 @@ const Home = () => {
           setIsForgotPasswordOpen(true);
         }}
       />
+      <RegistrarModal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} />
+      <ForgotPassword isOpen={isForgotPasswordOpen} onClose={() => setIsForgotPasswordOpen(false)} />
 
-      <RegistrarModal
-        isOpen={isRegisterOpen}
-        onClose={() => setIsRegisterOpen(false)}
-      />
-
-      <ForgotPassword
-        isOpen={isForgotPasswordOpen}
-        onClose={() => setIsForgotPasswordOpen(false)}
-      />
-
-      {/* MODALES DE COOKIES */}
       {showCookiesModal && (
         <CookieConsentModal
           onAccept={handleAcceptCookies}
@@ -269,7 +233,6 @@ const Home = () => {
           onCustomize={handleCustomize}
         />
       )}
-
       <CustomizeCookiesModal
         isOpen={showCustomizeModal}
         onClose={() => setShowCustomizeModal(false)}

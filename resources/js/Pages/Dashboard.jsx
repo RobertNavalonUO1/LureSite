@@ -4,7 +4,6 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import AvatarCreatorModal from '../components/AvatarCreatorModal';
 import {
-  User,
   ShoppingBag,
   Truck,
   CreditCard,
@@ -14,12 +13,12 @@ import {
   Info,
   Phone,
   Search,
-  Pencil
+  Pencil,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
-  const { auth, orders, cartItems } = usePage().props;
+  const { auth, cartItems } = usePage().props;
   const user = auth.user;
 
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
@@ -49,8 +48,11 @@ const Dashboard = () => {
               onClick={() => setAvatarModalOpen(true)}
               title="Haz clic para cambiar tu avatar"
             >
-<img src={auth.user.avatar || "/default-avatar.png"} alt="User Avatar" className="w-16 h-16 rounded-full border object-cover" />
-
+              <img
+                src={user.avatar || "/default-avatar.png"}
+                alt="User Avatar"
+                className="w-16 h-16 rounded-full border object-cover"
+              />
               <div className="absolute bottom-0 right-0 bg-sky-600 p-1 rounded-full border-2 border-white shadow">
                 <Pencil className="w-4 h-4 text-white" />
               </div>
@@ -73,35 +75,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Pedidos recientes */}
-        <section className="mt-12">
-          <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-sky-600">
-            <ShoppingBag className="w-5 h-5" />
-            Pedidos Recientes
-          </h3>
-          {orders.length > 0 ? (
-            <div className="grid gap-4">
-              {orders.map(order => (
-                <div key={order.id} className="bg-white shadow-md border-l-4 border-sky-400 p-4 rounded-lg flex justify-between items-center">
-                  <div>
-                    <p className="text-gray-800 font-medium">Pedido #{order.id}</p>
-                    <p className="text-gray-500 text-sm">Fecha: {order.date}</p>
-                  </div>
-                  <p className="text-lg text-sky-600 font-semibold">${order.total}</p>
-                  <a
-                    href={`/orders/${order.id}`}
-                    className="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600 transition"
-                  >
-                    Ver
-                  </a>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No tienes pedidos recientes.</p>
-          )}
-        </section>
-
         {/* Carrito */}
         <section className="mt-12">
           <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-amber-600">
@@ -111,7 +84,10 @@ const Dashboard = () => {
           {cartItems.length > 0 ? (
             <div className="grid gap-4">
               {cartItems.map(item => (
-                <div key={item.id} className="bg-white shadow-md border-l-4 border-yellow-400 p-4 rounded-lg flex justify-between items-center">
+                <div
+                  key={item.id}
+                  className="bg-white shadow-md border-l-4 border-yellow-400 p-4 rounded-lg flex justify-between items-center"
+                >
                   <div>
                     <p className="text-gray-800 font-medium">{item.title}</p>
                     <p className="text-sm text-gray-500">Cantidad: {item.quantity}</p>
@@ -136,7 +112,6 @@ const Dashboard = () => {
 
       <Footer />
 
-      {/* Modal para avatar estilo Wii */}
       <AvatarCreatorModal
         isOpen={isAvatarModalOpen}
         onClose={() => setAvatarModalOpen(false)}
@@ -146,8 +121,7 @@ const Dashboard = () => {
   );
 };
 
-// Componente de tarjetas de navegación
-const NavCard = ({ icon, label, href, badge }) => (
+const NavCard = ({ icon, label, href, badge = 0 }) => (
   <motion.a
     whileHover={{ scale: 1.05 }}
     href={href}

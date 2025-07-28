@@ -10,7 +10,6 @@ import {
   ArrowLeftCircle
 } from 'lucide-react';
 
-// Nuevos pasos del seguimiento
 const progressSteps = [
   'Pendiente de Envío',
   'Enviado',
@@ -28,26 +27,24 @@ const getProgressStep = (status) => {
   }
 };
 
-const OrderProgress = ({ currentStep }) => {
-  return (
-    <div className="flex justify-between items-center mt-4 overflow-x-auto">
-      {progressSteps.map((step, index) => (
-        <div key={index} className="flex-1 flex flex-col items-center text-center min-w-[70px]">
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs
-              ${index <= currentStep ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
-            {index + 1}
-          </div>
-          <p className={`mt-1 text-[10px] sm:text-xs ${index <= currentStep ? 'text-green-600' : 'text-gray-500'}`}>
-            {step}
-          </p>
-          {index < progressSteps.length - 1 && (
-            <div className={`h-1 w-full mt-2 ${index < currentStep ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-          )}
+const OrderProgress = ({ currentStep }) => (
+  <div className="flex justify-between items-center mt-4 overflow-x-auto">
+    {progressSteps.map((step, index) => (
+      <div key={index} className="flex-1 flex flex-col items-center text-center min-w-[70px]">
+        <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs
+            ${index <= currentStep ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+          {index + 1}
         </div>
-      ))}
-    </div>
-  );
-};
+        <p className={`mt-1 text-[10px] sm:text-xs ${index <= currentStep ? 'text-green-600' : 'text-gray-500'}`}>
+          {step}
+        </p>
+        {index < progressSteps.length - 1 && (
+          <div className={`h-1 w-full mt-2 ${index < currentStep ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+        )}
+      </div>
+    ))}
+  </div>
+);
 
 export default function ShippedOrders() {
   const { orders } = usePage().props;
@@ -70,10 +67,7 @@ export default function ShippedOrders() {
         {orders && orders.length > 0 ? (
           <div className="space-y-6">
             {orders.map(order => (
-              <div
-                key={order.id}
-                className="bg-white p-6 rounded-lg shadow border-l-4 border-green-400"
-              >
+              <div key={order.id} className="bg-white p-6 rounded-lg shadow border-l-4 border-green-400">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
                   <div>
                     <h2 className="text-xl font-semibold text-gray-700">Pedido #{order.id}</h2>
@@ -115,17 +109,43 @@ export default function ShippedOrders() {
                   </ul>
                 </div>
 
-                {/* Botón de confirmación visible solo si status === 'entregado' */}
-                {order.status === 'entregado' && (
-                  <form method="POST" action={`/orders/${order.id}/confirm`} className="mt-6">
-                    <button
-                      type="submit"
-                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-                    >
-                      Confirmar que he recibido este pedido
-                    </button>
-                  </form>
-                )}
+                <div className="mt-6 flex flex-wrap gap-3">
+                  {order.status === 'entregado' && (
+                    <form method="POST" action={`/orders/${order.id}/confirm`}>
+                      <input type="hidden" name="_token" value={window.csrf_token} />
+                      <button
+                        type="submit"
+                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                      >
+                        Confirmar recepción
+                      </button>
+                    </form>
+                  )}
+
+                  {['pendiente_envio', 'pagado'].includes(order.status) && (
+                    <form method="POST" action={`/orders/${order.id}/cancel`}>
+                      <input type="hidden" name="_token" value={window.csrf_token} />
+                      <button
+                        type="submit"
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+                      >
+                        Cancelar Pedido
+                      </button>
+                    </form>
+                  )}
+
+                  {order.status === 'pagado' && (
+                    <form method="POST" action={`/orders/${order.id}/refund`}>
+                      <input type="hidden" name="_token" value={window.csrf_token} />
+                      <button
+                        type="submit"
+                        className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition"
+                      >
+                        Solicitar Reembolso
+                      </button>
+                    </form>
+                  )}
+                </div>
               </div>
             ))}
           </div>

@@ -2,30 +2,49 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        'user_id', 'name', 'email', 'address', 'payment_method', 'total', 'transaction_id'
+        'user_id',
+        'name',
+        'email',
+        'address',
+        'status',
+        'payment_method',
+        'transaction_id',
+        'total',
     ];
 
-    /**
-     * Relación con los elementos de la orden (OrderItem)
-     */
     public function items()
     {
         return $this->hasMany(OrderItem::class);
     }
 
-    /**
-     * Relación con el usuario que hizo la orden
-     */
-    public function user()
+    public function isCancelable(): bool
     {
-        return $this->belongsTo(User::class);
+        return in_array($this->status, ['pendiente_envio', 'pagado']);
+    }
+
+    public function isRefundable(): bool
+    {
+        return $this->status === 'pagado';
+    }
+
+    // Scopes para facilitar queries
+    public function scopeByUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    public function scopePaid($query)
+    {
+        return $query->whereIn('status', ['pagado', 'enviado', 'entregado', 'confirmado']);
+    }
+
+    public function scopeShipped($query)
+    {
+        return $query->whereIn('status', ['enviado', 'entregado', 'confirmado']);
     }
 }

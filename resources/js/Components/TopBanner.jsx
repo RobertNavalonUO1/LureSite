@@ -31,7 +31,7 @@ const TopBanner = ({ height = 'h-64' }) => {
   const startAutoSlide = () => {
     intervalRef.current = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 10000);
+    }, 8000);
   };
 
   const stopAutoSlide = () => {
@@ -45,40 +45,50 @@ const TopBanner = ({ height = 'h-64' }) => {
   };
 
   const handleClick = (coupon) => {
-    setShowCoupon(`Cupón aplicado: ${coupon}`);
+    setShowCoupon(`🎉 ¡Cupón "${coupon}" aplicado correctamente!`);
     setTimeout(() => setShowCoupon(''), 3000);
   };
 
   return (
-    <div className={`relative w-full ${height} overflow-hidden rounded-lg shadow-lg mb-6`}>
+    <div className={`relative w-full ${height} overflow-hidden rounded-2xl shadow-xl mb-6 group`}>
       <img
         src={slides[currentSlide].image}
-        alt="Promoción de verano"
-        className="w-full h-full object-cover transition duration-700"
+        alt={`Slide ${currentSlide + 1}`}
+        className="w-full h-full object-cover transition duration-700 ease-in-out"
+        draggable="false"
       />
-      <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col justify-center items-center text-white p-4">
-        <h2 className="text-2xl font-bold mb-4 text-center">{slides[currentSlide].text}</h2>
+
+      <div className="absolute inset-0 bg-gradient-to-tr from-black/60 to-black/30 flex flex-col justify-center items-center text-white p-6 sm:p-10 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-4 drop-shadow-md">
+          {slides[currentSlide].text}
+        </h2>
+
         <button
           onClick={() => handleClick(slides[currentSlide].coupon)}
-          className="bg-yellow-400 text-black px-6 py-2 rounded-full hover:bg-yellow-500 transition"
+          aria-label="Usar cupón"
+          className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-2 sm:py-3 rounded-full shadow-md transition focus:outline-none focus:ring-2 focus:ring-yellow-500"
         >
           ¡Usar Cupón!
         </button>
+
         {showCoupon && (
-          <div className="mt-4 bg-white text-green-700 px-4 py-2 rounded shadow">
+          <div className="mt-4 bg-white text-green-700 px-4 py-2 rounded shadow-lg text-sm font-medium">
             {showCoupon}
           </div>
         )}
 
-        {/* Botones de navegación */}
-        <div className="absolute bottom-4 flex gap-2">
+        {/* Indicadores de navegación */}
+        <div className="absolute bottom-4 flex gap-2 justify-center">
           {slides.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-6 h-2 rounded-full transition ${
-                index === currentSlide ? 'bg-white' : 'bg-gray-400'
+              className={`w-3 h-3 rounded-full transition duration-300 ${
+                index === currentSlide
+                  ? 'bg-white scale-110'
+                  : 'bg-white/40 hover:bg-white/60'
               }`}
+              aria-label={`Ir al slide ${index + 1}`}
             />
           ))}
         </div>

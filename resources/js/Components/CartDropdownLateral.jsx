@@ -9,7 +9,6 @@ const CartDropdownLateral = () => {
   const [cartCount, setCartCount] = useState(initialCartCount);
   const [total, setTotal] = useState(initialTotal);
 
-  // Función para obtener los datos más recientes del carrito
   const fetchCartData = () => {
     Inertia.get('/cart', {
       onSuccess: (response) => {
@@ -21,7 +20,6 @@ const CartDropdownLateral = () => {
     });
   };
 
-  // Actualiza el carrito cuando cambia la página (sin recargar la página)
   useEffect(() => {
     setCartItems(initialCartItems);
     setCartCount(initialCartCount);
@@ -29,33 +27,24 @@ const CartDropdownLateral = () => {
   }, [initialCartItems, initialCartCount, initialTotal]);
 
   const handleRemove = (productId) => {
-    // Eliminar producto del carrito
-    Inertia.post(`/cart/${productId}/remove`, {}, {
-      onSuccess: fetchCartData,  // Obtener datos más recientes después de la eliminación
-    });
+    Inertia.post(`/cart/${productId}/remove`, {}, { onSuccess: fetchCartData });
   };
 
   const handleIncrement = (productId) => {
-    // Incrementar cantidad
-    Inertia.post(`/cart/${productId}/increment`, {}, {
-      onSuccess: fetchCartData,  // Obtener datos más recientes después de la actualización
-    });
+    Inertia.post(`/cart/${productId}/increment`, {}, { onSuccess: fetchCartData });
   };
 
   const handleDecrement = (productId) => {
-    // Decrementar cantidad
-    Inertia.post(`/cart/${productId}/decrement`, {}, {
-      onSuccess: fetchCartData,  // Obtener datos más recientes después de la actualización
-    });
+    Inertia.post(`/cart/${productId}/decrement`, {}, { onSuccess: fetchCartData });
   };
 
   return (
-    <div className="fixed top-0 right-0 h-full w-96 bg-white shadow-lg z-50">
+    <div className="fixed top-0 right-0 h-full w-96 max-w-full bg-white shadow-lg z-50 flex flex-col">
       <div className="flex justify-between items-center p-4 border-b">
         <h2 className="text-lg font-semibold">Tu carrito</h2>
       </div>
 
-      <div className="p-4 overflow-y-auto h-[calc(100vh-130px)]">
+      <div className="flex-1 overflow-y-auto p-4">
         {cartCount > 0 ? (
           <ul className="space-y-4">
             {Object.values(cartItems).map((item) => (
@@ -79,13 +68,15 @@ const CartDropdownLateral = () => {
         )}
       </div>
 
-      {/* Siempre visible el total y el botón de checkout */}
       <div className="p-4 border-t">
         <div className="flex justify-between font-semibold text-lg mb-3">
           <span>Total:</span>
           <span>${total}</span>
         </div>
-        <a href="/checkout" className="block text-center bg-blue-600 text-white py-2 rounded hover:bg-blue-700 w-full">
+        <a
+          href="/checkout"
+          className="block w-full text-center bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition"
+        >
           Ir al checkout
         </a>
       </div>

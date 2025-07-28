@@ -13,6 +13,7 @@ use App\Http\Controllers\{
     PythonScriptController,
     ProductMigrationController,
     ContactController,
+    OrderController,
     Auth\FirebaseLoginController
 };
 use Inertia\Inertia;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+Route::get('/banners', [\App\Http\Controllers\Api\BannerController::class, 'index']);
 
 // Firebase Auth
 Route::middleware(['web'])->group(function () {
@@ -78,6 +80,9 @@ Route::get('/api/scripts', function () {
 
     return response()->json($scripts);
 });
+use App\Http\Controllers\CategoryController;
+
+Route::get('/category/{id}', [CategoryController::class, 'show'])->name('category.show');
 
 // Migración de productos
 Route::get('/migrate-products', [ProductMigrationController::class, 'index'])->name('migrate.products');
@@ -93,11 +98,13 @@ Route::get('/fast-shipping', fn () => Inertia::render('FastShipping'))->name('fa
 Route::get('/new-arrivals', fn () => Inertia::render('NewArrivals'))->name('new.arrivals');
 Route::get('/seasonal', fn () => Inertia::render('SeasonalProducts'))->name('seasonal');
 
-// Admin
+// Admin (Pedidos)
 Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/admin/orders', [DashboardController::class, 'adminOrders'])->name('admin.orders');
-    Route::post('/admin/orders/{order}/mark-shipped', [DashboardController::class, 'markAsShipped']);
-    Route::post('/admin/orders/{order}/mark-delivered', [DashboardController::class, 'markAsDelivered']);
+    Route::get('/admin/orders', [OrderController::class, 'adminIndex'])->name('admin.orders');
+    Route::post('/admin/orders/{order}/mark-shipped', [OrderController::class, 'markAsShipped']);
+    Route::post('/admin/orders/{order}/mark-delivered', [OrderController::class, 'markAsDelivered']);
+    Route::get('/orders/cancelled', [OrderController::class, 'cancelled'])->name('orders.cancelled');
+
 });
 
 // Datos compartidos para todas las vistas Inertia
@@ -115,7 +122,7 @@ Route::get('/product/{id}', fn($id) => Inertia::render('Layouts/ProductPageLayou
     'product' => \App\Models\Product::with('category')->findOrFail($id)
 ]))->name('product.details');
 
-Route::get('/about', fn() => Inertia::render('About'))->name('about');
+Route::get('/about', fn () => Inertia::render('About'))->name('about');
 Route::get('/search', [SearchController::class, 'search'])->name('search');
 Route::get('/products/add', [AddProdukController::class, 'create'])->name('products.create');
 Route::post('/products/store', [AddProdukController::class, 'store'])->name('products.store');
@@ -138,16 +145,21 @@ Route::get('/addresses/search', [CheckoutController::class, 'getAddresses']);
 // Autenticación requerida
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/orders', [DashboardController::class, 'orders'])->name('orders.index'); // <-- MODIFICADO AQUÍ
-    Route::get('/orders/shipped', [DashboardController::class, 'shipped'])->name('orders.shipped');
 
+    // 🧾 Pedidos del usuario (ahora gestionados por OrderController)
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/shipped', [OrderController::class, 'shipped'])->name('orders.shipped');
+    Route::get('/orders/paid', [OrderController::class, 'paid'])->name('orders.paid'); // Puedes crear este método
+    Route::post('/orders/{order}/confirm', [OrderController::class, 'confirm'])->name('orders.confirm');
+
+    // Pagos
     Route::post('/checkout/stripe', [CheckoutController::class, 'stripeCheckout'])->name('checkout.stripe');
     Route::post('/checkout/paypal', [CheckoutController::class, 'paypalCheckout'])->name('checkout.paypal');
     Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
     Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
 
+    // Perfil
     Route::post('/addresses/store', [CheckoutController::class, 'storeAddress'])->name('addresses.store');
-
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -155,5 +167,5 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__ . '/auth.php';
 
-// Test page
-Route::get('/test', fn() => Inertia::render('ShippedOrders', ['message' => '¡Hola Inertia!']));
+// Test
+Route::get('/test', fn () => Inertia::render('ShippedOrders', ['message' => '¡Hola Inertia!']));

@@ -17,7 +17,7 @@ const navItems = [
 
 const TopNavMenu = () => {
   return (
-    <nav className="bg-white shadow-sm border-t border-b border-gray-200">
+    <nav className="bg-pink shadow-sm border-t border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto">
         <ul className="flex space-x-6 whitespace-nowrap py-3 text-sm font-medium text-gray-700">
           {navItems.map((item) => (
