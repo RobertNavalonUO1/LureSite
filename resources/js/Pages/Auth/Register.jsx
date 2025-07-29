@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -15,6 +15,7 @@ import {
   loginWithGoogle,
   loginWithFacebook,
 } from '@/utils/firebaseLogin';
+import TermsModal from '@/Components/TermsModal';
 
 export default function Register() {
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -26,6 +27,8 @@ export default function Register() {
 
   const { props } = usePage();
   const serverError = props?.errors?.default || props?.flash?.error;
+
+  const [showTerms, setShowTerms] = useState(false);
 
   const submit = (e) => {
     e.preventDefault();
@@ -191,7 +194,14 @@ export default function Register() {
         </div>
         <div className="mt-6 text-center text-sm text-gray-500">
           Al registrarte, aceptas nuestros{' '}
-          <Link href="/terms" className="text-indigo-600 hover:underline">
+          <Link
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setShowTerms(true);
+            }}
+            className="text-indigo-600 hover:underline"
+          >
             Términos de servicio
           </Link>{' '}
           y{' '}
@@ -199,6 +209,7 @@ export default function Register() {
             Política de privacidad
           </Link>.
         </div>
+        <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
       </div>
       <Footer />
     </>

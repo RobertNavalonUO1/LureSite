@@ -169,3 +169,6 @@ require __DIR__ . '/auth.php';
 
 // Test
 Route::get('/test', fn () => Inertia::render('ShippedOrders', ['message' => '¡Hola Inertia!']));
+Route::get('/faq', fn () => Inertia::render('Faq'))->name('faq');
+Route::get('/terms', fn () => Inertia::render('Terms'))->name('terms');
+Route::get('/privacy', fn () => Inertia::render('Privacy'))->name('privacy');

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from '@inertiajs/react';
 import {
   Tv, Shirt, Home, Puzzle, Dumbbell, HeartPulse, Car, Smartphone, Laptop,
-  Camera, Watch, ShoppingBag, Sofa, ShieldCheck, Fridge, Hammer, Baby,
+  Camera, Watch, ShoppingBag, Sofa, ShieldCheck, Hammer, Baby,
   PawPrint, UtensilsCrossed, Package
 } from 'lucide-react';
 
@@ -21,7 +21,7 @@ const iconMap = {
   'Bolsas y Calzado': ShoppingBag,
   'Muebles y Decoración': Sofa,
   'Seguridad y Protección': ShieldCheck,
-  'Electrodomésticos': Fridge,
+  'Electrodomésticos': ShieldCheck,
   'Herramientas e Industria': Hammer,
   'Bebés y Niños': Baby,
   'Mascotas y Animales': PawPrint,
