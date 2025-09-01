@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-    // Mostrar productos temporales y categorías
     public function showTemporaryProducts(): Response
     {
         $temporaryProducts = TemporaryProduct::all();
@@ -27,7 +26,6 @@ class ProductController extends Controller
         ]);
     }
 
-    // Guardar un producto en la tabla temporal
     public function storeTemporaryProduct(Request $request)
     {
         $validated = $request->validate([
@@ -47,7 +45,6 @@ class ProductController extends Controller
         return redirect()->route('products.select')->with('success', 'Producto agregado temporalmente.');
     }
 
-    // Migrar productos seleccionados a la tabla 'products'
     public function migrateSelectedProducts(Request $request)
     {
         Log::info("🔹 Recibiendo datos en migrateSelectedProducts:", $request->all());
@@ -117,12 +114,21 @@ class ProductController extends Controller
         }
     }
 
-    // Mostrar detalle del producto tipo AliExpress
     public function show($id)
     {
         $product = Product::with('category')->findOrFail($id);
 
-        return Inertia::render('ProductDetails', [
+        $relatedProducts = [];
+
+        if ($product->category) {
+            $relatedProducts = $product->category
+                ->products()
+                ->where('id', '!=', $product->id)
+                ->take(10)
+                ->get(['id', 'name', 'price', 'image_url']);
+        }
+
+        return Inertia::render('ProductPageLayout', [
             'product' => [
                 'id' => $product->id,
                 'name' => $product->name,
@@ -131,8 +137,8 @@ class ProductController extends Controller
                 'original_price' => $product->original_price ?? ($product->price * 1.3),
                 'discount' => '30%',
                 'stock' => $product->stock,
-                'sold_count' => 159, // o usa $product->sold_count si existe
-                'rating' => 4.6, // o usa $product->rating si existe
+                'sold_count' => 159,
+                'rating' => 4.6,
                 'image_url' => $product->image_url,
                 'gallery' => [
                     $product->image_url,
@@ -145,7 +151,8 @@ class ProductController extends Controller
                     'id' => optional($product->category)->id,
                     'name' => optional($product->category)->name,
                 ],
-            ]
+            ],
+            'relatedProducts' => $relatedProducts,
         ]);
     }
 }

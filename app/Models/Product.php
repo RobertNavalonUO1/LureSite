@@ -25,4 +25,14 @@ class Product extends Model
     {
         return url('storage/' . $this->image_url);
     }
+
+    public function details()
+{
+    return $this->hasOne(ProductDetail::class);
+}
+
+public function reviews()
+{
+    return $this->hasMany(Review::class);
+}
 }

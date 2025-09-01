@@ -117,10 +117,16 @@ Inertia::share([
 // Avatar
 Route::post('/api/avatar-upload', [AvatarController::class, 'store'])->middleware('auth');
 
-// Productos
-Route::get('/product/{id}', fn($id) => Inertia::render('Layouts/ProductPageLayout', [
-    'product' => \App\Models\Product::with('category')->findOrFail($id)
-]))->name('product.details');
+// Productos - Detalle con descripción y especificaciones técnicas
+Route::get('/product/{id}', function ($id) {
+    $product = \App\Models\Product::with(['category', 'details', 'reviews'])->findOrFail($id);
+
+    return Inertia::render('Layouts/ProductPageLayout', [
+        'product' => $product,
+        // Si necesitas pasar todos los productos para recomendaciones:
+        'products' => \App\Models\Product::with('category')->get(),
+    ]);
+})->name('product.details');
 
 Route::get('/about', fn () => Inertia::render('About'))->name('about');
 Route::get('/search', [SearchController::class, 'search'])->name('search');
@@ -172,3 +178,9 @@ Route::get('/test', fn () => Inertia::render('ShippedOrders', ['message' => '¡H
 Route::get('/faq', fn () => Inertia::render('Faq'))->name('faq');
 Route::get('/terms', fn () => Inertia::render('Terms'))->name('terms');
 Route::get('/privacy', fn () => Inertia::render('Privacy'))->name('privacy');
+
+
+use App\Http\Controllers\ReviewController;
+
+Route::get('/products/{product}/reviews', [ReviewController::class, 'index']);
+Route::post('/products/{product}/reviews', [ReviewController::class, 'store']);
