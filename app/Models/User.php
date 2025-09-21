@@ -68,4 +68,12 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Address::class, 'default_address_id');
     }
+
+    /**
+     * Relación: el usuario tiene muchas reseñas.
+     */
+    public function reviews()
+    {
+        return $this->hasMany(\App\Models\Review::class);
+    }
 }

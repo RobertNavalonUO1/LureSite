@@ -155,4 +155,28 @@ class ProductController extends Controller
             'relatedProducts' => $relatedProducts,
         ]);
     }
+
+    public function dealsToday()
+    {
+        // Ejemplo: productos con descuento o destacados
+        $deals = \App\Models\Product::where('is_featured', true)
+            ->orWhere('discount', '>', 0)
+            ->orderByDesc('discount')
+            ->take(10)
+            ->get(['id', 'name as title', 'description', 'image_url as image', 'discount', 'slug']);
+
+        // Puedes mapear el formato aquí si lo necesitas
+        $deals = $deals->map(function($deal) {
+            return [
+                'id' => $deal->id,
+                'title' => $deal->title,
+                'description' => $deal->description,
+                'image' => $deal->image,
+                'link' => route('product.details', $deal->id),
+                'discount' => $deal->discount ? $deal->discount . '% OFF' : 'Oferta',
+            ];
+        });
+
+        return response()->json($deals);
+    }
 }
