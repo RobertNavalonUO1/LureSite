@@ -11,6 +11,16 @@ import Loader from '@/Components/Loader';
 
 import UI_CONFIG from '@/config/ui.config';
 
+const CATEGORY_BACKGROUNDS = {
+  electronica: 'bg-gradient-to-br from-blue-100 via-blue-50 to-white',
+  moda: 'bg-gradient-to-br from-pink-100 via-pink-50 to-white',
+  hogar: 'bg-gradient-to-br from-yellow-100 via-yellow-50 to-white',
+  deportes: 'bg-gradient-to-br from-green-100 via-green-50 to-white',
+  belleza: 'bg-gradient-to-br from-purple-100 via-purple-50 to-white',
+  // Agrega más slugs y estilos según tus categorías
+  default: 'bg-gradient-to-br from-slate-100 via-white to-white',
+};
+
 const CategoryPage = () => {
   const { category, categories, products } = usePage().props;
 
@@ -42,8 +52,12 @@ const CategoryPage = () => {
     });
   };
 
+  // Selecciona el fondo según el slug, o usa el default
+  const backgroundClass =
+    CATEGORY_BACKGROUNDS[category?.slug] || CATEGORY_BACKGROUNDS.default;
+
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-800 relative">
+    <div className={`flex flex-col min-h-screen text-slate-800 relative ${backgroundClass}`}>
       {/* Categorías horizontales */}
       <div className="bg-white shadow-sm border-b relative z-10">
         <div className="max-w-7xl mx-auto px-4">
@@ -57,7 +71,7 @@ const CategoryPage = () => {
       {/* Layout principal */}
       <div className="flex flex-grow flex-col lg:flex-row max-w-7xl mx-auto w-full px-4">
         {/* SIDEBAR */}
-        <aside className="lg:w-64 bg-white border-r p-4 hidden lg:block">
+        <aside className="lg:w-64 bg-white border-r p-4 hidden lg:block rounded-tr-2xl rounded-br-2xl shadow-md">
           <h2 className="text-lg font-semibold mb-4 text-indigo-700">Categorías</h2>
           <ul className="space-y-2">
             {categories.map((cat) => (

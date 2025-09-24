@@ -38,9 +38,18 @@ class Order extends Model
         return $query->where('user_id', $userId);
     }
 
+    // Solo pedidos pagados y posteriores
     public function scopePaid($query)
     {
-        return $query->whereIn('status', ['pagado', 'enviado', 'entregado', 'confirmado']);
+        return $query->whereIn('status', [
+            'pagado',
+            'pendiente_envio',
+            'enviado',
+            'entregado',
+            'confirmado',
+            'reembolsado',
+            'devolucion_aprobada'
+        ]);
     }
 
     public function scopeShipped($query)

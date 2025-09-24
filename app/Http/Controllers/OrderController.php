@@ -14,13 +14,34 @@ class OrderController extends Controller
      */
     public function index()
     {
-        $orders = Order::where('user_id', Auth::id())
-            ->with('items.product')
+        // Todos los pedidos del usuario autenticado
+        $orders = \App\Models\Order::with(['items.product'])
+            ->byUser(auth()->id())
             ->orderByDesc('created_at')
             ->get()
-            ->map(fn($order) => $this->transform($order));
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'date' => $order->created_at->format('d/m/Y H:i'),
+                    'status' => $order->status,
+                    'total' => $order->total,
+                    'items' => $order->items->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->product->name ?? $item->name,
+                            'quantity' => $item->quantity,
+                            'price' => $item->price,
+                            'image_url' => $item->product->image_url ?? null,
+                            'product_id' => $item->product->id ?? null,
+                            'product' => $item->product ? $item->product->toArray() : null,
+                        ];
+                    }),
+                ];
+            });
 
-        return Inertia::render('Orders/Index', ['orders' => $orders]);
+        return \Inertia\Inertia::render('Orders/Index', [
+            'orders' => $orders,
+        ]);
     }
 
     /**
@@ -28,17 +49,35 @@ class OrderController extends Controller
      */
     public function shipped()
     {
-        $orders = Order::where('user_id', Auth::id())
-            ->whereIn('status', ['enviado', 'entregado', 'confirmado'])
-            ->with('items.product')
+        // Pedidos enviados, entregados o confirmados
+        $orders = \App\Models\Order::with(['items.product'])
+            ->byUser(auth()->id())
+            ->shipped()
             ->orderByDesc('created_at')
             ->get()
-            ->map(fn($order) => array_merge(
-                $this->transform($order),
-                ['estimated_delivery' => $order->created_at->addDays(3)->format('Y-m-d')]
-            ));
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'date' => $order->created_at->format('d/m/Y H:i'),
+                    'status' => $order->status,
+                    'total' => $order->total,
+                    'items' => $order->items->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->product->name ?? $item->name,
+                            'quantity' => $item->quantity,
+                            'price' => $item->price,
+                            'image_url' => $item->product->image_url ?? null,
+                            'product_id' => $item->product->id ?? null,
+                            'product' => $item->product ? $item->product->toArray() : null,
+                        ];
+                    }),
+                ];
+            });
 
-        return Inertia::render('Orders/Shipped', ['orders' => $orders]);
+        return \Inertia\Inertia::render('Orders/Shipped', [
+            'orders' => $orders,
+        ]);
     }
 
     /**
@@ -46,14 +85,35 @@ class OrderController extends Controller
      */
     public function paid()
     {
-        $orders = Order::where('user_id', Auth::id())
-            ->whereIn('status', ['pagado', 'enviado', 'entregado', 'confirmado']) // puedes ajustar esto
-            ->with('items.product')
+        // Solo pedidos pagados y posteriores
+        $orders = \App\Models\Order::with(['items.product'])
+            ->byUser(auth()->id())
+            ->paid()
             ->orderByDesc('created_at')
             ->get()
-            ->map(fn($order) => $this->transform($order));
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'date' => $order->created_at->format('d/m/Y H:i'),
+                    'status' => $order->status,
+                    'total' => $order->total,
+                    'items' => $order->items->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->product->name ?? $item->name,
+                            'quantity' => $item->quantity,
+                            'price' => $item->price,
+                            'image_url' => $item->product->image_url ?? null,
+                            'product_id' => $item->product->id ?? null,
+                            'product' => $item->product ? $item->product->toArray() : null,
+                        ];
+                    }),
+                ];
+            });
 
-        return Inertia::render('Orders/Paid', ['orders' => $orders]);
+        return \Inertia\Inertia::render('Orders/Paid', [
+            'orders' => $orders,
+        ]);
     }
 
     /**
@@ -117,14 +177,35 @@ class OrderController extends Controller
     }
 public function cancelled()
 {
-    $orders = Order::where('user_id', Auth::id())
-        ->whereIn('status', ['cancelado', 'reembolso_pendiente'])
-        ->with('items.product')
-        ->latest()
+    // Pedidos cancelados o reembolsados
+    $orders = \App\Models\Order::with(['items.product'])
+        ->byUser(auth()->id())
+        ->whereIn('status', ['cancelado', 'reembolsado'])
+        ->orderByDesc('created_at')
         ->get()
-        ->map(fn($order) => $this->transform($order));
+        ->map(function ($order) {
+            return [
+                'id' => $order->id,
+                'date' => $order->created_at->format('d/m/Y H:i'),
+                'status' => $order->status,
+                'total' => $order->total,
+                'items' => $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'name' => $item->product->name ?? $item->name,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                        'image_url' => $item->product->image_url ?? null,
+                        'product_id' => $item->product->id ?? null,
+                        'product' => $item->product ? $item->product->toArray() : null,
+                    ];
+                }),
+            ];
+        });
 
-    return Inertia::render('Orders/CancelledRefundedOrders', ['orders' => $orders]);
+    return \Inertia\Inertia::render('Orders/CancelledRefundedOrders', [
+        'orders' => $orders,
+    ]);
 }
 
     /**
@@ -161,5 +242,29 @@ public function cancelled()
                 'price' => $item->price,
             ]),
         ];
+    }
+    public function show($orderId)
+    {
+        $order = \App\Models\Order::with('items.product')->findOrFail($orderId);
+
+        return \Inertia\Inertia::render('Orders/Show', [
+            'order' => [
+                'id' => $order->id,
+                'date' => $order->created_at->format('d/m/Y H:i'),
+                'status' => $order->status,
+                'total' => $order->total,
+                'items' => $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'name' => $item->product->name ?? $item->name,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                        'image_url' => $item->product->image_url ?? null,
+                        'product_id' => $item->product->id ?? null,
+                        'product' => $item->product ? $item->product->toArray() : null,
+                    ];
+                }),
+            ],
+        ]);
     }
 }

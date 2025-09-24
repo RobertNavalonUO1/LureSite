@@ -83,6 +83,7 @@ Route::get('/api/scripts', function () {
 use App\Http\Controllers\CategoryController;
 
 Route::get('/category/{id}', [CategoryController::class, 'show'])->name('category.show');
+Route::get('/categoria/{slug}', [\App\Http\Controllers\CategoryController::class, 'showBySlug'])->name('category.slug');
 
 // Migración de productos
 Route::get('/migrate-products', [ProductMigrationController::class, 'index'])->name('migrate.products');
@@ -94,7 +95,15 @@ Route::get('/agregador-enlaces', fn() => Inertia::render('AgregadorEnlaces'));
 Route::post('/run-script', [PythonScriptController::class, 'run']);
 Route::get('/deals/today', fn () => Inertia::render('DealsToday'))->name('deals.today');
 Route::get('/superdeal', fn () => Inertia::render('SuperDeal'))->name('superdeal');
-Route::get('/fast-shipping', fn () => Inertia::render('FastShipping'))->name('fast.shipping');
+Route::get('/fast-shipping', function () {
+    $products = \App\Models\Product::where('is_fast_shipping', true)
+        ->orderByDesc('created_at')
+        ->get();
+
+    return Inertia::render('FastShipping', [
+        'products' => $products,
+    ]);
+})->name('fast.shipping');
 Route::get('/new-arrivals', fn () => Inertia::render('NewArrivals'))->name('new.arrivals');
 Route::get('/seasonal', fn () => Inertia::render('SeasonalProducts'))->name('seasonal');
 
@@ -157,6 +166,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders/shipped', [OrderController::class, 'shipped'])->name('orders.shipped');
     Route::get('/orders/paid', [OrderController::class, 'paid'])->name('orders.paid'); // Puedes crear este método
     Route::post('/orders/{order}/confirm', [OrderController::class, 'confirm'])->name('orders.confirm');
+    Route::get('/pedidos/{order}', [OrderController::class, 'show'])->name('orders.show');
 
     // Pagos
     Route::post('/checkout/stripe', [CheckoutController::class, 'stripeCheckout'])->name('checkout.stripe');
@@ -184,3 +194,8 @@ use App\Http\Controllers\ReviewController;
 
 Route::get('/products/{product}/reviews', [ReviewController::class, 'index']);
 Route::post('/products/{product}/reviews', [ReviewController::class, 'store']);
+
+// Nuevas rutas para ofertas y promociones
+Route::get('/api/deals-today', [ProductController::class, 'dealsToday']);
+Route::get('/api/superdeals', [ProductController::class, 'superdeals']);
+Route::get('/api/fast-shipping', [\App\Http\Controllers\ProductController::class, 'fastShipping']);

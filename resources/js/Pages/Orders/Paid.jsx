@@ -2,7 +2,20 @@ import React from 'react';
 import { usePage } from '@inertiajs/react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { CreditCard, ArrowLeftCircle } from 'lucide-react';
+import { CreditCard, ArrowLeftCircle, XCircle, RotateCcw } from 'lucide-react';
+
+const STATUS_INFO = {
+  pagado: {
+    label: 'Pagado',
+    color: 'bg-purple-100 text-purple-800 border-purple-300',
+    icon: <CreditCard className="w-5 h-5 text-purple-600" />,
+  },
+  pendiente_envio: {
+    label: 'Pendiente de envío',
+    color: 'bg-blue-100 text-blue-800 border-blue-300',
+    icon: <CreditCard className="w-5 h-5 text-blue-600" />,
+  },
+};
 
 const PaidOrders = () => {
   const { orders } = usePage().props;
@@ -24,49 +37,76 @@ const PaidOrders = () => {
 
         {orders.length > 0 ? (
           <div className="space-y-6">
-            {orders.map(order => (
-              <div key={order.id} className="bg-white p-6 rounded shadow border-l-4 border-purple-500">
-                <div className="flex justify-between items-center mb-2">
-                  <div>
-                    <p className="text-lg font-semibold text-gray-700">Pedido #{order.id}</p>
-                    <p className="text-sm text-gray-500">Fecha: {order.date}</p>
+            {orders.map(order => {
+              const statusInfo = STATUS_INFO[order.status] || {
+                label: order.status,
+                color: 'bg-gray-100 text-gray-800 border-gray-300',
+                icon: <CreditCard className="w-5 h-5 text-gray-400" />,
+              };
+              return (
+                <div key={order.id} className={`bg-white p-6 rounded shadow border-l-4 ${statusInfo.color}`}>
+                  <div className="flex justify-between items-center mb-2">
+                    <div>
+                      <p className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+                        {statusInfo.icon}
+                        Pedido #{order.id}
+                      </p>
+                      <p className="text-sm text-gray-500">Fecha: {order.date}</p>
+                    </div>
+                    <p className="font-bold text-purple-600 text-lg">${order.total}</p>
                   </div>
-                  <p className="font-bold text-purple-600 text-lg">${order.total}</p>
+
+                  <span className={`inline-block px-3 py-1 text-sm rounded border ${statusInfo.color} mb-2`}>
+                    {statusInfo.label}
+                  </span>
+                  <p className="text-sm text-gray-500 mb-2">Dirección: {order.address}</p>
+
+                  <ul className="text-sm text-gray-600 list-disc ml-5 mb-4">
+                    {order.items.map(item => (
+                      <li key={item.id}>
+                        <a
+                          href={`/product/${item.product_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          {item.name}
+                        </a> x{item.quantity} – ${item.price}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="flex gap-2">
+                    {['pendiente_envio', 'pagado'].includes(order.status) && (
+                      <form method="POST" action={`/orders/${order.id}/cancel`}>
+                        <button
+                          type="submit"
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                        >
+                          <XCircle className="w-4 h-4" /> Cancelar Pedido
+                        </button>
+                      </form>
+                    )}
+                    {order.status === 'pagado' && (
+                      <form method="POST" action={`/orders/${order.id}/refund`}>
+                        <button
+                          type="submit"
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                        >
+                          <RotateCcw className="w-4 h-4" /> Solicitar Reembolso
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                  <a
+                    href={`/pedidos/${order.id}`}
+                    className="mt-3 inline-block text-indigo-600 hover:underline text-sm"
+                  >
+                    Ver detalle del pedido &rarr;
+                  </a>
                 </div>
-
-                <p className="text-sm text-gray-500 mb-1">Estado: {order.status}</p>
-                <p className="text-sm text-gray-500 mb-2">Dirección: {order.address}</p>
-
-                <ul className="text-sm text-gray-600 list-disc ml-5 mb-4">
-                  {order.items.map(item => (
-                    <li key={item.id}>{item.name} x{item.quantity} – ${item.price}</li>
-                  ))}
-                </ul>
-
-                <div className="flex gap-2">
-                  {['pendiente_envio', 'pagado'].includes(order.status) && (
-                    <form method="POST" action={`/orders/${order.id}/cancel`}>
-                      <button
-                        type="submit"
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-                      >
-                        Cancelar Pedido
-                      </button>
-                    </form>
-                  )}
-                  {order.status === 'pagado' && (
-                    <form method="POST" action={`/orders/${order.id}/refund`}>
-                      <button
-                        type="submit"
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
-                      >
-                        Solicitar Reembolso
-                      </button>
-                    </form>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-gray-500 text-center">No hay pedidos pagados por ahora.</p>

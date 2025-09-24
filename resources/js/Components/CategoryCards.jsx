@@ -116,8 +116,9 @@ const CategoryCards = ({ categories, renderDropdown }) => {
       }
     };
 
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    // 👇 ahora usamos `click` en vez de `mousedown`
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
   }, []);
 
   return (
@@ -137,7 +138,7 @@ const CategoryCards = ({ categories, renderDropdown }) => {
       {visibleCategories.map((cat) => (
         <Link
           key={cat.id}
-          href={`/category/${cat.id}`}
+          href={`/categoria/${cat.slug}`}
           className="flex items-center gap-1 px-2 py-1 hover:text-indigo-600 hover:bg-indigo-50 rounded transition"
         >
           {getIcon(cat.name)}
@@ -171,15 +172,15 @@ const DropdownList = ({ categories, position, onClose, title, icon }) => (
       {icon} <span>{title}</span>
     </div>
     <ul className="divide-y divide-gray-100 py-1">
-      {categories.map((cat) => (
-        <li key={cat.id}>
+      {categories.map((category) => (
+        <li key={category.id}>
           <Link
-            href={`/category/${cat.id}`}
-            onClick={onClose}
-            className="flex items-center gap-2 px-4 py-2 hover:bg-indigo-50 text-slate-700 transition"
+            href={`/categoria/${category.slug}`}
+            onClick={onClose} // 👈 cierra después de navegar
+            className="cursor-pointer hover:bg-neutral-light rounded px-3 py-2 flex items-center gap-2"
           >
-            {getIcon(cat.name)}
-            <span>{cat.name}</span>
+            {getIcon(category.name)}
+            <span>{category.name}</span>
           </Link>
         </li>
       ))}

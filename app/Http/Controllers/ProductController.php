@@ -179,4 +179,52 @@ class ProductController extends Controller
 
         return response()->json($deals);
     }
+
+    public function superdeals()
+    {
+        // Asegúrate de traer todos los campos necesarios para el frontend
+        $products = \App\Models\Product::where('is_superdeal', true)
+            ->orderByDesc('discount')
+            ->get()
+            ->map(function($p) {
+                return [
+                    'id' => $p->id,
+                    'title' => $p->name,
+                    'name' => $p->name,
+                    'description' => $p->description,
+                    'image' => $p->image_url,
+                    'image_url' => $p->image_url,
+                    'price' => $p->price,
+                    'old_price' => $p->discount > 0 ? round($p->price / (1 - $p->discount / 100), 2) : null,
+                    'discount' => $p->discount,
+                    'link' => route('product.details', $p->id),
+                    'stock' => $p->stock,
+                    'category_id' => $p->category_id,
+                ];
+            });
+
+        return response()->json($products);
+    }
+
+    public function fastShipping()
+    {
+        $products = \App\Models\Product::where('is_fast_shipping', true)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function($p) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'description' => $p->description,
+                    'image_url' => $p->image_url,
+                    'price' => $p->price,
+                    'discount' => $p->discount,
+                    'stock' => $p->stock,
+                    'category_id' => $p->category_id,
+                    'image_url_full' => $p->image_url_full,
+                ];
+            });
+
+        return response()->json($products);
+    }
 }
