@@ -11,7 +11,7 @@ class DatabaseSeeder extends Seeder
      */
 public function run(): void
 {
-    $this->call([
+    $seeders = [
         UsersTableSeeder::class,
         AddressesTableSeeder::class,
         CategorySeeder::class,
@@ -19,7 +19,14 @@ public function run(): void
         OrdersTableSeeder::class,
         OrderItemsTableSeeder::class,
         OrderSeeder::class,
-    ]);
+    ];
+    foreach ($seeders as $seeder) {
+        try {
+            $this->call($seeder);
+        } catch (\Throwable $e) {
+            $this->command->error("Seeder fallido: $seeder. Error: " . $e->getMessage());
+        }
+    }
 }
 
 }

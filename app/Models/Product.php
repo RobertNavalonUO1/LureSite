@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -42,7 +41,7 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-    // 🔽 Esto genera la URL completa
+    // Generates the fully qualified image URL
     public function getImageUrlFullAttribute()
     {
         return url('storage/' . $this->image_url);
@@ -58,7 +57,12 @@ class Product extends Model
         return $this->hasMany(\App\Models\Review::class);
     }
 
-    // Scopes útiles para filtrar productos por flag
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class);
+    }
+
+    // Scopes to filter products by flags
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);

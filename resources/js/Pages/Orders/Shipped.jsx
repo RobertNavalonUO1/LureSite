@@ -86,7 +86,7 @@ const ShippedOrders = () => {
                     Total: ${order.total}
                   </div>
                   <a
-                    href={`/pedidos/${order.id}`}
+                    href={`/orders/${order.id}`}
                     className="mt-2 inline-block text-indigo-600 hover:underline text-sm"
                   >
                     Ver detalle del pedido &rarr;

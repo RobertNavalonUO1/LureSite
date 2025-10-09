@@ -1,155 +1,367 @@
-import React, { useState } from "react";
+// resources/js/Pages/FastShipping.jsx
+import React, { useMemo, useState } from "react";
 import { usePage, Head } from "@inertiajs/react";
-import Header from '@/Components/Header';
-import TopNavMenu from '@/Components/TopNavMenu';
-import SidebarBanners from '@/Components/SidebarBanners';
+import Header from "@/Components/Header";
+import TopNavMenu from "@/Components/TopNavMenu";
+import SidebarBanners from "@/Components/SidebarBanners";
 
-// Card visual mejorada para producto con tamaño fijo
-function ProductCard({ product, onQuickView }) {
-    return (
-        <div className="bg-white rounded-2xl shadow-md p-4 flex flex-col hover:shadow-xl transition group border border-blue-100 relative"
-            style={{ width: 220, minHeight: 340, maxWidth: 220 }}>
-            <div className="relative mb-3">
-                <img
-                    src={product.image_url || "/images/logo.png"}
-                    alt={product.name}
-                    className="h-32 w-full object-contain rounded-lg bg-gray-50"
-                    style={{ minHeight: 128, maxHeight: 128 }}
-                />
-                <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded font-bold shadow">
-                    🚚 Envío rápido
-                </span>
-                {product.discount > 0 && (
-                    <span className="absolute top-2 right-2 bg-rose-500 text-white text-xs px-2 py-1 rounded font-bold shadow">
-                        -{product.discount}%
-                    </span>
-                )}
-            </div>
-            <h2 className="font-semibold text-base mb-1 group-hover:text-blue-700 transition line-clamp-2">{product.name}</h2>
-            <p className="text-gray-500 text-xs mb-2">{product.category?.name}</p>
-            <div className="flex items-center gap-2 mb-2">
-                <span className="text-green-600 font-bold text-lg">
-                    {product.price} €
-                </span>
-                {product.discount > 0 && (
-                    <span className="line-through text-gray-400 text-xs">
-                        {(product.price * (1 - product.discount / 100)).toFixed(2)} €
-                    </span>
-                )}
-            </div>
-            <div className="flex gap-2 mt-auto">
-                <button
-                    className="flex-1 bg-blue-600 text-white rounded-lg py-2 px-2 text-xs font-semibold transition-all duration-200 hover:bg-blue-700"
-                >
-                    Añadir al carrito
-                </button>
-                <button
-                    className="flex-1 bg-white border border-blue-600 text-blue-600 rounded-lg py-2 px-2 text-xs font-semibold transition-all duration-200 hover:bg-blue-50"
-                    onClick={() => onQuickView(product)}
-                >
-                    Vista rápida
-                </button>
-            </div>
-        </div>
-    );
-}
+const currencyFormatter = new Intl.NumberFormat("es-ES", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 2,
+});
 
-// Modal simple para vista rápida
-function QuickViewModal({ product, onClose }) {
-    if (!product) return null;
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full relative">
-                <button
-                    className="absolute top-2 right-2 text-2xl text-gray-400 hover:text-blue-600"
-                    onClick={onClose}
-                    aria-label="Cerrar"
-                >×</button>
-                <img
-                    src={product.image_url || "/images/logo.png"}
-                    alt={product.name}
-                    className="w-full h-48 object-contain rounded-lg mb-4 bg-gray-50"
-                />
-                <h2 className="text-2xl font-bold mb-2">{product.name}</h2>
-                <p className="text-gray-500 mb-2">{product.category?.name}</p>
-                <div className="flex items-center gap-2 mb-4">
-                    <span className="text-green-600 font-bold text-xl">
-                        {product.price} €
-                    </span>
-                    {product.discount > 0 && (
-                        <span className="line-through text-gray-400 text-sm">
-                            {(product.price * (1 - product.discount / 100)).toFixed(2)} €
-                        </span>
-                    )}
-                </div>
-                <p className="text-gray-700 mb-4">{product.description}</p>
-                <button
-                    className="w-full bg-blue-600 text-white rounded-lg py-2 font-semibold hover:bg-blue-700 transition"
-                >
-                    Añadir al carrito
-                </button>
+const normalizePrice = (value) => {
+  if (value === null || value === undefined || value === "") return 0;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  const sanitized = String(value).trim().replace(/[^\d,.-]/g, "");
+  const normalized = sanitized.replace(/,/g, ".");
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const formatCurrency = (value) => currencyFormatter.format(normalizePrice(value));
+
+const deriveOriginalPrice = (product) => {
+  if (product.original_price) return normalizePrice(product.original_price);
+  if (product.old_price) return normalizePrice(product.old_price);
+  if (product.price && product.discount > 0) {
+    const current = normalizePrice(product.price);
+    const raw = current / (1 - Number(product.discount) / 100);
+    return Number.isFinite(raw) ? raw : null;
+  }
+  return null;
+};
+
+const getDiscountFromProduct = (product) => {
+  const original = deriveOriginalPrice(product);
+  const current = normalizePrice(product.price);
+  if (!original || original <= current) return null;
+  return Math.round(((original - current) / original) * 100);
+};
+
+const deliveryLabel = (product) => {
+  const value =
+    product.delivery_estimate ||
+    product.shipping_time ||
+    product.deliveryTime ||
+    product.deliveryLabel ||
+    "";
+  const normalized = String(value).trim();
+  if (normalized) return normalized;
+  return product.fast_shipping ? "Entrega en 24 h" : "Entrega en 48 h";
+};
+
+const ProductCard = ({ product, onQuickView }) => {
+  const title = product.name || "Producto";
+  const categoryName = product.category?.name || "Envio rapido";
+  const originalPrice = deriveOriginalPrice(product);
+  const discount = getDiscountFromProduct(product);
+  const link =
+    product.link ||
+    (product.slug ? `/product/${product.slug}` : product.id ? `/product/${product.id}` : "#");
+
+  return (
+    <article className="group relative flex w-full max-w-xs flex-col rounded-2xl border border-blue-100 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-blue-200">
+      <div className="relative mb-4 flex items-center justify-center rounded-xl bg-blue-50 p-4">
+        <img
+          src={product.image_url || product.image || "/images/logo.png"}
+          alt={title}
+          className="h-32 w-full object-contain"
+          loading="lazy"
+        />
+        <span className="absolute left-3 top-3 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow">
+          Envio rapido
+        </span>
+        {discount !== null && (
+          <span className="absolute right-3 top-3 rounded-full bg-rose-500 px-3 py-1 text-xs font-semibold text-white shadow">
+            -{discount}%
+          </span>
+        )}
+      </div>
+      <h2 className="mb-2 line-clamp-2 text-base font-semibold text-slate-900 group-hover:text-blue-700">
+        {title}
+      </h2>
+      <p className="mb-3 text-xs uppercase tracking-wide text-slate-400">{categoryName}</p>
+      <div className="mb-4 flex items-end gap-2">
+        <span className="text-xl font-bold text-blue-700">{formatCurrency(product.price)}</span>
+        {originalPrice && (
+          <span className="text-xs text-slate-400 line-through">{formatCurrency(originalPrice)}</span>
+        )}
+      </div>
+      <p className="mb-4 line-clamp-3 text-sm text-slate-600">
+        {product.description || "Recibe este producto en un tiempo record sin recargos sorpresa."}
+      </p>
+      <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-blue-600">
+        <span className="rounded-full bg-blue-100 px-3 py-1">{deliveryLabel(product)}</span>
+        <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">
+          Seguimiento incluido
+        </span>
+      </div>
+      <div className="mt-auto flex items-center gap-3">
+        <a
+          href={link}
+          target={link.startsWith("http") ? "_blank" : "_self"}
+          rel={link.startsWith("http") ? "noopener noreferrer" : undefined}
+          className="flex-1 rounded-full bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700"
+        >
+          Ver detalles
+        </a>
+        <button
+          type="button"
+          onClick={() => onQuickView(product)}
+          className="rounded-full border border-blue-200 px-4 py-2 text-sm font-semibold text-blue-600 transition-colors duration-200 hover:bg-blue-50"
+        >
+          Vista rapida
+        </button>
+      </div>
+    </article>
+  );
+};
+
+const QuickViewModal = ({ product, onClose }) => {
+  if (!product) return null;
+  const title = product.name || "Producto";
+  const originalPrice = deriveOriginalPrice(product);
+  const discount = getDiscountFromProduct(product);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4">
+      <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 text-2xl font-bold text-slate-300 transition hover:text-blue-600"
+          aria-label="Cerrar"
+        >
+          X
+        </button>
+        <div className="grid gap-6 sm:grid-cols-[200px_1fr]">
+          <div className="rounded-2xl bg-blue-50 p-4">
+            <img
+              src={product.image_url || product.image || "/images/logo.png"}
+              alt={title}
+              className="h-48 w-full object-contain"
+              loading="lazy"
+            />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
+            <p className="mt-2 text-sm uppercase tracking-wide text-slate-400">
+              {product.category?.name || "Envio rapido"}
+            </p>
+            <div className="mt-4 flex items-end gap-3">
+              <span className="text-2xl font-bold text-blue-700">{formatCurrency(product.price)}</span>
+              {originalPrice && (
+                <span className="text-sm text-slate-400 line-through">
+                  {formatCurrency(originalPrice)}
+                </span>
+              )}
+              {discount !== null && (
+                <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600">
+                  -{discount}% ahorro
+                </span>
+              )}
             </div>
+            <p className="mt-4 text-sm text-slate-600">
+              {product.description ||
+                "Envio asegurado con entrega agil y seguimiento desde la salida del almacen."}
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-semibold text-blue-600">
+              <span className="rounded-full bg-blue-100 px-3 py-1">{deliveryLabel(product)}</span>
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">
+                Garantia de entrega
+              </span>
+            </div>
+            <button
+              type="button"
+              className="mt-6 w-full rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700"
+            >
+              Anadir al carrito
+            </button>
+          </div>
         </div>
-    );
-}
+      </div>
+    </div>
+  );
+};
 
 export default function FastShipping() {
-    const { products, banners } = usePage().props;
-    const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const { products: productsFromPage = [], banners } = usePage().props;
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
 
-    return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-slate-800">
-            <Head title="Productos con Envío Rápido" />
-            <Header />
-            <TopNavMenu />
+  const products = Array.isArray(productsFromPage) ? productsFromPage : [];
 
-            <main className="flex-grow flex flex-col items-center justify-center p-4 sm:p-6">
-                <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[5fr_2fr] gap-8">
-                    {/* Contenido principal */}
-                    <div>
-                        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8 text-center border border-blue-100">
-                            <h1 className="text-3xl md:text-4xl font-extrabold mb-4 flex items-center gap-2 justify-center text-blue-700 drop-shadow">
-                                🚚 Productos con Envío Rápido
-                            </h1>
-                            <p className="mb-8 text-gray-700 text-lg">
-                                Descubre todos los productos que llegan a tu casa en tiempo récord.<br />
-                                <span className="text-blue-600 font-semibold">¡Compra ahora y recibe tu pedido en menos de 48h!</span>
-                            </p>
-                            {products.length === 0 ? (
-                                <div className="text-center py-12 text-gray-500">No hay productos con envío rápido.</div>
-                            ) : (
-                                <div className="flex flex-wrap justify-center gap-6">
-                                    {products.map((product) => (
-                                        <ProductCard
-                                            key={product.id}
-                                            product={product}
-                                            onQuickView={setQuickViewProduct}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    {/* Banners laterales, menos prominentes en móvil */}
-                    <aside className="mt-4 lg:mt-0">
-                        <div className="hidden lg:block">
-                            <SidebarBanners banners={banners?.fastShipping || banners?.default || []} />
-                        </div>
-                        <div className="block lg:hidden mb-4">
-                            {/* Banner solo visible en móvil/tablet, más pequeño */}
-                            {banners?.fastShipping?.[0] && (
-                                <img
-                                    src={banners.fastShipping[0].src}
-                                    alt={banners.fastShipping[0].alt || "Banner"}
-                                    className="rounded-xl shadow-md w-full max-h-32 object-cover"
-                                />
-                            )}
-                        </div>
-                    </aside>
+  const categories = useMemo(() => {
+    const set = new Set();
+    products.forEach((product) => {
+      if (product.category?.name) set.add(product.category.name);
+    });
+    return Array.from(set);
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return products.filter((product) => {
+      const matchesCategory =
+        activeCategory === "all" || product.category?.name === activeCategory;
+      if (!matchesCategory) return false;
+
+      if (!term) return true;
+
+      const haystack = [product.name, product.category?.name, product.description]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(term);
+    });
+  }, [products, activeCategory, searchTerm]);
+
+  const insights = useMemo(() => {
+    const total = products.length;
+    const discounted = products.filter((product) => getDiscountFromProduct(product) !== null).length;
+    const ultraFast = products.filter((product) => {
+      const label = deliveryLabel(product).toLowerCase();
+      return (
+        product.delivery_hours === 24 ||
+        label.includes("24") ||
+        product.fast_shipping === true
+      );
+    }).length;
+
+    return {
+      total,
+      discounted,
+      ultraFast,
+    };
+  }, [products]);
+
+  return (
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-blue-50 via-white to-blue-100 text-slate-800">
+      <Head title="Productos con envio rapido" />
+      <Header />
+      <TopNavMenu />
+
+      <main className="flex-grow px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 lg:grid-cols-[5fr_2fr]">
+          <section className="flex flex-col gap-6">
+            <div className="overflow-hidden rounded-3xl border border-blue-100 bg-white/70 shadow-lg">
+              <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 px-6 py-8 text-white sm:px-10">
+                <p className="text-sm font-semibold uppercase tracking-[0.3em]">
+                  Entrega garantizada
+                </p>
+                <h1 className="mt-2 text-3xl font-black sm:text-4xl">
+                  Compra hoy y recibe antes de 48 horas
+                </h1>
+                <p className="mt-4 max-w-2xl text-base sm:text-lg text-white/85">
+                  Productos seleccionados con envio prioritario, seguimiento en tiempo real y
+                  politica de devoluciones flexible.
+                </p>
+                <div className="mt-6 grid gap-6 sm:grid-cols-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-white/70">
+                      Productos disponibles
+                    </p>
+                    <p className="mt-2 text-2xl font-bold">{insights.total}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-white/70">
+                      Con descuento exclusivo
+                    </p>
+                    <p className="mt-2 text-2xl font-bold">{insights.discounted}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-white/70">
+                      Entrega en menos de 24 h
+                    </p>
+                    <p className="mt-2 text-2xl font-bold">{insights.ultraFast}</p>
+                  </div>
                 </div>
-            </main>
-            {/* Modal de vista rápida */}
-            <QuickViewModal product={quickViewProduct} onClose={() => setQuickViewProduct(null)} />
+              </div>
+
+              <div className="flex flex-col gap-4 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-10">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory("all")}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      activeCategory === "all"
+                        ? "bg-blue-600 text-white shadow"
+                        : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                    }`}
+                  >
+                    Todas las categorias
+                  </button>
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => setActiveCategory(category)}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                        activeCategory === category
+                          ? "bg-blue-600 text-white shadow"
+                          : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+                <div className="relative w-full sm:w-72">
+                  <input
+                    type="search"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    className="w-full rounded-full border border-blue-100 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="Buscar por producto o categoria"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {filteredProducts.length === 0 ? (
+              <div className="rounded-2xl border border-blue-100 bg-white p-10 text-center shadow-sm">
+                <p className="text-lg font-semibold text-slate-900">Sin coincidencias</p>
+                <p className="mt-2 text-sm text-slate-500">
+                  Ajusta la busqueda o selecciona otra categoria para ver mas productos con envio rapido.
+                </p>
+              </div>
+            ) : (
+              <div className="grid justify-center gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id || product.name}
+                    product={product}
+                    onQuickView={setQuickViewProduct}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          <aside className="space-y-6">
+            <div className="hidden h-full rounded-3xl border border-blue-100 bg-white/70 p-6 shadow-lg lg:block">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-blue-500">Patrocinado</h2>
+              <SidebarBanners banners={banners?.fastShipping || banners?.default || []} />
+            </div>
+
+            <div className="block overflow-hidden rounded-3xl border border-blue-100 bg-white/70 shadow-lg lg:hidden">
+              {banners?.fastShipping?.[0] && (
+                <img
+                  src={banners.fastShipping[0].src}
+                  alt={banners.fastShipping[0].alt || "Promocion envio rapido"}
+                  className="h-40 w-full object-cover"
+                  loading="lazy"
+                />
+              )}
+            </div>
+          </aside>
         </div>
-    );
+      </main>
+
+      <QuickViewModal product={quickViewProduct} onClose={() => setQuickViewProduct(null)} />
+    </div>
+  );
 }

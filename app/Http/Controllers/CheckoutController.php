@@ -202,7 +202,7 @@ class CheckoutController extends Controller
             $order->transaction_id = $stripeSessionId ?? $paypalOrderId;
 
             // ✅ Estado inicial del pedido
-            $order->status = 'pendiente_envio';
+            $order->status = 'confirmado';
 
             $order->save();
 

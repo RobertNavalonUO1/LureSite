@@ -11,16 +11,13 @@ class OrderItemsTableSeeder extends Seeder
     {
         $orders = DB::table('orders')->pluck('id');
         $products = DB::table('products')->pluck('id');
-
         foreach ($orders as $order_id) {
-            // Asignar entre 1 y 3 productos a cada orden
-            $product_ids = $products->random(rand(1, 3));
-
+            $product_ids = $products->random(rand(2, 6));
             foreach ($product_ids as $product_id) {
                 DB::table('order_items')->insert([
                     'order_id' => $order_id,
                     'product_id' => $product_id,
-                    'quantity' => rand(1, 5),
+                    'quantity' => rand(1, 8),
                     'price' => DB::table('products')->where('id', $product_id)->value('price'),
                     'created_at' => now(),
                     'updated_at' => now(),

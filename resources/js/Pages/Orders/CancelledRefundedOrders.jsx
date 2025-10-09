@@ -1,14 +1,24 @@
 import React from 'react';
 import { usePage } from '@inertiajs/react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { XCircle, RotateCcw, ArrowLeftCircle } from 'lucide-react';
+import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
+import { XCircle, RotateCcw, ArrowLeftCircle, Clock } from 'lucide-react';
 
 const STATUS_INFO = {
   cancelado: {
     label: 'Cancelado',
     color: 'bg-red-100 text-red-800 border-red-300',
     icon: <XCircle className="w-5 h-5 text-red-600" />,
+  },
+  cancelacion_pendiente: {
+    label: 'Cancelacion en proceso',
+    color: 'bg-amber-100 text-amber-800 border-amber-300',
+    icon: <Clock className="w-5 h-5 text-amber-600" />,
+  },
+  devolucion_aprobada: {
+    label: 'Devolucion aprobada',
+    color: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    icon: <RotateCcw className="w-5 h-5 text-emerald-600" />,
   },
   reembolsado: {
     label: 'Reembolsado',
@@ -74,8 +84,25 @@ const CancelledRefundedOrders = () => {
                   <div className="text-right font-bold text-gray-700">
                     Total: ${order.total}
                   </div>
+                  {order.status === 'cancelacion_pendiente' && (
+                    <p className="mt-2 text-sm text-amber-700">
+                      Tu solicitud de cancelacion esta en revision. Recibiras confirmacion en 24-48 horas.
+                    </p>
+                  )}
+                  {order.status === 'devolucion_aprobada' && (
+                    <p className="mt-2 text-sm text-emerald-700">
+                      La devolucion fue aprobada. Si aun no lo has hecho, solicita tu reembolso desde la seccion de
+                      pedidos pagados.
+                    </p>
+                  )}
+                  {order.status === 'reembolsado' && (
+                    <p className="mt-2 text-sm text-slate-600">
+                      El reembolso se proceso correctamente. Puede tardar unos minutos en reflejarse segun tu metodo de
+                      pago.
+                    </p>
+                  )}
                   <a
-                    href={`/pedidos/${order.id}`}
+                    href={`/orders/${order.id}`}
                     className="mt-2 inline-block text-indigo-600 hover:underline text-sm"
                   >
                     Ver detalle del pedido &rarr;

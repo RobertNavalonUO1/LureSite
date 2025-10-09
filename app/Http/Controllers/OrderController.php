@@ -20,11 +20,17 @@ class OrderController extends Controller
             ->orderByDesc('created_at')
             ->get()
             ->map(function ($order) {
+                $estimatedDelivery = $order->created_at
+                    ? $order->created_at->copy()->addDays(5)->format('d/m/Y')
+                    : null;
+
                 return [
                     'id' => $order->id,
                     'date' => $order->created_at->format('d/m/Y H:i'),
                     'status' => $order->status,
                     'total' => $order->total,
+                    'address' => $order->address,
+                    'estimated_delivery' => $estimatedDelivery,
                     'items' => $order->items->map(function ($item) {
                         return [
                             'id' => $item->id,
@@ -49,18 +55,35 @@ class OrderController extends Controller
      */
     public function shipped()
     {
-        // Pedidos enviados, entregados o confirmados
+        $statusDetails = [
+            'pagado' => ['label' => 'Pagado', 'progress' => 0],
+            'pendiente_envio' => ['label' => 'Pendiente de envio', 'progress' => 1],
+            'enviado' => ['label' => 'Enviado', 'progress' => 2],
+            'entregado' => ['label' => 'Entregado', 'progress' => 3],
+            'confirmado' => ['label' => 'Confirmado', 'progress' => 3],
+            'devolucion_aprobada' => ['label' => 'Devolucion aprobada', 'progress' => 3],
+        ];
+
         $orders = \App\Models\Order::with(['items.product'])
             ->byUser(auth()->id())
             ->shipped()
             ->orderByDesc('created_at')
             ->get()
-            ->map(function ($order) {
+            ->map(function ($order) use ($statusDetails) {
+                $detail = $statusDetails[$order->status] ?? [];
+                $estimatedDelivery = $order->created_at
+                    ? $order->created_at->copy()->addDays(5)->format('d/m/Y')
+                    : null;
+
                 return [
                     'id' => $order->id,
-                    'date' => $order->created_at->format('d/m/Y H:i'),
+                    'date' => $order->created_at?->format('d/m/Y H:i'),
                     'status' => $order->status,
+                    'status_label' => $detail['label'] ?? ucfirst(str_replace('_', ' ', $order->status)),
                     'total' => $order->total,
+                    'address' => $order->address,
+                    'estimated_delivery' => $estimatedDelivery,
+                    'progress_step' => $detail['progress'] ?? 0,
                     'items' => $order->items->map(function ($item) {
                         return [
                             'id' => $item->id,
@@ -71,11 +94,12 @@ class OrderController extends Controller
                             'product_id' => $item->product->id ?? null,
                             'product' => $item->product ? $item->product->toArray() : null,
                         ];
-                    }),
+                    })->values(),
                 ];
-            });
+            })
+            ->values();
 
-        return \Inertia\Inertia::render('Orders/Shipped', [
+        return \Inertia\Inertia::render('ShippedOrders', [
             'orders' => $orders,
         ]);
     }
@@ -97,6 +121,7 @@ class OrderController extends Controller
                     'date' => $order->created_at->format('d/m/Y H:i'),
                     'status' => $order->status,
                     'total' => $order->total,
+                    'address' => $order->address,
                     'items' => $order->items->map(function ($item) {
                         return [
                             'id' => $item->id,
@@ -113,6 +138,39 @@ class OrderController extends Controller
 
         return \Inertia\Inertia::render('Orders/Paid', [
             'orders' => $orders,
+        ]);
+    }
+
+    /**
+     * Mostrar pantalla de confirmacion de cancelacion.
+     */
+    public function cancelPrompt($orderId)
+    {
+        $order = Order::with('items.product')
+            ->where('id', $orderId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        if (!$order->canBeCancelled()) {
+            return redirect()->route('orders.show', $orderId)
+                ->with('error', 'Este pedido no puede cancelarse en este momento.');
+        }
+
+        return Inertia::render('Orders/CancelConfirm', [
+            'order' => [
+                'id' => $order->id,
+                'date' => $order->created_at?->format('d/m/Y H:i'),
+                'status' => $order->status,
+                'total' => $order->total,
+                'items' => $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'name' => $item->product->name ?? $item->name,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                    ];
+                })->values(),
+            ],
         ]);
     }
 
@@ -166,7 +224,7 @@ class OrderController extends Controller
      */
     public function markAsShipped(Order $order)
     {
-        if ($order->status === 'pagado' || $order->status === 'pendiente_envio') {
+        if (in_array($order->status, ['confirmado', 'pagado', 'pendiente_envio'])) {
             $order->status = 'enviado';
             $order->save();
 
@@ -177,10 +235,9 @@ class OrderController extends Controller
     }
 public function cancelled()
 {
-    // Pedidos cancelados o reembolsados
     $orders = \App\Models\Order::with(['items.product'])
         ->byUser(auth()->id())
-        ->whereIn('status', ['cancelado', 'reembolsado'])
+        ->whereIn('status', ['cancelacion_pendiente', 'cancelado', 'devolucion_aprobada', 'reembolsado'])
         ->orderByDesc('created_at')
         ->get()
         ->map(function ($order) {
@@ -253,6 +310,8 @@ public function cancelled()
                 'date' => $order->created_at->format('d/m/Y H:i'),
                 'status' => $order->status,
                 'total' => $order->total,
+                'can_cancel' => $order->canBeCancelled(),
+                'can_refund' => $order->isRefundable(),
                 'items' => $order->items->map(function ($item) {
                     return [
                         'id' => $item->id,
@@ -267,4 +326,83 @@ public function cancelled()
             ],
         ]);
     }
+
+    /**
+     * Cancelar pedido por usuario autenticado.
+     */
+    public function cancel(Request $request, $orderId)
+    {
+        $order = Order::where('id', $orderId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        if (!$order->canBeCancelled()) {
+            return back()->with('error', 'Este pedido no puede cancelarse en este estado.');
+        }
+
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $order->status = 'cancelacion_pendiente';
+        $order->cancellation_reason = $validated['reason'] ?? 'Solicitud de cancelacion por el usuario';
+        $order->cancelled_by = 'user';
+        $order->cancelled_at = null;
+        $order->save();
+
+        return redirect()
+            ->route('orders.cancelled')
+            ->with('success', 'Solicitud de cancelacion registrada. Revisaremos el pedido y confirmaremos en un plazo estimado de 24-48 horas.');
+    }
+
+    /**
+     * Registrar la solicitud de reembolso por parte del usuario.
+     */
+    public function refund(Request $request, $orderId)
+    {
+        $order = Order::where('id', $orderId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        if (!$order->isRefundable()) {
+            return back()->with('error', 'El pedido aun no es elegible para reembolso.');
+        }
+
+        $order->status = 'reembolsado';
+        $order->save();
+
+        return redirect()
+            ->route('orders.cancelled')
+            ->with('success', 'Solicitud de reembolso recibida. Procesaremos la devolucion en las proximas 24-48 horas.');
+    }
+
+    /**
+     * Cancelar pedido por administrador.
+     */
+    public function adminCancel(Request $request, $orderId)
+    {
+        $order = Order::findOrFail($orderId);
+
+        if ($order->isShipped() || $order->status === 'cancelado') {
+            return back()->with('error', 'No se puede cancelar un pedido ya enviado o cancelado.');
+        }
+
+        $order->status = 'cancelado';
+        $order->cancellation_reason = $request->input('reason') ?: 'Cancelado por administrador';
+        $order->cancelled_by = 'admin';
+        $order->cancelled_at = now();
+        $order->save();
+
+        // Opcional: devolución de dinero
+
+        return back()->with('success', 'Pedido cancelado por el administrador.');
+    }
 }
+
+
+
+
+
+
+
+

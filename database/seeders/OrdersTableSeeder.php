@@ -10,20 +10,40 @@ class OrdersTableSeeder extends Seeder
 {
     public function run(): void
     {
+        $faker = \Faker\Factory::create('es_ES');
         $users = DB::table('users')->pluck('id');
-
+        $paymentMethods = ['Tarjeta de crédito', 'PayPal', 'Transferencia bancaria', 'Bizum', 'Contra reembolso'];
         foreach ($users as $user_id) {
-            DB::table('orders')->insert([
-                'user_id' => $user_id,
-                'name' => DB::table('users')->where('id', $user_id)->value('name'),
-                'email' => DB::table('users')->where('id', $user_id)->value('email'),
-                'address' => 'Calle Falsa 123, Madrid, España',
-                'payment_method' => 'Tarjeta de crédito',
-                'total' => rand(50, 500), // Monto aleatorio
-                'transaction_id' => Str::uuid(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            $user = DB::table('users')->where('id', $user_id)->first();
+            $numOrders = rand(3, 6);
+            for ($i = 0; $i < $numOrders; $i++) {
+                $maxRetries = 5;
+                $success = false;
+                while (!$success && $maxRetries > 0) {
+                    $createdAt = $faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d H:i:s');
+                    try {
+                        DB::table('orders')->insert([
+                            'user_id' => $user_id,
+                            'name' => $user->name,
+                            'email' => $user->email,
+                            'address' => $faker->streetAddress . ', ' . $faker->city . ', ' . $faker->state . ', España',
+                            'payment_method' => $faker->randomElement($paymentMethods),
+                            'total' => $faker->randomFloat(2, 20, 2000),
+                            'transaction_id' => Str::uuid(),
+                            'created_at' => $createdAt,
+                            'updated_at' => now()->format('Y-m-d H:i:s'),
+                        ]);
+                        $success = true;
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        if (str_contains($e->getMessage(), 'Incorrect datetime value')) {
+                            $maxRetries--;
+                            continue;
+                        } else {
+                            throw $e;
+                        }
+                    }
+                }
+            }
         }
     }
 }

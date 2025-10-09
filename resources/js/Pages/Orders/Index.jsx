@@ -29,6 +29,10 @@ const STATUS_INFO = {
     label: 'Confirmado',
     color: 'bg-green-50 text-green-700 border-green-200',
   },
+  cancelacion_pendiente: {
+    label: 'Cancelacion en proceso',
+    color: 'bg-amber-100 text-amber-800 border-amber-300',
+  },
   cancelado: {
     label: 'Cancelado',
     color: 'bg-red-100 text-red-800 border-red-300',
@@ -74,7 +78,7 @@ const OrdersIndex = ({ orders }) => {
                   <div className="flex justify-between items-center mb-2">
                     <h2 className="text-lg font-semibold">
                       <Link
-                        href={`/pedidos/${order.id}`}
+                        href={`/orders/${order.id}`}
                         className="text-blue-700 hover:underline"
                       >
                         Pedido #{order.id}
@@ -104,7 +108,7 @@ const OrdersIndex = ({ orders }) => {
                       {statusInfo.label}
                     </span>
                     <Link
-                      href={`/pedidos/${order.id}`}
+                      href={`/orders/${order.id}`}
                       className="ml-4 text-sm text-indigo-600 hover:underline font-medium"
                     >
                       Ver detalle

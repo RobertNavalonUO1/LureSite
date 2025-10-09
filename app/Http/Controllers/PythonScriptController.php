@@ -13,6 +13,7 @@ class PythonScriptController extends Controller
     {
         $script = $request->input('script');
         $input = $request->input('input');
+        $menuOption = $request->input('menu_option', 'listado'); // por defecto 'listado'
 
         if (!$script || !$input) {
             Log::warning('❌ Parámetros incompletos al ejecutar script');
@@ -38,8 +39,20 @@ class PythonScriptController extends Controller
             'PATH' => getenv('PATH'),
         ];
 
-        $process = new Process([$pythonBinary, $scriptPath, $tempPath], null, $env);
-        $process->setTimeout(60);
+        $title = $request->input('title');
+        $args = [
+            'python',
+            $scriptPath,
+            $tempPath,
+            $menuOption
+        ];
+        if ($menuOption === 'detalle' && $title) {
+            $args[] = '--title';
+            $args[] = $title;
+        }
+
+        $process = new Process($args);
+        $process->run();
 
         try {
             Log::info("🚀 Ejecutando script Python: {$scriptPath}");

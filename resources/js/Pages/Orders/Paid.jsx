@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePage } from '@inertiajs/react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Header from '@/Components/Header';
+import Footer from '@/Components/Footer';
 import { CreditCard, ArrowLeftCircle, XCircle, RotateCcw } from 'lucide-react';
 
 const STATUS_INFO = {
@@ -11,14 +11,32 @@ const STATUS_INFO = {
     icon: <CreditCard className="w-5 h-5 text-purple-600" />,
   },
   pendiente_envio: {
-    label: 'Pendiente de envío',
+    label: 'Pendiente de envio',
     color: 'bg-blue-100 text-blue-800 border-blue-300',
     icon: <CreditCard className="w-5 h-5 text-blue-600" />,
   },
+  cancelacion_pendiente: {
+    label: 'Cancelacion en proceso',
+    color: 'bg-amber-100 text-amber-800 border-amber-300',
+    icon: <XCircle className="w-5 h-5 text-amber-600" />,
+  },
+  devolucion_aprobada: {
+    label: 'Devolucion aprobada',
+    color: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    icon: <RotateCcw className="w-5 h-5 text-emerald-600" />,
+  },
+  reembolsado: {
+    label: 'Reembolsado',
+    color: 'bg-gray-100 text-gray-800 border-gray-300',
+    icon: <RotateCcw className="w-5 h-5 text-gray-600" />,
+  },
 };
 
+const CANCEL_WARNING =
+  'Al confirmar la solicitud iniciaremos la gestion de cancelacion. El resultado se confirmara en 24-48 horas si es posible. Deseas continuar?';
+
 const PaidOrders = () => {
-  const { orders } = usePage().props;
+  const { orders, csrfToken } = usePage().props;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -37,12 +55,14 @@ const PaidOrders = () => {
 
         {orders.length > 0 ? (
           <div className="space-y-6">
-            {orders.map(order => {
+            {orders.map((order) => {
               const statusInfo = STATUS_INFO[order.status] || {
                 label: order.status,
                 color: 'bg-gray-100 text-gray-800 border-gray-300',
                 icon: <CreditCard className="w-5 h-5 text-gray-400" />,
               };
+              const refundDisabled = !['devolucion_aprobada'].includes(order.status);
+
               return (
                 <div key={order.id} className={`bg-white p-6 rounded shadow border-l-4 ${statusInfo.color}`}>
                   <div className="flex justify-between items-center mb-2">
@@ -59,10 +79,10 @@ const PaidOrders = () => {
                   <span className={`inline-block px-3 py-1 text-sm rounded border ${statusInfo.color} mb-2`}>
                     {statusInfo.label}
                   </span>
-                  <p className="text-sm text-gray-500 mb-2">Dirección: {order.address}</p>
+                  <p className="text-sm text-gray-500 mb-2">Direccion: {order.address}</p>
 
                   <ul className="text-sm text-gray-600 list-disc ml-5 mb-4">
-                    {order.items.map(item => (
+                    {order.items.map((item) => (
                       <li key={item.id}>
                         <a
                           href={`/product/${item.product_id}`}
@@ -71,14 +91,24 @@ const PaidOrders = () => {
                           className="hover:underline"
                         >
                           {item.name}
-                        </a> x{item.quantity} – ${item.price}
+                        </a>{' '}
+                        x{item.quantity} - ${item.price}
                       </li>
                     ))}
                   </ul>
 
-                  <div className="flex gap-2">
-                    {['pendiente_envio', 'pagado'].includes(order.status) && (
-                      <form method="POST" action={`/orders/${order.id}/cancel`}>
+                  <div className="flex gap-2 flex-wrap">
+                    {['confirmado', 'pendiente_envio', 'pagado'].includes(order.status) && (
+                      <form
+                        method="POST"
+                        action={`/orders/${order.id}/cancel`}
+                        onSubmit={(event) => {
+                          if (!window.confirm(CANCEL_WARNING)) {
+                            event.preventDefault();
+                          }
+                        }}
+                      >
+                        <input type="hidden" name="_token" value={csrfToken} />
                         <button
                           type="submit"
                           className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
@@ -87,19 +117,60 @@ const PaidOrders = () => {
                         </button>
                       </form>
                     )}
-                    {order.status === 'pagado' && (
+
+                    {order.status === 'devolucion_aprobada' && (
                       <form method="POST" action={`/orders/${order.id}/refund`}>
+                        <input type="hidden" name="_token" value={csrfToken} />
                         <button
                           type="submit"
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                          disabled={refundDisabled}
+                          title={
+                            refundDisabled
+                              ? 'La solicitud de reembolso estara disponible cuando la cancelacion sea aprobada.'
+                              : ''
+                          }
+                          className={`px-3 py-1 rounded text-sm flex items-center gap-1 text-white transition ${
+                            refundDisabled
+                              ? 'bg-yellow-300 cursor-not-allowed'
+                              : 'bg-yellow-500 hover:bg-yellow-600'
+                          }`}
                         >
                           <RotateCcw className="w-4 h-4" /> Solicitar Reembolso
                         </button>
                       </form>
                     )}
+                    {order.status === 'reembolsado' && (
+                      <span className="px-3 py-1 rounded text-sm bg-gray-200 text-gray-700 flex items-center gap-1">
+                        <RotateCcw className="w-4 h-4" />
+                        Reembolso procesado
+                      </span>
+                    )}
                   </div>
+
+                  {order.status === 'cancelacion_pendiente' && (
+                    <p className="mt-3 text-sm text-amber-700">
+                      Tu solicitud de cancelacion esta en revision. Te confirmaremos el resultado en 24-48 horas.
+                    </p>
+                  )}
+                  {order.status === 'devolucion_aprobada' && (
+                    <p className="mt-3 text-sm text-emerald-700">
+                      La devolucion fue aprobada. Solicita tu reembolso para completar el proceso.
+                    </p>
+                  )}
+                  {order.status === 'reembolsado' && (
+                    <p className="mt-3 text-sm text-slate-600">
+                      El reembolso se proceso correctamente. La acreditacion puede tardar segun tu metodo de pago.
+                    </p>
+                  )}
+
+                  {order.status === 'cancelacion_pendiente' && (
+                    <p className="mt-3 text-sm text-amber-700">
+                      Tu cancelacion esta en proceso. Te confirmaremos el resultado en un plazo estimado de 24-48 horas.
+                    </p>
+                  )}
+
                   <a
-                    href={`/pedidos/${order.id}`}
+                    href={`/orders/${order.id}`}
                     className="mt-3 inline-block text-indigo-600 hover:underline text-sm"
                   >
                     Ver detalle del pedido &rarr;

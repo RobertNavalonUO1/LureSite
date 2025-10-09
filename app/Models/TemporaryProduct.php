@@ -15,4 +15,9 @@ class TemporaryProduct extends Model
         'price',
         'image_url',
     ];
+
+    public function images()
+    {
+        return $this->hasMany(TemporaryProductImage::class);
+    }
 }

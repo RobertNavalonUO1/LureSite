@@ -74,7 +74,7 @@ class MobileApiController extends Controller
             'user_id' => Auth::id(),
             'total'   => $data['total'],
             'address' => $data['address'],
-            'status'  => 'processing',
+            'status'  => 'confirmado',
         ]);
 
         foreach ($data['items'] as $item) {

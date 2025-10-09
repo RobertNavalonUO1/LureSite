@@ -116,10 +116,23 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::with('category')->findOrFail($id);
+        $product = Product::with(['category', 'images'])->findOrFail($id);
+
+        // Construye el array de imágenes: principal + auxiliares
+        $gallery = [];
+        if ($product->image_url) {
+            // Si la imagen principal es absoluta, úsala tal cual
+            $gallery[] = $product->image_url;
+        }
+        foreach ($product->images as $img) {
+            if ($img->image_url) {
+                // Si la imagen es absoluta, úsala tal cual
+                $gallery[] = $img->image_url;
+            }
+        }
+        $gallery = array_unique($gallery);
 
         $relatedProducts = [];
-
         if ($product->category) {
             $relatedProducts = $product->category
                 ->products()
@@ -135,16 +148,12 @@ class ProductController extends Controller
                 'description' => $product->description,
                 'price' => $product->price,
                 'original_price' => $product->original_price ?? ($product->price * 1.3),
-                'discount' => '30%',
+                'discount' => $product->discount ?? '0%',
                 'stock' => $product->stock,
                 'sold_count' => 159,
                 'rating' => 4.6,
                 'image_url' => $product->image_url,
-                'gallery' => [
-                    $product->image_url,
-                    $product->image_url,
-                    $product->image_url
-                ],
+                'gallery' => $gallery,
                 'colors' => ['Verde', 'Azul', 'Rosa', 'Negro'],
                 'sizes' => ['A3', 'A4', 'A5'],
                 'category' => [

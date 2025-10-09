@@ -29,7 +29,7 @@ class OrderSeeder extends Seeder
                     'email' => fake('es_ES')->email(),
                     'address' => fake('es_ES')->address(),
                     'payment_method' => $paymentMethods[array_rand($paymentMethods)],
-                    'total' => fake()->randomFloat(2, 20, 500),
+                    'total' => fake()->randomFloat(2, 20, 5),
                     'transaction_id' => Str::uuid(),
                     'status' => $status,
                     'created_at' => now()->subDays(rand(1, 30)),

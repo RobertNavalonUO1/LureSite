@@ -1,77 +1,188 @@
-import React from 'react';
-import { Inertia } from '@inertiajs/inertia';
+﻿import React, { useMemo } from "react";
+import { Inertia } from "@inertiajs/inertia";
+import { Heart } from "lucide-react";
+
+const currencyFormatter = new Intl.NumberFormat("es-ES", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 2,
+});
+
+const normalizePrice = (value) => {
+  if (value === null || value === undefined || value === "") return 0;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  const sanitized = String(value).trim().replace(/[^\d,.-]/g, "");
+  const normalized = sanitized.replace(/,/g, ".");
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const formatCurrency = (value) => currencyFormatter.format(normalizePrice(value));
+
+const derivePreviousPrice = (product) => {
+  if (product.old_price) return normalizePrice(product.old_price);
+  if (product.original_price) return normalizePrice(product.original_price);
+  if (product.regular_price) return normalizePrice(product.regular_price);
+  if (product.price && product.discount > 0) {
+    const current = normalizePrice(product.price);
+    const raw = current / (1 - Number(product.discount) / 100);
+    return Number.isFinite(raw) ? raw : null;
+  }
+  return null;
+};
+
+const calculateDiscount = (currentPrice, previousPrice) => {
+  const current = normalizePrice(currentPrice);
+  const previous = normalizePrice(previousPrice);
+  if (!previous || previous <= current) return null;
+  return Math.round(((previous - current) / previous) * 100);
+};
 
 const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => {
-  const rating = product.rating || 4;
-  const reviews = product.reviews || 12;
+  const title = product.name || product.title || "Producto";
+  const thumbnail = product.image_url || product.image || "/images/logo.png";
+  const categoryName = product.category?.name || product.category || "Marketplace";
 
-  const filledStars = '★'.repeat(rating);
-  const emptyStars = '☆'.repeat(5 - rating);
+  const previousPrice = derivePreviousPrice(product);
+  const discount = calculateDiscount(product.price, previousPrice);
+
+  const ratingValue = Number(product.rating) || 4;
+  const ratingCount = product.reviews_count || product.reviews || 0;
+
+  const shippingLabel =
+    product.shipping_label ||
+    product.delivery_estimate ||
+    (product.fast_shipping ? "Envio en 48h" : "Envio estandar");
+
+  const stockStatus =
+    product.stock > 10
+      ? "Stock disponible"
+      : product.stock > 0
+      ? "Ultimas unidades"
+      : "Sin stock";
 
   const goToProduct = () => {
+    if (product.slug) {
+      Inertia.visit(`/product/${product.slug}`);
+      return;
+    }
     Inertia.visit(`/product/${product.id}`);
   };
 
-  return (
-    <div
-      onClick={goToProduct}
-      className="cursor-pointer bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-slate-100 group flex flex-col"
-    >
-      {/* Imagen cuadrada */}
-      <div className="relative w-full aspect-square overflow-hidden rounded-t-xl">
-        <picture>
-          <source srcSet={product.image_url} type="image/avif" />
-          <img
-            src={product.image_url.replace('.avif', '.jpg')}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        </picture>
-
-        {/* Botón de favorito */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite(product.id);
-          }}
-          className="absolute top-2 right-2 text-lg z-10 bg-white rounded-full p-1 shadow hover:scale-110 transition"
-          title="Agregar a favoritos"
+  const starIcons = useMemo(() => {
+    return Array.from({ length: 5 }).map((_, index) => {
+      const filled = index < Math.round(ratingValue);
+      return (
+        <svg
+          key={index}
+          className={`h-4 w-4 ${filled ? "text-amber-500" : "text-slate-300"}`}
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
         >
-          {isFavorite ? '❤️' : '🤍'}
+          <path d="M10 15.27l5.18 3.05-1.64-5.81 4.46-3.85-5.9-.5L10 2.5l-2.1 5.66-5.9.5 4.46 3.85L4.82 18.3z" />
+        </svg>
+      );
+    });
+  }, [ratingValue]);
+
+  return (
+    <article className="group mx-auto flex h-full w-full max-w-sm flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl focus-within:ring-2 focus-within:ring-indigo-200">
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => onToggleFavorite(product.id)}
+          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-slate-600 shadow-lg transition hover:scale-110 hover:text-rose-500"
+          aria-label={isFavorite ? "Quitar de favoritos" : "Guardar en favoritos"}
+        >
+          <Heart
+            className={`h-5 w-5 ${isFavorite ? "fill-rose-500 text-rose-500" : ""}`}
+            strokeWidth={1.6}
+            fill={isFavorite ? "currentColor" : "none"}
+          />
+        </button>
+
+        {(product.badge || product.is_new || product.fast_shipping) && (
+          <span className="absolute left-4 top-4 z-20 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow">
+            {product.badge || (product.is_new ? "Nuevo" : "Entrega rapida")}
+          </span>
+        )}
+
+        <button
+          type="button"
+          onClick={goToProduct}
+          className="block w-full"
+          aria-label={`Ver detalles de ${title}`}
+        >
+          <div className="relative aspect-[5/4] w-full overflow-hidden bg-gradient-to-br from-slate-100 via-white to-slate-100">
+            <img
+              src={thumbnail}
+              alt={title}
+              className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+            />
+          </div>
         </button>
       </div>
 
-      {/* Contenido compacto */}
-      <div className="flex flex-col justify-between flex-grow px-3 py-2">
-        <div className="space-y-0.5">
-          <h3 className="text-sm font-semibold text-slate-800 line-clamp-2 leading-snug">{product.name}</h3>
-          <p className="text-xs text-slate-500">{product.category.name}</p>
-
-          <div className="flex items-center text-yellow-400 text-sm">
-            <span>{filledStars}{emptyStars}</span>
-            <span className="ml-1 text-xs text-slate-400">({reviews})</span>
-          </div>
+      <div className="flex flex-grow flex-col gap-3 p-5">
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase tracking-[0.28em] text-indigo-500">{categoryName}</p>
+          <h3 className="text-base font-semibold text-slate-900 line-clamp-1">{title}</h3>
         </div>
 
-        <div className="mt-2 space-y-1">
-          <p className="text-indigo-600 font-bold text-base">${product.price}</p>
+        <div className="flex items-center gap-2 text-xs text-slate-500" aria-label={`Valoracion ${ratingValue} de 5`}>
+          <div className="flex items-center gap-0.5 text-amber-500">{starIcons}</div>
+          <span className="font-semibold text-slate-700">{ratingValue.toFixed(1)}</span>
+          <span>({ratingCount})</span>
+        </div>
+
+        <div className="space-y-1">
+          <div className="flex items-baseline gap-2">
+            <span className="text-lg font-bold text-slate-900">{formatCurrency(product.price)}</span>
+            {previousPrice && (
+              <span className="text-xs text-slate-400 line-through">{formatCurrency(previousPrice)}</span>
+            )}
+            {discount !== null && (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-600">
+                -{discount}%
+              </span>
+            )}
+          </div>
+          <p className="text-xs font-medium text-emerald-600">{shippingLabel}</p>
+        </div>
+
+        <p className="line-clamp-1 text-xs text-slate-500">
+          {product.short_description ||
+            product.description ||
+            "Consigue este producto con proteccion de comprador y devolucion garantizada."}
+        </p>
+
+        <div className="mt-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddToCart(product.id);
-            }}
+            type="button"
+            onClick={() => onAddToCart(product.id)}
             disabled={product.stock === 0}
-            className={`w-full py-1.5 text-sm rounded-lg font-semibold transition ${
-              product.stock > 0
-                ? 'bg-green-600 hover:bg-green-700 text-white'
-                : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+            className={`flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition sm:w-auto ${
+              product.stock === 0
+                ? "cursor-not-allowed bg-slate-200 text-slate-500"
+                : "bg-slate-900 text-white hover:bg-slate-800"
             }`}
           >
-            {product.stock > 0 ? '🛒 Agregar' : 'Agotado'}
+            {product.stock === 0 ? "Agotado" : "Anadir al carrito"}
+          </button>
+          <button
+            type="button"
+            onClick={goToProduct}
+            className="flex w-full items-center justify-center rounded-full border border-slate-200 px-5 py-2.5 text-xs font-semibold text-indigo-600 transition hover:border-indigo-200 hover:bg-indigo-50 sm:w-auto"
+          >
+            Ver detalles
           </button>
         </div>
+
+        <span className="text-xs font-medium text-slate-500">{stockStatus}</span>
       </div>
-    </div>
+    </article>
   );
 };
 
