@@ -18,7 +18,7 @@ class ProductController extends Controller
         $temporaryProducts = TemporaryProduct::all();
         $categories = Category::all(['id', 'name']);
 
-        return Inertia::render('SelectProducts', [
+        return Inertia::render('Admin/SelectProducts', [
             'temporaryProducts' => $temporaryProducts,
             'categories' => $categories,
             'migratedProducts' => session('migratedProducts') ?? [],

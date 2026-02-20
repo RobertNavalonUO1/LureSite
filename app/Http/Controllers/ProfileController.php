@@ -21,7 +21,7 @@ class ProfileController extends Controller
             ->unique(fn($addr) => $addr->street . $addr->city . $addr->zip_code)
             ->values();
 
-        return Inertia::render('EditProfile', [
+        return Inertia::render('Profile/EditProfile', [
             'auth' => [
                 'user' => [
                     'id' => $user->id,

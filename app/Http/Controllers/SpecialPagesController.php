@@ -15,7 +15,7 @@ class SpecialPagesController extends Controller
             ->latest()
             ->get();
 
-        return Inertia::render('DealsToday', [
+        return Inertia::render('Special/DealsToday', [
             'products' => $products
         ]);
     }
@@ -24,7 +24,7 @@ class SpecialPagesController extends Controller
     {
         $products = Product::where('super_deal', true)->get();
 
-        return Inertia::render('SuperDeal', [
+        return Inertia::render('Special/SuperDeal', [
             'products' => $products
         ]);
     }
@@ -33,7 +33,7 @@ class SpecialPagesController extends Controller
     {
         $products = Product::where('fast_shipping', true)->get();
 
-        return Inertia::render('FastShipping', [
+        return Inertia::render('Special/FastShipping', [
             'products' => $products
         ]);
     }
@@ -42,7 +42,7 @@ class SpecialPagesController extends Controller
     {
         $products = Product::latest()->take(20)->get();
 
-        return Inertia::render('NewArrivals', [
+        return Inertia::render('Special/NewArrivals', [
             'products' => $products
         ]);
     }
@@ -52,7 +52,7 @@ class SpecialPagesController extends Controller
         $season = now()->format('F'); // por ejemplo "June"
         $products = Product::where('season', $season)->get();
 
-        return Inertia::render('SeasonalProducts', [
+        return Inertia::render('Special/SeasonalProducts', [
             'products' => $products,
             'season' => $season
         ]);

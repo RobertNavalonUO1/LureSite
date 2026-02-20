@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link, Head, usePage } from '@inertiajs/react';
-import Header from '@/Components/Header';
-import ProductCard from '@/Components/ProductCard';
-import ProductSkeletonCard from '@/Components/ProductSkeletonCard';
-import ActiveFilters from '@/Components/ActiveFilters';
+import Header from '@/Components/navigation/Header.jsx';
+import ProductCard from '@/Components/catalog/ProductCard.jsx';
+import ProductSkeletonCard from '@/Components/ui/ProductSkeletonCard.jsx';
+import ActiveFilters from '@/Components/catalog/ActiveFilters.jsx';
 
 const flagLabels = {
   is_featured: 'Destacado',

@@ -1,4 +1,4 @@
-import PrimaryButton from '@/Components/PrimaryButton';
+import PrimaryButton from '@/Components/ui/PrimaryButton.jsx';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head } from '@inertiajs/react';
 import { auth } from '@/firebase';

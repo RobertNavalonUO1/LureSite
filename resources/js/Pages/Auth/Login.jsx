@@ -1,13 +1,13 @@
 import React from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
-import Checkbox from '@/Components/Checkbox';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import Checkbox from '@/Components/ui/Checkbox.jsx';
+import InputError from '@/Components/ui/InputError.jsx';
+import InputLabel from '@/Components/ui/InputLabel.jsx';
+import PrimaryButton from '@/Components/ui/PrimaryButton.jsx';
+import TextInput from '@/Components/ui/TextInput.jsx';
 
-import Header from '@/Components/Header';
-import Footer from '@/Components/Footer';
+import Header from '@/Components/navigation/Header.jsx';
+import Footer from '@/Components/navigation/Footer.jsx';
 
 import { FcGoogle } from 'react-icons/fc';
 import { FaFacebookF } from 'react-icons/fa';
@@ -23,6 +23,10 @@ export default function Login({ status, canResetPassword }) {
     password: '',
     remember: false,
   });
+
+  const { props } = usePage();
+  const serverError = props?.flash?.error || props?.errors?.default;
+  const serverSuccess = props?.flash?.success;
 
   const submit = (e) => {
     e.preventDefault();
@@ -87,6 +91,18 @@ export default function Login({ status, canResetPassword }) {
 
       <div className="max-w-md mx-auto mt-12 mb-20 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
         <h2 className="text-2xl font-bold text-center text-indigo-700 mb-6">Inicia sesión en tu cuenta</h2>
+
+        {serverSuccess && (
+          <div className="mb-4 text-sm font-medium text-green-600 text-center">
+            {serverSuccess}
+          </div>
+        )}
+
+        {serverError && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {serverError}
+          </div>
+        )}
 
         {status && (
           <div className="mb-4 text-sm font-medium text-green-600 text-center">

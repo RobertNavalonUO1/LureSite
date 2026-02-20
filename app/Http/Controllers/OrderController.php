@@ -99,7 +99,7 @@ class OrderController extends Controller
             })
             ->values();
 
-        return \Inertia\Inertia::render('ShippedOrders', [
+        return \Inertia\Inertia::render('Orders/ShippedOrders', [
             'orders' => $orders,
         ]);
     }
@@ -216,7 +216,7 @@ class OrderController extends Controller
                 ]),
             ]);
 
-        return Inertia::render('AdminOrders', ['orders' => $orders]);
+        return Inertia::render('Admin/AdminOrders', ['orders' => $orders]);
     }
 
     /**

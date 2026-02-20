@@ -28,7 +28,7 @@ class DashboardController extends Controller
             'total' => $statusCounts->sum(),
             'inProgress' => $statusCounts->only(['pendiente_pago', 'pagado', 'pendiente_envio'])->sum(),
             'shipped' => $statusCounts->only(['enviado', 'entregado', 'confirmado'])->sum(),
-            'cancelled' => $statusCounts->only(['cancelacion_pendiente', 'cancelado', 'reembolsado'])->sum(),
+            'cancelled' => $statusCounts->only(['cancelado', 'reembolsado'])->sum(),
         ];
 
         $orders = Order::with(['items.product'])
@@ -55,7 +55,7 @@ class DashboardController extends Controller
             ->values()
             ->all();
 
-        return Inertia::render('Dashboard', [
+        return Inertia::render('User/Dashboard', [
             'auth' => [
                 'user' => [
                     'id' => $user->id,

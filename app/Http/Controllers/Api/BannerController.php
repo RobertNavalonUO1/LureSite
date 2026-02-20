@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Banner;
+use App\Services\CampaignBannerResolver;
 
 class BannerController extends Controller
 {
+    public function __construct(private readonly CampaignBannerResolver $resolver)
+    {
+    }
+
     public function index()
     {
-        return Banner::where('active', true)
-            ->orderBy('id')
-            ->get(['title', 'image_path', 'link']);
+        return response()->json($this->resolver->resolve());
     }
 }
-

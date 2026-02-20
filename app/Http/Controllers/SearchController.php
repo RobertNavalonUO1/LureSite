@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class SearchController extends Controller
@@ -116,6 +117,57 @@ class SearchController extends Controller
             'categories'     => Category::select('id', 'name')->orderBy('name')->get(),
             'recommended'    => $recommended,
             'hasActiveQuery' => (bool) ($filters['query'] ?? null),
+        ]);
+    }
+
+    public function suggest(Request $request)
+    {
+        $payload = $request->validate([
+            'query' => ['required', 'string', 'min:2'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:10'],
+        ]);
+
+        $term = trim($payload['query']);
+        $limit = $payload['limit'] ?? 6;
+
+        $products = Product::query()
+            ->select(['id', 'name', 'price', 'image_url', 'image_url_full', 'link', 'category_id'])
+            ->with(['category:id,name,slug'])
+            ->where(function ($query) use ($term) {
+                $likeTerm = "%{$term}%";
+                $query
+                    ->where('name', 'like', $likeTerm)
+                    ->orWhere('description', 'like', $likeTerm)
+                    ->orWhereHas('details', fn ($details) =>
+                        $details->where('specifications', 'like', $likeTerm)
+                    );
+            })
+            ->orderByRaw(
+                'CASE WHEN name LIKE ? THEN 0 WHEN name LIKE ? THEN 1 ELSE 2 END',
+                ["{$term}%", "% {$term}%"]
+            )
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get()
+            ->map(function (Product $product) use ($term) {
+                $displayName = Str::limit($product->name, 80);
+
+                return [
+                    'id'        => $product->id,
+                    'name'      => $displayName,
+                    'price'     => $product->price,
+                    'image'     => $product->image_url_full ?? $product->image_url,
+                    'category'  => $product->category?->name,
+                    'url'       => route('product.details', $product->id),
+                    'match'     => [
+                        'query' => $term,
+                    ],
+                ];
+            });
+
+        return response()->json([
+            'data'  => $products,
+            'query' => $term,
         ]);
     }
 }

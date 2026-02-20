@@ -20,7 +20,7 @@ class CartController extends Controller
 
         Log::info('Vista del carrito accedida', ['cartCount' => $cartCount]);
 
-        return Inertia::render('CartPage', [
+        return Inertia::render('Shop/CartPage', [
             'cartItems' => array_values($cartItems),
             'cartCount' => $cartCount,
             'total'     => number_format($total, 2),

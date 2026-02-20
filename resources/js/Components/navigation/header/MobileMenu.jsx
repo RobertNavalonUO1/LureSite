@@ -1,0 +1,76 @@
+import React from 'react';
+import { Link } from '@inertiajs/react';
+
+/**
+ * @param {{
+ *  open: boolean,
+ *  search: string,
+ *  onSearchChange: (value: string) => void,
+ *  onSearchSubmit: (e: React.FormEvent) => void,
+ *  items: Array<{ label: string, href: string }>,
+ *  user: any,
+ *  onLogout: () => void,
+ *  onClose: () => void
+ * }} props
+ */
+export default function MobileMenu({
+  open,
+  search,
+  onSearchChange,
+  onSearchSubmit,
+  items,
+  user,
+  onLogout,
+  onClose,
+}) {
+  if (!open) return null;
+
+  return (
+    <div className="lg:hidden border-t border-slate-200 pb-4">
+      <form onSubmit={onSearchSubmit} className="px-2 pt-4">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Buscar..."
+          className="w-full rounded-xl border border-slate-200 bg-white px-5 py-4 text-lg shadow-md focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400/60 transition"
+        />
+      </form>
+
+      <div className="flex flex-col gap-3 px-2 pt-4 text-xl text-slate-700">
+        {items.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="rounded-xl bg-white/80 px-5 py-4 shadow hover:bg-indigo-50 transition font-semibold"
+            onClick={onClose}
+          >
+            {item.label}
+          </Link>
+        ))}
+
+        {!user && (
+          <Link
+            href="/register"
+            className="rounded-xl border border-indigo-300 bg-indigo-50 px-5 py-4 text-center font-bold text-indigo-700 hover:bg-indigo-100 transition"
+            onClick={onClose}
+          >
+            Crear cuenta
+          </Link>
+        )}
+
+        {user && (
+          <button
+            onClick={() => {
+              onClose();
+              onLogout();
+            }}
+            className="rounded-xl border border-rose-300 bg-rose-100 px-5 py-4 text-left font-bold text-rose-700 hover:bg-rose-200 transition"
+          >
+            Salir
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

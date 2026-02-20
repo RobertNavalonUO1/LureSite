@@ -42,7 +42,7 @@ class ProductMigrationController extends Controller
             ['slug' => 'general', 'is_active' => true]
         );
 
-        return inertia('MigrateProducts', [
+        return inertia('Admin/MigrateProducts', [
             'temporaryProducts' => $temporaryProducts,
             'existingProducts' => $existingProducts,
             'categories' => $categories,

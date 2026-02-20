@@ -3,14 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Inertia } from '@inertiajs/inertia';
 import { usePage } from '@inertiajs/react';
 
-import CartDropdown from '@/Components/CartDropdown';
-import CartDropdownLateral from '@/Components/CartDropdownLateral';
-import LeftBanner from '@/Components/LeftBanner';
-import TopNavMenu from '@/Components/TopNavMenu';
-import ProductDetails from '@/Components/ProductDetails';
-import RelatedProducts from '@/Components/RelatedProducts';
-import SearchTags from '@/Components/SearchTags';
-import Header from '@/Components/Header';
+import CartDropdown from '@/Components/cart/CartDropdown.jsx';
+import CartDrawer from '@/Components/cart/CartDrawer.jsx';
+import LeftBanner from '@/Components/marketing/LeftBanner.jsx';
+import TopNavMenu from '@/Components/navigation/TopNavMenu.jsx';
+import ProductDetails from '@/Components/catalog/ProductDetails.jsx';
+import RelatedProducts from '@/Components/catalog/RelatedProducts.jsx';
+import SearchTags from '@/Components/navigation/SearchTags.jsx';
+import Header from '@/Components/navigation/Header.jsx';
 
 const ProductPageLayout = ({ product, relatedProducts = [] }) => {
   const [cartOpen, setCartOpen] = useState(false);
@@ -135,7 +135,7 @@ const ProductPageLayout = ({ product, relatedProducts = [] }) => {
         </div>
       </div>
 
-      <CartDropdownLateral isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );
 };

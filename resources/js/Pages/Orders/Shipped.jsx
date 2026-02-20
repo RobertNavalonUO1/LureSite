@@ -1,7 +1,7 @@
 import React from 'react';
 import { usePage } from '@inertiajs/react';
-import Header from '@/Components/Header';
-import Footer from '@/Components/Footer';
+import Header from '@/Components/navigation/Header.jsx';
+import Footer from '@/Components/navigation/Footer.jsx';
 import { Truck, CheckCircle, ArrowLeftCircle } from 'lucide-react';
 
 const STATUS_INFO = {

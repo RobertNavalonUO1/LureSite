@@ -3,20 +3,19 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Kreait\Firebase\Factory;
+use App\Services\FirebaseAuthService;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Session;
 
 class FirebaseLoginController extends Controller
 {
     /**
      * Autenticación Firebase para la web (login persistente).
      */
-    public function handle(Request $request)
+    public function handle(Request $request, FirebaseAuthService $firebase)
     {
         $idToken = $request->input('id_token');
 
@@ -26,16 +25,8 @@ class FirebaseLoginController extends Controller
         }
 
         try {
-            $auth = (new Factory)
-                ->withServiceAccount(storage_path('app/firebase/firebase_credentials.json'))
-                ->createAuth();
-
-            // ✅ 1. Verificar token
-            $verifiedToken = $auth->verifyIdToken($idToken);
-            $uid = $verifiedToken->claims()->get('sub');
-
-            // ✅ 2. Obtener usuario desde Firebase
-            $firebaseUser = $auth->getUser($uid);
+            $result = $firebase->verifyIdTokenAndGetUser($idToken);
+            $firebaseUser = $result['user'];
 
             if (!$firebaseUser->email) {
                 Log::error('❌ Firebase user no tiene email');
@@ -62,6 +53,9 @@ class FirebaseLoginController extends Controller
             // ✅ 4. Iniciar sesión en Laravel (recordar sesión)
             auth()->login($user, true); // <- `true` asegura persistencia
 
+            // ✅ 4.1 Regenerar sesión (mismo patrón que el login tradicional)
+            $request->session()->regenerate();
+
             Log::info('✅ Usuario autenticado en Laravel', [
                 'user_id' => $user->id,
                 'session_id' => session()->getId(),
@@ -77,25 +71,30 @@ class FirebaseLoginController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return redirect('/login')->with('error', 'Error al validar con Firebase. Intenta nuevamente.');
+            $message = 'Error al validar con Firebase. Intenta nuevamente.';
+            $lower = strtolower($e->getMessage());
+            if (str_contains($lower, 'curl error 60') || str_contains($lower, 'unable to get local issuer certificate')) {
+                $message = 'Error SSL al validar Firebase (cURL 60). Revisa el CA bundle de PHP/Apache.';
+            } elseif (str_contains($lower, 'expired') || str_contains($lower, 'token has expired')) {
+                $message = 'Tu sesión con Google expiró. Vuelve a iniciar sesión.';
+            } elseif (str_contains($lower, 'invalid') || str_contains($lower, 'token')) {
+                $message = 'Token inválido. Vuelve a iniciar sesión con Google.';
+            }
+
+            return redirect('/login')->with('error', $message);
         }
     }
 
     /**
      * Autenticación Firebase para apps móviles con Sanctum.
      */
-    public function handleMobile(Request $request)
+    public function handleMobile(Request $request, FirebaseAuthService $firebase)
     {
         $idToken = $request->input('id_token');
 
         try {
-            $auth = (new Factory)
-                ->withServiceAccount(storage_path('app/firebase/firebase_credentials.json'))
-                ->createAuth();
-
-            $verifiedToken = $auth->verifyIdToken($idToken);
-            $uid = $verifiedToken->claims()->get('sub');
-            $firebaseUser = $auth->getUser($uid);
+            $result = $firebase->verifyIdTokenAndGetUser($idToken);
+            $firebaseUser = $result['user'];
 
             $user = User::updateOrCreate(
                 ['email' => $firebaseUser->email],

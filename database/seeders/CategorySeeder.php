@@ -15,6 +15,10 @@ class CategorySeeder extends Seeder
      */
     public function run()
     {
+        if (Category::query()->exists()) {
+            return;
+        }
+
         $categories = [
             'Electrónica',
             'Moda y Ropa',

@@ -12,7 +12,7 @@ class CategoryController extends Controller
     {
         $category = Category::with('products')->findOrFail($id);
 
-        return Inertia::render('CategoryPage', [
+        return Inertia::render('Shop/CategoryPage', [
             'category'   => $category,
             'products'   => $category->products,
             'categories' => Category::all(), // ✅ añadido
@@ -46,7 +46,7 @@ class CategoryController extends Controller
             'default'  => [], // O banners generales
         ];
 
-        return Inertia::render('CategoryPage', [
+        return Inertia::render('Shop/CategoryPage', [
             'category'   => $category,
             'products'   => $products,
             'categories' => Category::all(), // ✅ añadido

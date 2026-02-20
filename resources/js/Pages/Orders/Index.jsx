@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
-import Header from '@/Components/Header';
-import Footer from '@/Components/Footer';
+import Header from '@/Components/navigation/Header.jsx';
+import Footer from '@/Components/navigation/Footer.jsx';
 
 // Traducción y estilos para cada estado
 const STATUS_INFO = {

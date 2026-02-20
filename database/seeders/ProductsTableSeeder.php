@@ -12,6 +12,10 @@ class ProductsTableSeeder extends Seeder
      */
     public function run(): void
     {
+        if (DB::table('products')->exists()) {
+            return;
+        }
+
         // Obtener todas las categorías existentes
         $categories = DB::table('categories')->pluck('id', 'name')->toArray();
 

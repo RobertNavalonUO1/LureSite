@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
+import InputError from '@/Components/ui/InputError.jsx';
+import InputLabel from '@/Components/ui/InputLabel.jsx';
+import PrimaryButton from '@/Components/ui/PrimaryButton.jsx';
+import TextInput from '@/Components/ui/TextInput.jsx';
 
-import Header from '@/Components/Header';
-import Footer from '@/Components/Footer';
+import Header from '@/Components/navigation/Header.jsx';
+import Footer from '@/Components/navigation/Footer.jsx';
 import { FcGoogle } from 'react-icons/fc';
 import { FaFacebookF } from 'react-icons/fa';
 
@@ -15,7 +15,7 @@ import {
   loginWithGoogle,
   loginWithFacebook,
 } from '@/utils/firebaseLogin';
-import TermsModal from '@/Components/TermsModal';
+import TermsModal from '@/Components/legal/TermsModal.jsx';
 
 export default function Register() {
   const { data, setData, post, processing, errors, reset } = useForm({

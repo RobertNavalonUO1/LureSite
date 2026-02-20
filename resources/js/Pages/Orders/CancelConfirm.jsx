@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Header from '@/Components/Header';
-import Footer from '@/Components/Footer';
+import Header from '@/Components/navigation/Header.jsx';
+import Footer from '@/Components/navigation/Footer.jsx';
 import { Link, usePage } from '@inertiajs/react';
 import { AlertTriangle, XCircle, ArrowLeftCircle } from 'lucide-react';
 

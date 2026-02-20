@@ -1,6 +1,6 @@
-import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
+import InputError from '@/Components/ui/InputError.jsx';
+import PrimaryButton from '@/Components/ui/PrimaryButton.jsx';
+import TextInput from '@/Components/ui/TextInput.jsx';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
