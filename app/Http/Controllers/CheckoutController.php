@@ -209,7 +209,7 @@ class CheckoutController extends Controller
                 'price_data' => [
                     'currency' => 'usd',
                     'product_data' => [
-                        'name' => config('app.name', 'WorldExpense'),
+                        'name' => config('app.name', 'Limoneo'),
                         'description' => implode(' Â· ', $descriptionParts),
                     ],
                     'unit_amount' => (int) round($totals['total'] * 100),

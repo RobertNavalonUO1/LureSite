@@ -23,7 +23,7 @@ const Header = ({
   return (
     <header className="bg-indigo-600 text-white py-4 px-6 shadow-md z-30">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">WorldExpense</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Limoneo</h1>
 
         <div className="w-full sm:w-auto flex-grow max-w-2xl">
           <AdvancedSearch

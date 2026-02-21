@@ -291,7 +291,7 @@ const NewArrivals = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-white via-indigo-50 to-white text-slate-800">
-      <Head title="Novedades | WorldExpense" />
+      <Head title="Novedades | Limoneo" />
 
       <Header user={user} onLogout={handleLogout} />
       <TopNavMenu />

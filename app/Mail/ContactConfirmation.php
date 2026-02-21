@@ -24,7 +24,7 @@ class ContactConfirmation extends Mailable
     }
     public function build()
     {
-        return $this->subject('Gracias por contactarnos - WorldExpense')
+        return $this->subject('Gracias por contactarnos - Limoneo')
                     ->view('emails.contact-confirmation')
                     ->with(['data' => $this->data]);
     }

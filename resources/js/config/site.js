@@ -5,9 +5,9 @@
 
 const site = {
   brand: {
-    name: 'WorldExpense',
+    name: 'Limoneo',
     logoSrc: '/images/logo.png',
-    logoAlt: 'WorldExpense',
+    logoAlt: 'Limoneo',
   },
   promo: {
     label: 'Oferta del dia:',
@@ -17,7 +17,7 @@ const site = {
   support: {
     phoneDisplay: '+52 1 800 000 0000',
     phoneTel: '+521800000000',
-    email: 'contacto@worldexpense.com',
+    email: 'contacto@limoneo.com',
   },
   navigation: [
     { label: 'Inicio', href: '/' },

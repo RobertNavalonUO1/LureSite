@@ -1,6 +1,10 @@
-# LureSite (Laravel + Inertia + React)
+# Limoneo (Laravel + Inertia + React)
 
 Aplicación web tipo e-commerce construida con **Laravel 11** + **Inertia.js** + **React** (Vite). El backend sirve páginas Inertia y APIs JSON, y el frontend vive en `resources/js`.
+
+Documentación adicional:
+
+- Guía extendida de producción y alojamiento: [docs/PRODUCTION.md](docs/PRODUCTION.md)
 
 Este README está escrito pensando en un handoff real: explica **cómo funciona** el proyecto, **cómo ejecutarlo** (desarrollo vs producción) y **dónde está cada cosa importante**.
 
@@ -30,25 +34,25 @@ Flujo típico de una página Inertia:
 ### Entradas y configuración
 
 - Frontend bootstrap: [resources/js/app.jsx](resources/js/app.jsx)
-	- Monta Inertia con `createInertiaApp` y resuelve páginas con `import.meta.glob('./Pages/**/*.jsx')`.
+    - Monta Inertia con `createInertiaApp` y resuelve páginas con `import.meta.glob('./Pages/**/*.jsx')`.
 - Vista raíz Inertia: [resources/views/app.blade.php](resources/views/app.blade.php)
-	- Inyecta Ziggy (`@routes`) y los assets Vite (`@vite([...])`).
+    - Inyecta Ziggy (`@routes`) y los assets Vite (`@vite([...])`).
 - Config Vite: [vite.config.js](vite.config.js)
-	- Punto de entrada: `resources/js/app.jsx`.
+    - Punto de entrada: `resources/js/app.jsx`.
 
 ### Rutas (backend)
 
 - Rutas web + endpoints JSON: [routes/web.php](routes/web.php)
-	- **Páginas públicas**: `/`, `/about`, `/contact`, `/faq`, `/terms`, `/privacy`, y páginas especiales (`/deals/today`, `/superdeal`, etc.).
-	- **APIs públicas JSON**: `/api/deals-today`, `/api/superdeals`, `/api/fast-shipping`, `/api/search/suggestions`, `/banners`.
-	- **Auth Firebase**: `POST /auth/firebase` (exento de CSRF para evitar 419 en posts SPA).
-	- **Carrito/checkout**: `/cart/*`, `/checkout/*`.
-	- **Inertia share**: comparte carrito, total, csrf, etc.
+    - **Páginas públicas**: `/`, `/about`, `/contact`, `/faq`, `/terms`, `/privacy`, y páginas especiales (`/deals/today`, `/superdeal`, etc.).
+    - **APIs públicas JSON**: `/api/deals-today`, `/api/superdeals`, `/api/fast-shipping`, `/api/search/suggestions`, `/banners`.
+    - **Auth Firebase**: `POST /auth/firebase` (exento de CSRF para evitar 419 en posts SPA).
+    - **Carrito/checkout**: `/cart/*`, `/checkout/*`.
+    - **Inertia share**: comparte carrito, total, csrf, etc.
 
 ### Shared props (Inertia)
 
 - Middleware Inertia: [app/Http/Middleware/HandleInertiaRequests.php](app/Http/Middleware/HandleInertiaRequests.php)
-	- Inyecta `auth.user` (saneado) + `cartItems`, `cartCount`, `total` + mensajes flash.
+    - Inyecta `auth.user` (saneado) + `cartItems`, `cartCount`, `total` + mensajes flash.
 
 ## Frontend (Inertia + React)
 
@@ -65,17 +69,17 @@ El resolver está en [resources/js/app.jsx](resources/js/app.jsx).
 ### Navegación / Header / Sticky stack
 
 - Header principal: [resources/js/Components/navigation/Header.jsx](resources/js/Components/navigation/Header.jsx)
-	- Es `sticky top-0` y tiene **modo compacto** al scrollear.
-	- Usa histéresis (umbral de entrada/salida) para evitar “parpadeo” cuando cambia la altura.
-	- Publica el estado global `data-header-compact` en `<html>` y emite el evento `header:compact`.
-	- Mide su altura con `ResizeObserver` y escribe `--header-sticky-height` para que otros sticky se apilen sin solaparse.
+    - Es `sticky top-0` y tiene **modo compacto** al scrollear.
+    - Usa histéresis (umbral de entrada/salida) para evitar “parpadeo” cuando cambia la altura.
+    - Publica el estado global `data-header-compact` en `<html>` y emite el evento `header:compact`.
+    - Mide su altura con `ResizeObserver` y escribe `--header-sticky-height` para que otros sticky se apilen sin solaparse.
 
 - Menú superior de secciones: [resources/js/Components/navigation/TopNavMenu.jsx](resources/js/Components/navigation/TopNavMenu.jsx)
-	- También es sticky y se coloca **debajo** del header usando `top: var(--header-sticky-height)`.
-	- Mide su altura y escribe `--topnav-sticky-height`.
+    - También es sticky y se coloca **debajo** del header usando `top: var(--header-sticky-height)`.
+    - Mide su altura y escribe `--topnav-sticky-height`.
 
 - Hook de estado compacto: [resources/js/Components/navigation/header/useHeaderCompact.js](resources/js/Components/navigation/header/useHeaderCompact.js)
-	- Lee `document.documentElement.dataset.headerCompact` y escucha `header:compact`.
+    - Lee `document.documentElement.dataset.headerCompact` y escucha `header:compact`.
 
 **Concepto “sticky stack”**
 
@@ -88,36 +92,36 @@ Así no tapa contenido y funciona incluso si el header cambia de alto.
 ### Home (Shop)
 
 - Página: [resources/js/Pages/Shop/Home.jsx](resources/js/Pages/Shop/Home.jsx)
-	- Recibe `categories`, `products`, `campaign`, `auth` desde backend.
-	- Filtros en cliente: búsqueda, categoría, precio min/max, orden.
-	- **Swap de categorías según header**:
-		- Normal: grid grande con `CategoryCards`.
-		- Compacto: barra minimal con `CategoryIconBar`.
-	- Aside enriquecido con banners y módulos rápidos.
+    - Recibe `categories`, `products`, `campaign`, `auth` desde backend.
+    - Filtros en cliente: búsqueda, categoría, precio min/max, orden.
+    - **Swap de categorías según header**:
+        - Normal: grid grande con `CategoryCards`.
+        - Compacto: barra minimal con `CategoryIconBar`.
+    - Aside enriquecido con banners y módulos rápidos.
 
 - Barra de categorías compacta: [resources/js/Components/catalog/CategoryIconBar.jsx](resources/js/Components/catalog/CategoryIconBar.jsx)
-	- Iconos por heurística del nombre (mapa local) + dropdowns “todas”/“más”.
-	- Usa `renderDropdown` para renderizar el dropdown como overlay.
+    - Iconos por heurística del nombre (mapa local) + dropdowns “todas”/“más”.
+    - Usa `renderDropdown` para renderizar el dropdown como overlay.
 
 - Banners laterales (carousel): [resources/js/Components/marketing/SidebarBanners.jsx](resources/js/Components/marketing/SidebarBanners.jsx)
-	- Normaliza datos (tolerante a `banners` no-array) para evitar crashes.
-	- Rotación automática + dots/thumbs (sin librerías).
+    - Normaliza datos (tolerante a `banners` no-array) para evitar crashes.
+    - Rotación automática + dots/thumbs (sin librerías).
 
 ### Páginas especiales (Special)
 
 - Ofertas del día: [resources/js/Pages/Special/DealsToday.jsx](resources/js/Pages/Special/DealsToday.jsx)
-	- Carga datos con `fetch('/api/deals-today')`.
-	- Barra sticky de acciones/filtros bajo header+topnav:
-		- Recargar
-		- Filtros rápidos `minDiscount` (0/20/40)
-		- Búsqueda con limpiar
-		- Botón “Arriba”
-	- Renderiza `filteredOffers` y muestra empty state “Sin coincidencias”.
+    - Carga datos con `fetch('/api/deals-today')`.
+    - Barra sticky de acciones/filtros bajo header+topnav:
+        - Recargar
+        - Filtros rápidos `minDiscount` (0/20/40)
+        - Búsqueda con limpiar
+        - Botón “Arriba”
+    - Renderiza `filteredOffers` y muestra empty state “Sin coincidencias”.
 
 - SuperDeal: [resources/js/Pages/Special/SuperDeal.jsx](resources/js/Pages/Special/SuperDeal.jsx)
-	- Carga datos con `fetch('/api/superdeals')`.
-	- Misma barra sticky de acciones/filtros.
-	- Separa `featured` vs `regular` a partir de los productos filtrados.
+    - Carga datos con `fetch('/api/superdeals')`.
+    - Misma barra sticky de acciones/filtros.
+    - Separa `featured` vs `regular` a partir de los productos filtrados.
 
 ## Backend (Laravel)
 
@@ -132,27 +136,27 @@ La mayor parte del enrutado está en [routes/web.php](routes/web.php). Puntos cl
 ### Modelos (datos)
 
 - Producto: [app/Models/Product.php](app/Models/Product.php)
-	- Campos fillable incluyendo flags: `is_featured`, `is_superdeal`, `is_fast_shipping`, `is_new_arrival`, `is_seasonal`, `discount`.
-	- Relación `belongsTo(Category)`.
-	- Accesor `image_url_full`.
+    - Campos fillable incluyendo flags: `is_featured`, `is_superdeal`, `is_fast_shipping`, `is_new_arrival`, `is_seasonal`, `discount`.
+    - Relación `belongsTo(Category)`.
+    - Accesor `image_url_full`.
 
 - Categoría: [app/Models/Category.php](app/Models/Category.php)
-	- `hasMany(Product)`.
+    - `hasMany(Product)`.
 
 ### Carrito (session)
 
 - Controlador: [app/Http/Controllers/CartController.php](app/Http/Controllers/CartController.php)
-	- Guarda items en `session('cart')`.
-	- Soporta respuestas HTML (redirect) y JSON (`expectsJson`).
-	- Snapshot `cartItems`, `cartCount`, `total`.
+    - Guarda items en `session('cart')`.
+    - Soporta respuestas HTML (redirect) y JSON (`expectsJson`).
+    - Snapshot `cartItems`, `cartCount`, `total`.
 
 ### Checkout + Pagos (Stripe / PayPal)
 
 - Controlador: [app/Http/Controllers/CheckoutController.php](app/Http/Controllers/CheckoutController.php)
-	- Render de checkout con totales, opciones de envío y direcciones.
-	- Stripe: crea una sesión de checkout usando `STRIPE_SECRET` y devuelve `sessionId` + `STRIPE_KEY`.
-	- PayPal (sandbox): crea orden y devuelve `approvalLink`.
-	- `success()` finaliza creando `Order` y `OrderItem` (persistencia).
+    - Render de checkout con totales, opciones de envío y direcciones.
+    - Stripe: crea una sesión de checkout usando `STRIPE_SECRET` y devuelve `sessionId` + `STRIPE_KEY`.
+    - PayPal (sandbox): crea orden y devuelve `approvalLink`.
+    - `success()` finaliza creando `Order` y `OrderItem` (persistencia).
 
 Variables de entorno esperadas (resumen):
 
@@ -177,15 +181,15 @@ Requisitos del servicio:
 
 - Credenciales Firebase service account en: `storage/app/firebase/firebase_credentials.json`
 - (Opcional) Config SSL para evitar errores tipo cURL 60:
-	- `FIREBASE_CA_BUNDLE` (path al CA bundle)
-	- `FIREBASE_HTTP_VERIFY=false` (solo desarrollo; desactiva verificación SSL)
+    - `FIREBASE_CA_BUNDLE` (path al CA bundle)
+    - `FIREBASE_HTTP_VERIFY=false` (solo desarrollo; desactiva verificación SSL)
 
 ### Scripts Python (herramientas)
 
 - Endpoint JSON: [app/Http/Controllers/PythonScriptController.php](app/Http/Controllers/PythonScriptController.php)
-	- Recibe `script`, `input` y opciones.
-	- Crea un archivo temporal HTML en `storage/app/`.
-	- Ejecuta el script con `Symfony\Component\Process\Process`.
+    - Recibe `script`, `input` y opciones.
+    - Crea un archivo temporal HTML en `storage/app/`.
+    - Ejecuta el script con `Symfony\Component\Process\Process`.
 
 Notas operativas:
 
@@ -279,9 +283,9 @@ Los assets generados se escriben en `public/build/` (ver plugin `laravel-vite-pl
 - `APP_KEY` configurada
 - Configurar DB real (MySQL/Postgres) o SQLite con permisos correctos
 - Configurar:
-	- Stripe: `STRIPE_KEY`, `STRIPE_SECRET`
-	- PayPal: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
-	- Firebase service account: `storage/app/firebase/firebase_credentials.json` (montado como secreto)
+    - Stripe: `STRIPE_KEY`, `STRIPE_SECRET`
+    - PayPal: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
+    - Firebase service account: `storage/app/firebase/firebase_credentials.json` (montado como secreto)
 
 ### Migraciones y caches
 

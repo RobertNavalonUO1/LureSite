@@ -22,14 +22,14 @@ const faqs = [
   },
   {
     question: '¿Cómo contacto al soporte?',
-    answer: 'Puedes escribirnos desde la página de contacto o al correo soporte@worldexpense.com.',
+    answer: 'Puedes escribirnos desde la página de contacto o al correo soporte@limoneo.com.',
   },
 ];
 
 export default function Faq() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
-      <Head title="Ayuda y Preguntas Frecuentes | WorldExpense" />
+      <Head title="Ayuda y Preguntas Frecuentes | Limoneo" />
       <Header />
       <TopNavMenu />
       <main className="flex-grow max-w-3xl mx-auto p-6">

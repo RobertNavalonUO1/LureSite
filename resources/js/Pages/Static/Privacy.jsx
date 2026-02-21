@@ -6,14 +6,14 @@ import TopNavMenu from '@/Components/navigation/TopNavMenu.jsx';
 export default function Privacy() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
-      <Head title="Política de privacidad | WorldExpense" />
+      <Head title="Política de privacidad | Limoneo" />
       <Header />
       <TopNavMenu />
       <main className="flex-grow max-w-3xl mx-auto p-6">
         <h1 className="text-3xl font-bold text-indigo-700 mb-6 text-center">Política de privacidad</h1>
         <div className="bg-white rounded-xl shadow p-6 space-y-4 text-gray-700 text-sm">
           <p>
-            En WorldExpense, tu privacidad es fundamental. Esta política explica cómo recopilamos, usamos y protegemos tu información personal.
+            En Limoneo, tu privacidad es fundamental. Esta política explica cómo recopilamos, usamos y protegemos tu información personal.
           </p>
           <h2 className="font-semibold text-indigo-600 mt-4">1. Información recopilada</h2>
           <p>

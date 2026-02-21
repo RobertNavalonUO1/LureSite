@@ -402,7 +402,7 @@ const Home = () => {
             <div className="grid gap-6 rounded-[32px] border border-slate-100 bg-white/90 p-6 shadow-xl sm:p-8 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
               <div className="space-y-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
-                  {user ? `Hola, ${user.name}` : "Bienvenido a WorldExpense"}
+                  {user ? `Hola, ${user.name}` : "Bienvenido a Limoneo"}
                 </p>
                 <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">
                   Descubre colecciones curadas y listas para enviar hoy

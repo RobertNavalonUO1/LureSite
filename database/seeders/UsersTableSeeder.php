@@ -13,7 +13,7 @@ class UsersTableSeeder extends Seeder
         $faker = \Faker\Factory::create('es_ES');
         $defaultPassword = Hash::make('password123');
         $users = [];
-        $adminEmail = 'admin@worldexpense.com';
+        $adminEmail = 'admin@limoneo.com';
 
         $users[] = [
             'name' => 'Administrador',

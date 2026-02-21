@@ -9,12 +9,12 @@ const About = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 text-slate-800">
-      <Head title="Acerca de | WorldExpense" />
+      <Head title="Acerca de | Limoneo" />
 
       {/* Header principal */}
       <header className="bg-indigo-600 text-white py-4 px-6 shadow-md z-30">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <h1 className="text-2xl font-bold tracking-tight">WorldExpense</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Limoneo</h1>
           <nav className="flex flex-wrap items-center gap-3 text-sm">
             <a href="/" className="hover:underline">Inicio</a>
             <a href="/contact" className="hover:underline">Contacto</a>
@@ -40,9 +40,9 @@ const About = () => {
       {/* Contenido principal */}
       <main className="flex-grow flex flex-col items-center justify-center p-6">
         <div className="max-w-2xl w-full bg-white rounded-xl shadow-lg p-8 text-center">
-          <h2 className="text-4xl font-extrabold text-indigo-700 mb-4 drop-shadow">Acerca de WorldExpense</h2>
+          <h2 className="text-4xl font-extrabold text-indigo-700 mb-4 drop-shadow">Acerca de Limoneo</h2>
           <p className="text-lg text-gray-700 mb-6">
-            WorldExpense es una plataforma dedicada a ofrecerte los mejores productos del mercado, con una experiencia de usuario intuitiva, rápida y segura.
+            Limoneo es una plataforma dedicada a ofrecerte los mejores productos del mercado, con una experiencia de usuario intuitiva, rápida y segura.
             Nuestro objetivo es facilitar tu proceso de compra, brindando transparencia, confianza y una atención personalizada.
           </p>
 
@@ -66,7 +66,7 @@ const About = () => {
           </section>
 
           <p className="text-gray-500 text-sm mt-8">
-            Gracias por confiar en WorldExpense. ¡Tu satisfacción es nuestra prioridad!
+            Gracias por confiar en Limoneo. ¡Tu satisfacción es nuestra prioridad!
           </p>
         </div>
       </main>

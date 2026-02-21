@@ -6,7 +6,7 @@ const WelcomeShowcase = ({ user, stats, onClose }) => (
       <div className="px-8 py-10 text-white sm:px-16 flex flex-col gap-4">
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center justify-center rounded-full bg-white/20 px-4 py-2 text-xs font-semibold tracking-widest text-white/80 shadow-lg backdrop-blur">
-            {user ? `👋 Hola, ${user.name}` : "🌎 Bienvenido a WorldExpense"}
+            {user ? `👋 Hola, ${user.name}` : "🌎 Bienvenido a Limoneo"}
           </span>
           <span className="rounded-full bg-white/10 px-4 py-2 text-xs font-medium animate-pulse">
             🆕 Nuevos productos cada semana

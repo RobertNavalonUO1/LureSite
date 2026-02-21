@@ -6,14 +6,14 @@ import TopNavMenu from '@/Components/navigation/TopNavMenu.jsx';
 export default function Terms() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
-      <Head title="Términos de servicio | WorldExpense" />
+      <Head title="Términos de servicio | Limoneo" />
       <Header />
       <TopNavMenu />
       <main className="flex-grow max-w-3xl mx-auto p-6">
         <h1 className="text-3xl font-bold text-indigo-700 mb-6 text-center">Términos de servicio</h1>
         <div className="bg-white rounded-xl shadow p-6 space-y-4 text-gray-700 text-sm">
           <p>
-            Bienvenido a WorldExpense. Al acceder y utilizar nuestro sitio web, aceptas cumplir con los siguientes términos y condiciones. Si no estás de acuerdo con alguna parte, por favor no utilices nuestros servicios.
+            Bienvenido a Limoneo. Al acceder y utilizar nuestro sitio web, aceptas cumplir con los siguientes términos y condiciones. Si no estás de acuerdo con alguna parte, por favor no utilices nuestros servicios.
           </p>
           <h2 className="font-semibold text-indigo-600 mt-4">1. Uso del sitio</h2>
           <p>
@@ -29,7 +29,7 @@ export default function Terms() {
           </p>
           <h2 className="font-semibold text-indigo-600 mt-4">4. Propiedad intelectual</h2>
           <p>
-            Todo el contenido de este sitio, incluyendo textos, imágenes y logotipos, es propiedad de WorldExpense o de sus proveedores y está protegido por derechos de autor.
+            Todo el contenido de este sitio, incluyendo textos, imágenes y logotipos, es propiedad de Limoneo o de sus proveedores y está protegido por derechos de autor.
           </p>
           <h2 className="font-semibold text-indigo-600 mt-4">5. Modificaciones</h2>
           <p>

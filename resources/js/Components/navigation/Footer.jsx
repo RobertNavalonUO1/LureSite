@@ -23,7 +23,7 @@ const Footer = () => {
                 <path d="M2 12l10 5 10-5" />
               </svg>
             </div>
-            <h1 className="text-2xl font-extrabold tracking-tight">WorldExpense</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight">Limoneo</h1>
           </div>
           <p className="text-sm text-gray-400 leading-relaxed">
             Impulsamos tu experiencia de compra online. Productos globales, soporte local, confianza total.
@@ -70,14 +70,14 @@ const Footer = () => {
           </div>
 
           <h3 className="text-sm text-gray-400">Contáctanos</h3>
-          <p className="text-sm text-gray-300">info@worldexpense.com</p>
+          <p className="text-sm text-gray-300">info@limoneo.com</p>
           <p className="text-sm text-gray-300">+34 123 456 789</p>
         </div>
       </div>
 
       {/* Línea inferior */}
       <div className="border-t border-white/10 mt-10 pt-6 text-center text-sm text-gray-500">
-        &copy; {new Date().getFullYear()} WorldExpense. Todos los derechos reservados.
+        &copy; {new Date().getFullYear()} Limoneo. Todos los derechos reservados.
       </div>
 
       {/* Decorativo de fondo */}

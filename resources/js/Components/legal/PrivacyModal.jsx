@@ -16,7 +16,7 @@ export default function PrivacyModal({ isOpen, onClose }) {
         <h2 className="text-2xl font-bold text-indigo-700 mb-4 text-center">Política de privacidad</h2>
         <div className="space-y-4 text-gray-700 text-sm max-h-[70vh] overflow-y-auto pr-2">
           <p>
-            En WorldExpense, tu privacidad es fundamental. Esta política explica cómo recopilamos, usamos y protegemos tu información personal.
+            En Limoneo, tu privacidad es fundamental. Esta política explica cómo recopilamos, usamos y protegemos tu información personal.
           </p>
           <h3 className="font-semibold text-indigo-600 mt-4">1. Información recopilada</h3>
           <p>

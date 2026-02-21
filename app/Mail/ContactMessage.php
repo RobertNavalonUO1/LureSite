@@ -29,7 +29,7 @@ class ContactMessage extends Mailable
     {
         return new Envelope(
             from: [$this->data['email'] => $this->data['name']],
-            subject: 'Nuevo mensaje de contacto desde WorldExpense',
+            subject: 'Nuevo mensaje de contacto desde Limoneo',
         );
     }
 

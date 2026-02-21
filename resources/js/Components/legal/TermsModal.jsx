@@ -16,7 +16,7 @@ export default function TermsModal({ isOpen, onClose }) {
         <h2 className="text-2xl font-bold text-indigo-700 mb-4 text-center">Términos de servicio</h2>
         <div className="space-y-4 text-gray-700 text-sm max-h-[70vh] overflow-y-auto pr-2">
           <p>
-            Bienvenido a WorldExpense. Al acceder y utilizar nuestro sitio web, aceptas cumplir con los siguientes términos y condiciones. Si no estás de acuerdo con alguna parte, por favor no utilices nuestros servicios.
+            Bienvenido a Limoneo. Al acceder y utilizar nuestro sitio web, aceptas cumplir con los siguientes términos y condiciones. Si no estás de acuerdo con alguna parte, por favor no utilices nuestros servicios.
           </p>
           <h3 className="font-semibold text-indigo-600 mt-4">1. Uso del sitio</h3>
           <p>
@@ -32,7 +32,7 @@ export default function TermsModal({ isOpen, onClose }) {
           </p>
           <h3 className="font-semibold text-indigo-600 mt-4">4. Propiedad intelectual</h3>
           <p>
-            Todo el contenido de este sitio, incluyendo textos, imágenes y logotipos, es propiedad de WorldExpense o de sus proveedores y está protegido por derechos de autor.
+            Todo el contenido de este sitio, incluyendo textos, imágenes y logotipos, es propiedad de Limoneo o de sus proveedores y está protegido por derechos de autor.
           </p>
           <h3 className="font-semibold text-indigo-600 mt-4">5. Modificaciones</h3>
           <p>

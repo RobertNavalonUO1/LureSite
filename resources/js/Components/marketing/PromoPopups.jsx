@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-const STORAGE_KEY = 'worldexpense.promoPopups.dismissedAt';
+const STORAGE_KEY = 'limoneo.promoPopups.dismissedAt';
 const DISMISS_DURATION_HOURS = 6;
 
 const PROMOTIONS = {
