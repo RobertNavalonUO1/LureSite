@@ -2,6 +2,56 @@
 
 Este documento describe una estrategia completa —práctica y realista— para pasar el proyecto a producción y alojarlo públicamente.
 
+## Estado actual (lo ya hecho)
+
+Hasta ahora, ya está creada la base de infraestructura. En orden lógico:
+
+### Dominio (Dynadot)
+
+- Se compró `limoneo.com` en Dynadot.
+
+### VPS (Hetzner Cloud)
+
+- Servidor creado:
+  - Plan: CX23 (Shared Resources)
+  - Recursos: 2 vCPU, 4 GB RAM, 40 GB disco
+  - Nombre: `limoneo-prod-1`
+  - Ubicación: Nuremberg (Alemania)
+  - IP pública IPv4: `46.224.207.157`
+
+### Acceso SSH (Windows → VPS)
+
+- Se generó una clave SSH en Windows:
+  - Privada: `C:\Users\TZL\.ssh\id_ed25519` (NO se comparte)
+  - Pública: `C:\Users\TZL\.ssh\id_ed25519.pub`
+- Se añadió la clave pública a Hetzner (corrigiendo el formato a una sola línea).
+
+### Base de datos (Neon / Postgres)
+
+- Proyecto creado/configurado en Neon, región Frankfurt (`eu-central-1`).
+- DB: `neondb`
+- Usuario/rol: `neondb_owner`
+- Connection string con pooler:
+  - Host: `ep-round-unit-alr8cr31-pooler.c-3.eu-central-1.aws.neon.tech`
+  - SSL requerido: `sslmode=require`
+  - Connection pooling: activado
+
+### Cloudflare (en progreso)
+
+- Alta iniciada para `limoneo.com`.
+- En Dynadot falta cambiar “Servidores de Nombre” para apuntar a los nameservers de Cloudflare.
+- Estado visto: “Waiting for registrar to propagate new nameservers” (pendiente propagación / activación).
+
+---
+
+## Lo que falta (siguiente bloque)
+
+- DNS definitivo: A records `@` y `www` → `46.224.207.157` (cuando Cloudflare esté Active).
+- VPS: instalar Nginx + PHP-FPM + Composer + dependencias; desplegar la app.
+- `.env` producción: Neon + cache/queue (Redis recomendado: Upstash u otro).
+- SSL: Let’s Encrypt o Cloudflare Origin + Cloudflare en `Full (strict)`.
+- Workers: queue worker + scheduler; luego Stripe/PayPal + dominios permitidos en Firebase.
+
 Está escrito para este repo: **Laravel 11 + Inertia.js + React + Vite**, con:
 
 - Carrito en **session**
@@ -27,6 +77,279 @@ Está escrito para este repo: **Laravel 11 + Inertia.js + React + Vite**, con:
 4. Activar HTTPS, hardening básico y logging seguro.
 5. Ensayar rollback.
 6. Abrir producción y monitorizar.
+
+---
+
+## 0.1) Runbook (comandos) para crear la plataforma de producción
+
+Los pasos abajo están pensados para un VPS Ubuntu típico en Hetzner.
+Si no estás seguro de la versión, primero ejecuta:
+
+```bash
+cat /etc/os-release
+```
+
+### Paso 1 — Entrar por SSH
+
+Desde Windows (PowerShell):
+
+```powershell
+ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@46.224.207.157
+```
+
+Si te pide confirmar fingerprint, acepta una vez.
+
+### Paso 2 — Actualizar el sistema
+
+```bash
+apt update
+apt -y upgrade
+apt -y install unzip git ca-certificates curl ufw
+```
+
+### Paso 3 — Firewall básico (UFW)
+
+Permite SSH + HTTP/HTTPS:
+
+```bash
+ufw allow OpenSSH
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw --force enable
+ufw status
+```
+
+### Paso 4 — Crear usuario de deploy (recomendado)
+
+```bash
+adduser deploy
+usermod -aG sudo deploy
+```
+
+Opcional: permitir que `deploy` use SSH (copiando authorized_keys de root):
+
+```bash
+rsync --archive --chown=deploy:deploy /root/.ssh /home/deploy/
+```
+
+### Paso 5 — Instalar Nginx + PHP-FPM + extensiones
+
+Laravel suele necesitar estas extensiones:
+
+```bash
+apt -y install nginx
+apt -y install php-fpm php-cli php-mbstring php-xml php-curl php-zip php-gd php-bcmath
+apt -y install php-pgsql
+systemctl enable --now nginx
+systemctl enable --now php*-fpm
+```
+
+Confirma versión PHP:
+
+```bash
+php -v
+```
+
+### Paso 6 — Instalar Composer (si no está)
+
+```bash
+command -v composer || (
+  curl -sS https://getcomposer.org/installer | php
+  mv composer.phar /usr/local/bin/composer
+)
+composer --version
+```
+
+### Paso 7 — Preparar carpeta del sitio
+
+Usaremos el path recomendado del doc:
+
+```bash
+mkdir -p /var/www/limoneo
+chown -R deploy:deploy /var/www/limoneo
+```
+
+### Paso 8 — Obtener el código (2 opciones)
+
+**Opción A (recomendada): usar GitHub Deploy Key**
+
+1) En el VPS, como `deploy`, genera una clave:
+
+```bash
+sudo -iu deploy
+ssh-keygen -t ed25519 -C "deploy@limoneo" -f ~/.ssh/id_ed25519
+cat ~/.ssh/id_ed25519.pub
+```
+
+2) Añade esa pública como *Deploy key* (read-only) en GitHub.
+
+3) Clona el repo:
+
+```bash
+cd /var/www/limoneo
+git clone git@github.com:RobertNavalonUO1/LureSite.git current
+cd current
+git checkout main
+```
+
+**Opción B: descargar un zip release (sin git)**
+
+- Útil si el repo es privado y no quieres configurar keys. Subes el zip y descomprimes en `/var/www/limoneo/current`.
+
+### Paso 9 — Instalar dependencias (producción)
+
+En el VPS (como `deploy` dentro de `/var/www/limoneo/current`):
+
+```bash
+composer install --no-dev --optimize-autoloader
+```
+
+### Paso 10 — `.env` de producción (Neon + App)
+
+Crear `.env` (no lo subas a git):
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Config mínimo recomendado (ejemplo):
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://limoneo.com
+
+DB_CONNECTION=pgsql
+DB_HOST=ep-round-unit-alr8cr31-pooler.c-3.eu-central-1.aws.neon.tech
+DB_PORT=5432
+DB_DATABASE=neondb
+DB_USERNAME=neondb_owner
+DB_PASSWORD=***
+DB_SSLMODE=require
+```
+
+Notas:
+
+- Neon exige SSL. Mantén `sslmode=require`.
+- En producción, evita `SESSION_DRIVER=database`. Recomendación: Redis (Upstash u otro).
+
+### Paso 11 — Permisos Laravel
+
+```bash
+sudo chown -R www-data:www-data storage bootstrap/cache
+sudo chmod -R 775 storage bootstrap/cache
+```
+
+### Paso 12 — Nginx server block
+
+Crear `/etc/nginx/sites-available/limoneo`:
+
+```nginx
+server {
+  listen 80;
+  server_name limoneo.com www.limoneo.com;
+
+  root /var/www/limoneo/current/public;
+  index index.php;
+
+  location / {
+    try_files $uri $uri/ /index.php?$query_string;
+  }
+
+  location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+  }
+}
+```
+
+Habilitar y recargar:
+
+```bash
+ln -s /etc/nginx/sites-available/limoneo /etc/nginx/sites-enabled/limoneo
+nginx -t
+systemctl reload nginx
+```
+
+Si tu PHP-FPM no es `8.2`, ajusta el socket con `ls /run/php/`.
+
+### Paso 13 — Migraciones + caches
+
+```bash
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+### Paso 14 — SSL (cuando DNS ya apunte al VPS)
+
+**Let’s Encrypt (certbot)**:
+
+```bash
+apt -y install certbot python3-certbot-nginx
+certbot --nginx -d limoneo.com -d www.limoneo.com
+```
+
+En Cloudflare:
+
+- SSL/TLS mode: `Full (strict)`
+
+### Paso 15 — Queue worker (systemd)
+
+Crear `/etc/systemd/system/limoneo-queue.service`:
+
+```ini
+[Unit]
+Description=Limoneo Queue Worker
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/limoneo/current
+ExecStart=/usr/bin/php artisan queue:work --tries=1
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Activar:
+
+```bash
+systemctl daemon-reload
+systemctl enable --now limoneo-queue
+systemctl status limoneo-queue --no-pager
+```
+
+### Paso 16 — Scheduler (cron)
+
+```bash
+crontab -u www-data -e
+```
+
+Añadir:
+
+```cron
+* * * * * cd /var/www/limoneo/current && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
+```
+
+---
+
+## 0.2) Cloudflare: DNS mínimo recomendado
+
+Cuando Cloudflare esté Active (nameservers propagados), crea:
+
+- `A` @ → `46.224.207.157`
+- `A` www → `46.224.207.157`
+
+Opcional:
+
+- En Cloudflare, proxied (nube naranja) para `@` y `www`.
+- Ajustar TTL a auto.
 
 ---
 

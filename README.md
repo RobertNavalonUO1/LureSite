@@ -6,6 +6,28 @@ Documentación adicional:
 
 - Guía extendida de producción y alojamiento: [docs/PRODUCTION.md](docs/PRODUCTION.md)
 
+## Estado actual (infra / producción)
+
+Ya se avanzó en la infraestructura base. Resumen:
+
+- Dominio: `limoneo.com` comprado en Dynadot.
+- VPS: Hetzner Cloud
+    - Plan: CX23 (2 vCPU, 4GB RAM, 40GB)
+    - Nombre: `limoneo-prod-1`
+    - Región: Nuremberg (Alemania)
+    - IPv4 pública: `46.224.207.157`
+- SSH (Windows): clave generada y añadida a Hetzner.
+    - Privada: `C:\Users\TZL\.ssh\id_ed25519` (NO se comparte)
+    - Pública: `C:\Users\TZL\.ssh\id_ed25519.pub`
+- Base de datos (Neon / Postgres): proyecto en Frankfurt (`eu-central-1`)
+    - DB: `neondb`
+    - Rol: `neondb_owner`
+    - Host pooler: `ep-round-unit-alr8cr31-pooler.c-3.eu-central-1.aws.neon.tech`
+    - SSL: requerido (`sslmode=require`)
+- Cloudflare: alta iniciada; pendiente propagación de nameservers desde Dynadot.
+
+Siguiente paso recomendado: completar instalación base en el VPS + DNS/SSL. Ver [docs/PRODUCTION.md](docs/PRODUCTION.md).
+
 Este README está escrito pensando en un handoff real: explica **cómo funciona** el proyecto, **cómo ejecutarlo** (desarrollo vs producción) y **dónde está cada cosa importante**.
 
 > Nota sobre “explicar cada archivo”
