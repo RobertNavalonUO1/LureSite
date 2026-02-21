@@ -9,8 +9,16 @@ class AddressesTableSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! class_exists(\Faker\Factory::class)) {
+            return;
+        }
+
         $faker = \Faker\Factory::create('es_ES');
         $users = DB::table('users')->pluck('id');
+
+        if ($users->isEmpty()) {
+            return;
+        }
         $provinces = [
             'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Zaragoza', 'Málaga', 'Murcia', 'Palma', 'Las Palmas', 'Bilbao',
             'Alicante', 'Córdoba', 'Valladolid', 'Vigo', 'Gijón', 'Hospitalet', 'A Coruña', 'Vitoria', 'Granada', 'Elche'

@@ -3,8 +3,10 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
+        "build:staging": "vite build --mode staging",
         "preinstall": "npx npm-force-resolutions",
-        "dev": "vite"
+        "dev": "vite",
+        "dev:staging": "vite --mode staging"
     },
     "devDependencies": {
         "@headlessui/react": "^2.0.0",

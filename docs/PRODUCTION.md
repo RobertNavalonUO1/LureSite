@@ -2,6 +2,8 @@
 
 Este documento describe una estrategia completa —práctica y realista— para pasar el proyecto a producción y alojarlo públicamente.
 
+Checklist corto de pendientes: ver [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md).
+
 ## Estado actual (lo ya hecho)
 
 Hasta ahora, ya está creada la base de infraestructura. En orden lógico:
@@ -31,26 +33,51 @@ Hasta ahora, ya está creada la base de infraestructura. En orden lógico:
 - Proyecto creado/configurado en Neon, región Frankfurt (`eu-central-1`).
 - DB: `neondb`
 - Usuario/rol: `neondb_owner`
-- Connection string con pooler:
-  - Host: `ep-round-unit-alr8cr31-pooler.c-3.eu-central-1.aws.neon.tech`
-  - SSL requerido: `sslmode=require`
-  - Connection pooling: activado
+- Endpoints (recomendación práctica):
+  - **Directo (sin pooler)**: úsalo para migraciones/DDL
+    - Host: `ep-round-unit-alr8cr3l.c-3.eu-central-1.aws.neon.tech`
+    - SSL requerido: `sslmode=require`
+  - **Pooler**: útil para tráfico web (opcional)
+    - Host: `ep-round-unit-alr8cr3l-pooler.c-3.eu-central-1.aws.neon.tech`
+    - SSL requerido: `sslmode=require`
 
-### Cloudflare (en progreso)
+Nota importante (Neon):
 
-- Alta iniciada para `limoneo.com`.
-- En Dynadot falta cambiar “Servidores de Nombre” para apuntar a los nameservers de Cloudflare.
-- Estado visto: “Waiting for registrar to propagate new nameservers” (pendiente propagación / activación).
+- Para tareas de **DDL/migraciones** (`php artisan migrate`) se ha comprobado que es más robusto usar el **endpoint directo** (sin `-pooler`).
+- El pooler es útil para tráfico web, pero puede dar problemas con determinadas migraciones/alteraciones.
+
+### Cloudflare (activo)
+
+- Cloudflare está activo para `limoneo.com`.
+- HTTPS vía Cloudflare responde sin errores.
+
+### Origin (VPS) sirviendo HTTPS
+
+- Nginx configurado con Let's Encrypt (certbot) en el origin.
+- PHP-FPM 8.3 instalado y configurado para Laravel.
+
+### Bitácora
+
+- Detalle completo de comandos/problemas/resoluciones: ver [docs/DEPLOYMENT_SESSION_2026-02-21.md](docs/DEPLOYMENT_SESSION_2026-02-21.md).
 
 ---
 
 ## Lo que falta (siguiente bloque)
 
-- DNS definitivo: A records `@` y `www` → `46.224.207.157` (cuando Cloudflare esté Active).
-- VPS: instalar Nginx + PHP-FPM + Composer + dependencias; desplegar la app.
-- `.env` producción: Neon + cache/queue (Redis recomendado: Upstash u otro).
-- SSL: Let’s Encrypt o Cloudflare Origin + Cloudflare en `Full (strict)`.
-- Workers: queue worker + scheduler; luego Stripe/PayPal + dominios permitidos en Firebase.
+Pendiente (operativo) para dar por “cerrado” el ciclo dev → staging → prod:
+
+- **Staging real**: levantar `staging.limoneo.com` (vhost + HTTPS + deploy separado) con DB separada (ideal: branch Neon).
+- **Secrets definitivos en servidor**:
+  - Stripe (test en staging, live en prod)
+  - PayPal (sandbox en staging, live en prod)
+  - Firebase service account en `storage/app/firebase/firebase_credentials.json`
+- **Decidir colas/scheduler**:
+  - Si `QUEUE_CONNECTION=sync` → no necesitas worker.
+  - Si `QUEUE_CONNECTION=database|redis` → necesitas `queue:work` como servicio.
+  - Si usas `schedule()` en Laravel → necesitas cron (Paso 16).
+- **Observabilidad/backups**:
+  - Rotación de logs + alertas (Sentry recomendado)
+  - Backups DB (Neon) y de `storage/app` si hay ficheros.
 
 Está escrito para este repo: **Laravel 11 + Inertia.js + React + Vite**, con:
 
@@ -72,6 +99,8 @@ Está escrito para este repo: **Laravel 11 + Inertia.js + React + Vite**, con:
 ## 0) Resumen ejecutivo (lo que hay que hacer)
 
 1. Crear **staging** idéntico a producción (misma clase de infraestructura).
+
+  - Gestión de `.env` por entorno (switch rápido): ver [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md).
 2. Definir **secrets**/variables de entorno (Stripe/PayPal/Firebase/DB/etc.).
 3. Montar CI/CD con pasos: **build** → **deploy** → **migrate** → **cache**.
 4. Activar HTTPS, hardening básico y logging seguro.
@@ -213,7 +242,9 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Config mínimo recomendado (ejemplo):
+Config mínimo recomendado (ejemplo).
+
+Recomendación: usa `DB_URL` y el **endpoint directo** (sin `-pooler`) para ejecutar migraciones.
 
 ```env
 APP_ENV=production
@@ -221,12 +252,7 @@ APP_DEBUG=false
 APP_URL=https://limoneo.com
 
 DB_CONNECTION=pgsql
-DB_HOST=ep-round-unit-alr8cr31-pooler.c-3.eu-central-1.aws.neon.tech
-DB_PORT=5432
-DB_DATABASE=neondb
-DB_USERNAME=neondb_owner
-DB_PASSWORD=***
-DB_SSLMODE=require
+DB_URL=postgresql://neondb_owner:***@ep-round-unit-alr8cr3l.c-3.eu-central-1.aws.neon.tech:5432/neondb?sslmode=require
 ```
 
 Notas:
@@ -259,7 +285,7 @@ server {
 
   location ~ \.php$ {
     include snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+    fastcgi_pass unix:/run/php/php8.3-fpm.sock;
   }
 }
 ```
@@ -272,7 +298,7 @@ nginx -t
 systemctl reload nginx
 ```
 
-Si tu PHP-FPM no es `8.2`, ajusta el socket con `ls /run/php/`.
+Si tu socket PHP-FPM no coincide, ajústalo con `ls /run/php/`.
 
 ### Paso 13 — Migraciones + caches
 
@@ -341,7 +367,7 @@ Añadir:
 
 ## 0.2) Cloudflare: DNS mínimo recomendado
 
-Cuando Cloudflare esté Active (nameservers propagados), crea:
+Con Cloudflare activo, el DNS mínimo recomendado es:
 
 - `A` @ → `46.224.207.157`
 - `A` www → `46.224.207.157`
@@ -389,7 +415,58 @@ Asegura:
 **DB** (recomendado: MySQL/Postgres):
 
 - `DB_CONNECTION=mysql` (o `pgsql`)
-- `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+- Para Neon, se recomienda usar `DB_URL` (incluye `sslmode=require`).
+- Alternativa válida: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`.
+
+Nota Neon: para migraciones/DDL suele ser mejor el endpoint directo (sin `-pooler`).
+
+---
+
+## Deploys: cómo actualizar staging/prod
+
+Procedimiento recomendado (misma idea para staging y producción):
+
+1) Build en tu máquina/CI:
+
+```bash
+npm ci
+npm run build
+composer install --no-dev --optimize-autoloader
+```
+
+2) Subir el release al VPS (zip/tar o git). Si usas el layout con symlink `current`:
+
+- Descomprimir en `releases/<timestamp>`
+- Apuntar `current` al nuevo release
+
+3) En el VPS, dentro del nuevo `current`:
+
+```bash
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+4) Reiniciar procesos (según aplique):
+
+```bash
+systemctl reload php8.3-fpm
+systemctl reload nginx
+systemctl restart limoneo-queue || true
+```
+
+Si no usas queue worker, no necesitas el `limoneo-queue`.
+
+---
+
+## Workers/procesos: qué necesitas realmente
+
+- **Siempre**: `nginx` + `php8.3-fpm`
+- **Solo si usas colas asíncronas** (`QUEUE_CONNECTION` distinto de `sync`):
+  - `php artisan queue:work` como service (systemd)
+- **Solo si tu app usa scheduler** (`app/Console/Kernel.php` tiene tareas):
+  - cron `* * * * * php artisan schedule:run`
 
 **Stripe**:
 
@@ -445,6 +522,70 @@ Objetivo: reproducir producción lo más posible.
 - DB separada de prod
 - Stripe/PayPal en modo **sandbox/test**
 - Firebase project separado o reglas controladas
+
+Staging en VPS (layout recomendado):
+
+- Webroot: `/var/www/limoneo-staging/current/public`
+- Nginx vhost: `/etc/nginx/sites-available/limoneo-staging`
+- SSL (una vez el DNS apunte al VPS): `certbot --nginx -d staging.limoneo.com`
+
+Ejemplo de vhost **HTTP** para staging (antes de tener DNS/SSL):
+
+```nginx
+server {
+  listen 80;
+  listen [::]:80;
+
+  server_name staging.limoneo.com;
+
+  root /var/www/limoneo-staging/current/public;
+  index index.php;
+
+  # ACME challenge (certbot)
+  location ^~ /.well-known/acme-challenge/ {
+    allow all;
+    default_type text/plain;
+    root /var/www/limoneo-staging/current/public;
+  }
+
+  location / {
+    try_files $uri $uri/ /index.php?$query_string;
+  }
+
+  location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+  }
+
+  location ~ /\. {
+    deny all;
+  }
+}
+```
+
+Validación rápida (en el VPS, sin DNS):
+
+```bash
+nginx -t && systemctl reload nginx
+curl -I -H 'Host: staging.limoneo.com' http://127.0.0.1/
+```
+
+Nota Windows/PowerShell: si envías configs por SSH pegando un heredoc desde PowerShell, **PowerShell expande** variables tipo `$uri`. Usa comillas simples alrededor del comando remoto o (más robusto) sube el archivo con `scp`/WinSCP.
+
+En este repo hay un helper para evitar el problema de expansión y aplicar el vhost por `scp`:
+
+```powershell
+./scripts/vps/push-staging-nginx.ps1
+```
+
+Si en algún momento el SSH al VPS empieza a dar `Connection reset` / `kex_exchange_identification`, suele ser por rate-limit/ban (UFW/F2B). En ese caso, entra por consola (Hetzner) y revisa/desbanea:
+
+```bash
+fail2ban-client status
+fail2ban-client status sshd
+fail2ban-client set sshd unbanip <TU_IP_PUBLICA>
+ufw status numbered
+```
 
 ### 3.3 Producción
 
@@ -527,7 +668,7 @@ Rollback:
 ### 5.1 Paquetes base (Ubuntu ejemplo)
 
 - Nginx
-- PHP 8.2 + extensiones típicas (pdo, mbstring, curl, openssl, xml, sqlite/mysql/pgsql)
+- PHP 8.3 + extensiones típicas (pdo, mbstring, curl, openssl, xml, sqlite/mysql/pgsql)
 - Composer
 - Node (solo si compilas en el servidor; recomendado compilar en CI)
 - Redis (si lo usas)
@@ -550,7 +691,7 @@ server {
 
   location ~ \.php$ {
     include snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+    fastcgi_pass unix:/run/php/php8.3-fpm.sock;
   }
 
   location ~* \.(?:css|js|jpg|jpeg|gif|png|svg|ico|webp)$ {

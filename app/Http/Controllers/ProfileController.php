@@ -6,6 +6,7 @@ use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ProfileController extends Controller
@@ -51,17 +52,42 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
             'lastname' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'regex:/^\+\d{1,4}\s\d{6,15}$/'],
             'avatar' => ['nullable', 'string', 'max:255'], // Ruta del avatar (URL o asset local)
             'payment_method' => ['nullable', 'in:stripe,paypal'],
             'default_address_id' => ['nullable', 'exists:addresses,id'],
         ]);
 
+        if (array_key_exists('email', $validated) && $validated['email'] !== null && $validated['email'] !== $user->email) {
+            $user->email_verified_at = null;
+        }
+
         $user->fill($validated);
         $user->save();
 
-        return back()->with('success', 'Perfil actualizado correctamente.');
+        return Redirect::route('profile.edit')->with('success', 'Perfil actualizado correctamente.');
+    }
+
+    /**
+     * Elimina la cuenta del usuario.
+     */
+    public function destroy(Request $request)
+    {
+        $request->validate([
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+
+        Auth::logout();
+
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Redirect::to('/');
     }
 
     /**

@@ -58,6 +58,27 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
+        ],
+        "env:switch": [
+            "@php scripts/switch-env.php"
+        ],
+        "env:dev": [
+            "@php scripts/switch-env.php development",
+            "@php artisan config:clear",
+            "@php artisan cache:clear"
+        ],
+        "env:staging": [
+            "@php scripts/switch-env.php staging",
+            "@php artisan config:clear",
+            "@php artisan cache:clear"
+        ],
+        "env:prod": [
+            "@php scripts/switch-env.php production",
+            "@php artisan config:clear",
+            "@php artisan cache:clear"
+        ],
+        "test": [
+            "@php artisan test"
         ]
     },
     "extra": {

@@ -31,6 +31,6 @@ class AdminMiddlewareTest extends TestCase
     public function guest_cannot_access_admin_routes()
     {
         $response = $this->get('/admin/debug');
-        $response->assertStatus(403);
+        $response->assertRedirect('/login');
     }
 }

@@ -10,20 +10,26 @@ class UsersTableSeeder extends Seeder
 {
     public function run(): void
     {
+        $adminEmail = 'admin@limoneo.com';
+
+        DB::table('users')->updateOrInsert(
+            ['email' => $adminEmail],
+            [
+                'name' => 'Administrador',
+                'password' => Hash::make('admin123'),
+                'is_admin' => true,
+                'created_at' => now()->subDays(60),
+                'updated_at' => now(),
+            ]
+        );
+
+        if (! class_exists(\Faker\Factory::class)) {
+            return;
+        }
+
         $faker = \Faker\Factory::create('es_ES');
         $defaultPassword = Hash::make('password123');
         $users = [];
-        $adminEmail = 'admin@limoneo.com';
-
-        $users[] = [
-            'name' => 'Administrador',
-            'email' => $adminEmail,
-            'password' => Hash::make('admin123'),
-            'avatar' => 'https://randomuser.me/api/portraits/men/1.jpg',
-            'is_admin' => true,
-            'created_at' => now()->subDays(60),
-            'updated_at' => now(),
-        ];
 
         $regularUsersToGenerate = 200;
         $faker->unique(true);
@@ -35,7 +41,7 @@ class UsersTableSeeder extends Seeder
                 'name' => $faker->name(),
                 'email' => $faker->unique()->safeEmail(),
                 'password' => $defaultPassword,
-                'avatar' => "https://randomuser.me/api/portraits/{$gender}/" . $faker->numberBetween(1, 99) . ".jpg",
+                'avatar' => "https://randomuser.me/api/portraits/{$gender}/".$faker->numberBetween(1, 99).".jpg",
                 'is_admin' => false,
                 'created_at' => $faker->dateTimeBetween('-3 years', 'now'),
                 'updated_at' => now(),

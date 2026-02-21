@@ -10,8 +10,16 @@ class OrdersTableSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! class_exists(\Faker\Factory::class)) {
+            return;
+        }
+
         $faker = \Faker\Factory::create('es_ES');
         $users = DB::table('users')->pluck('id');
+
+        if ($users->isEmpty()) {
+            return;
+        }
         $paymentMethods = ['Tarjeta de crédito', 'PayPal', 'Transferencia bancaria', 'Bizum', 'Contra reembolso'];
         foreach ($users as $user_id) {
             $user = DB::table('users')->where('id', $user_id)->first();

@@ -5,6 +5,8 @@ Aplicación web tipo e-commerce construida con **Laravel 11** + **Inertia.js** +
 Documentación adicional:
 
 - Guía extendida de producción y alojamiento: [docs/PRODUCTION.md](docs/PRODUCTION.md)
+- Guía para alternar entornos (dev/staging/prod): [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md)
+- Checklist corto de pendientes: [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)
 
 ## Estado actual (infra / producción)
 
@@ -22,11 +24,26 @@ Ya se avanzó en la infraestructura base. Resumen:
 - Base de datos (Neon / Postgres): proyecto en Frankfurt (`eu-central-1`)
     - DB: `neondb`
     - Rol: `neondb_owner`
-    - Host pooler: `ep-round-unit-alr8cr31-pooler.c-3.eu-central-1.aws.neon.tech`
+    - Endpoint directo (sin pooler, recomendado para migraciones): `ep-round-unit-alr8cr3l.c-3.eu-central-1.aws.neon.tech`
+    - Pooler (opcional, útil para tráfico web): `ep-round-unit-alr8cr3l-pooler.c-3.eu-central-1.aws.neon.tech`
     - SSL: requerido (`sslmode=require`)
-- Cloudflare: alta iniciada; pendiente propagación de nameservers desde Dynadot.
+- Cloudflare: activo para `limoneo.com`.
+- Origin (VPS): Nginx + Let's Encrypt + PHP-FPM 8.3 (Laravel) sirviendo correctamente.
 
-Siguiente paso recomendado: completar instalación base en el VPS + DNS/SSL. Ver [docs/PRODUCTION.md](docs/PRODUCTION.md).
+Runbook detallado: [docs/PRODUCTION.md](docs/PRODUCTION.md).
+
+## URLs / comprobación rápida
+
+- Producción: `https://limoneo.com`
+- Staging: `https://staging.limoneo.com`
+    - Si ves `DNS_PROBE_FINISHED_NXDOMAIN`, falta crear el registro DNS en Cloudflare (ver [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)).
+    - Mientras no haya DNS, la verificación real se hace desde el VPS con `curl -I -H 'Host: staging.limoneo.com' http://127.0.0.1/`.
+- Local (dev): `http://127.0.0.1:8000`
+    - Activar entorno: `composer env:dev`
+    - Backend: `php artisan serve --host=127.0.0.1 --port=8000`
+    - Frontend: `npm run dev`
+
+Nota Windows/PowerShell: `curl` suele ser un alias de `Invoke-WebRequest`. Si necesitas sintaxis estilo Linux (`-I`, `-H`), usa `curl.exe`.
 
 Este README está escrito pensando en un handoff real: explica **cómo funciona** el proyecto, **cómo ejecutarlo** (desarrollo vs producción) y **dónde está cada cosa importante**.
 
@@ -239,7 +256,10 @@ Notas operativas:
 
 3) Variables de entorno:
 
-- Copiar `.env.example` a `.env`
+- Recomendado: activar entorno de desarrollo con el switcher:
+
+`composer env:dev`
+
 - Generar `APP_KEY`:
 
 `php artisan key:generate`
@@ -256,6 +276,23 @@ Por defecto `.env.example` usa SQLite + `SESSION_DRIVER=database` + `QUEUE_CONNE
 5) Storage link (imágenes en `storage/`):
 
 `php artisan storage:link`
+
+### Pruebas (tests)
+
+- Ejecutar test suite:
+
+`php artisan test`
+
+o (atajo):
+
+`composer test`
+
+Notas:
+
+- Los tests fuerzan `APP_ENV=testing` y DB SQLite en memoria (ver `phpunit.xml`) para que sean reproducibles.
+- Si notas comportamiento raro tras cambiar `.env`, usa:
+
+`php artisan optimize:clear`
 
 ### Arranque (2 terminales)
 

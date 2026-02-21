@@ -14,6 +14,10 @@ class ProductDetailsSeeder extends Seeder
             return;
         }
 
+        if (! class_exists(\Faker\Factory::class)) {
+            return;
+        }
+
         $faker = \Faker\Factory::create('es_ES');
 
         Product::query()

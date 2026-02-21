@@ -5,6 +5,8 @@ use Illuminate\Database\Seeder;
 use App\Models\Order;
 use Illuminate\Support\Str;
 
+use Faker\Factory;
+
 class OrderSeeder extends Seeder
 {
     public function run()
@@ -12,6 +14,13 @@ class OrderSeeder extends Seeder
         if (Order::query()->exists()) {
             return;
         }
+
+        if (! class_exists(Factory::class)) {
+            return;
+        }
+
+        $fakerEs = Factory::create('es_ES');
+        $faker = Factory::create();
 
         $statuses = [
             'pendiente_pago',
@@ -39,11 +48,11 @@ class OrderSeeder extends Seeder
 
                 $order = Order::create([
                     'user_id' => $userId,
-                    'name' => fake('es_ES')->name(),
-                    'email' => fake('es_ES')->email(),
-                    'address' => fake('es_ES')->address(),
+                    'name' => $fakerEs->name(),
+                    'email' => $fakerEs->email(),
+                    'address' => $fakerEs->address(),
                     'payment_method' => $paymentMethods[array_rand($paymentMethods)],
-                    'total' => fake()->randomFloat(2, 5, 2000),
+                    'total' => $faker->randomFloat(2, 5, 2000),
                     'transaction_id' => Str::uuid(),
                     'status' => $status,
                     'created_at' => now()->subDays(rand(1, 30)),
@@ -52,8 +61,8 @@ class OrderSeeder extends Seeder
 
                 if ($status === 'cancelado') {
                     $order->update([
-                        'cancellation_reason' => fake('es_ES')->sentence(),
-                        'cancelled_by' => fake()->randomElement(['user', 'admin']),
+                        'cancellation_reason' => $fakerEs->sentence(),
+                        'cancelled_by' => $faker->randomElement(['user', 'admin']),
                         'cancelled_at' => now()->subDays(rand(0, 30)),
                     ]);
                 }
