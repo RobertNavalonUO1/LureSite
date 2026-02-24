@@ -7,6 +7,7 @@ Documentación adicional:
 - Guía extendida de producción y alojamiento: [docs/PRODUCTION.md](docs/PRODUCTION.md)
 - Guía para alternar entornos (dev/staging/prod): [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md)
 - Checklist corto de pendientes: [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)
+- Landing temporal “universo + limón” (modo mantenimiento): [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)
 
 ## Estado actual (infra / producción)
 
@@ -35,6 +36,7 @@ Runbook detallado: [docs/PRODUCTION.md](docs/PRODUCTION.md).
 ## URLs / comprobación rápida
 
 - Producción: `https://limoneo.com`
+- Modo mantenimiento (solo producción): `LANDING_ONLY=true` sirve una sola página (ver [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)).
 - Staging: `https://staging.limoneo.com`
     - Si ves `DNS_PROBE_FINISHED_NXDOMAIN`, falta crear el registro DNS en Cloudflare (ver [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)).
     - Mientras no haya DNS, la verificación real se hace desde el VPS con `curl -I -H 'Host: staging.limoneo.com' http://127.0.0.1/`.

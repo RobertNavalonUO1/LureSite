@@ -28,6 +28,26 @@ use App\Services\CampaignBannerResolver;
 
 /*
 |--------------------------------------------------------------------------
+| Landing-only mode (production)
+|--------------------------------------------------------------------------
+|
+| If LANDING_ONLY=true (and APP_ENV=production), the app exposes only a
+| single Inertia page: Landing/Universe.
+|
+| This keeps the full site code intact; disabling the flag restores all
+| routes.
+|
+*/
+if (app()->environment('production') && config('landing.only')) {
+    Route::get('/{any?}', fn () => Inertia::render('Landing/Universe'))
+        ->where('any', '.*')
+        ->name('landing.universe');
+
+    return;
+}
+
+/*
+|--------------------------------------------------------------------------
 | API (PÃºblicas)
 |--------------------------------------------------------------------------
 */

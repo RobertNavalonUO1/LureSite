@@ -411,6 +411,7 @@ Asegura:
 - `APP_DEBUG=false`
 - `APP_URL=https://tudominio.com`
 - `APP_KEY=...` (generada una vez; secreto)
+- (Opcional) `LANDING_ONLY=true` para servir solo una página “en construcción” (ver [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)).
 
 **DB** (recomendado: MySQL/Postgres):
 

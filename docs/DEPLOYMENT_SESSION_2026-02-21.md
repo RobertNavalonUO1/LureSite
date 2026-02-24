@@ -212,5 +212,10 @@ Checklist actualizado de pendientes: ver [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md
 
 - Producción:
 	- Origin (VPS) con Nginx + PHP-FPM 8.3 y Let's Encrypt está operativo; Cloudflare responde con `200` y las migraciones de producción se han ejecutado durante la sesión de despliegue según el runbook.
+	- (Opcional) Modo “en construcción” (landing universo + limón 3D):
+		- Se activa con `LANDING_ONLY=true` en el `.env` de producción.
+		- Al activarlo, en `APP_ENV=production` la app registra **solo** una ruta que sirve la página `Landing/Universe` (sin borrar el resto del sitio).
+		- Tras cambiar el flag: `php artisan config:cache && php artisan route:cache && php artisan view:cache`.
+		- Documentación: ver [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md).
 
 Si quieres, puedo dejar preparado el `A` record de `staging` en Cloudflare (solo puedo guiarte, no tengo acceso a tu cuenta) y luego ejecutar el `certbot` en el VPS.

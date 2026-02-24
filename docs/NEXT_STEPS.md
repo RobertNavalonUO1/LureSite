@@ -77,6 +77,15 @@ Tras poner `DB_URL` real en el `.env` de staging:
   - `PAYPAL_CLIENT_ID`
   - `PAYPAL_CLIENT_SECRET`
 
+## (Opcional) Landing temporal en producción
+
+Si necesitas mostrar una única página “en construcción” (universo + limón 3D) mientras terminas el sitio:
+
+- Documentación: [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)
+- Activación en `.env` producción:
+  - `LANDING_ONLY=true`
+  - luego: `php artisan config:cache && php artisan route:cache && php artisan view:cache`
+
 ## 3) Workers/procesos (según necesidad)
 
 - Siempre: `nginx`, `php8.3-fpm`
