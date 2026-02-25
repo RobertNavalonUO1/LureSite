@@ -32,8 +32,8 @@ function LemonModel() {
         const onWheel = (event) => {
             // Scroll down -> positive deltaY. We want "accelerate" in a single direction,
             // but with small impulses and a clamp so trackpads don't explode.
-            const impulse = THREE.MathUtils.clamp(event.deltaY * 0.0012, -0.18, 0.18);
-            spinBoostRef.current = THREE.MathUtils.clamp(spinBoostRef.current + impulse, -0.8, 0.8);
+            const impulse = THREE.MathUtils.clamp(event.deltaY * 0.0045, -0.6, 0.6);
+            spinBoostRef.current = THREE.MathUtils.clamp(spinBoostRef.current + impulse, -2.5, 2.5);
         };
 
         window.addEventListener('wheel', onWheel, { passive: true });
@@ -55,7 +55,7 @@ function LemonModel() {
         group.rotation.y += delta * effectiveSpin;
 
         // Decay boost smoothly back to normal over time.
-        const decay = 0.92; // closer to 1 => slower decay
+        const decay = 0.97; // closer to 1 => slower decay
         spinBoostRef.current *= Math.pow(decay, delta * 60);
 
         group.rotation.x = 0;
