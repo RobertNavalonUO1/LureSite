@@ -20,7 +20,7 @@ function LemonModel() {
         const box = new THREE.Box3().setFromObject(cloned);
         const size = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x || 0, size.y || 0, size.z || 0) || 1;
-        const targetMaxDim = 1.6;
+        const targetMaxDim = 1.28;
         const scaleFactorRaw = targetMaxDim / maxDim;
         const scaleFactor = THREE.MathUtils.clamp(scaleFactorRaw, 0.25, 3.5);
 
@@ -53,13 +53,14 @@ function CameraRig() {
     useFrame((state) => {
         const camera = state.camera;
 
-        // Subtle camera parallax toward mouse direction.
-        const targetX = state.pointer.x * 0.35;
-        const targetY = state.pointer.y * 0.22;
+        // "Head look" camera: keep position, slightly shift the look target.
+        const lookX = state.pointer.x * 0.55;
+        const lookY = -state.pointer.y * 0.35;
 
-        camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.06);
-        camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.06);
-        camera.lookAt(0, 0, 0);
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.08);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0, 0.08);
+
+        camera.lookAt(lookX, lookY, 0);
     });
 
     return null;
