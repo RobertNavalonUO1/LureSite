@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo, useRef } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef } from 'react';
 import { Head } from '@inertiajs/react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Center, Stars, useGLTF } from '@react-three/drei';
@@ -9,6 +9,7 @@ const LEMON_GLB_URL = '/images/models/lemon.glb';
 function LemonModel() {
     const groupRef = useRef(null);
     const { scene } = useGLTF(LEMON_GLB_URL);
+    const spinBoostRef = useRef(0);
 
     const { model, scale } = useMemo(() => {
         const cloned = scene.clone(true);
@@ -27,13 +28,36 @@ function LemonModel() {
         return { model: cloned, scale: scaleFactor };
     }, [scene]);
 
+    useEffect(() => {
+        const onWheel = (event) => {
+            // Scroll down -> positive deltaY. We want "accelerate" in a single direction,
+            // but with small impulses and a clamp so trackpads don't explode.
+            const impulse = THREE.MathUtils.clamp(event.deltaY * 0.0012, -0.18, 0.18);
+            spinBoostRef.current = THREE.MathUtils.clamp(spinBoostRef.current + impulse, -0.8, 0.8);
+        };
+
+        window.addEventListener('wheel', onWheel, { passive: true });
+        return () => window.removeEventListener('wheel', onWheel);
+    }, []);
+
     useFrame((state, delta) => {
         const group = groupRef.current;
         if (!group) return;
 
         // Always centered; rotate on itself.
         group.position.set(0, 0, 0);
-        group.rotation.y += delta * 0.7;
+
+        // Base spin + scroll boost that decays back to 0.
+        const baseSpin = 0.7;
+        const boost = spinBoostRef.current;
+        const effectiveSpin = baseSpin + boost;
+
+        group.rotation.y += delta * effectiveSpin;
+
+        // Decay boost smoothly back to normal over time.
+        const decay = 0.92; // closer to 1 => slower decay
+        spinBoostRef.current *= Math.pow(decay, delta * 60);
+
         group.rotation.x = 0;
         group.rotation.z = 0;
     });
