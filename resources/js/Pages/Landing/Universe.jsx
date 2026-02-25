@@ -31,16 +31,11 @@ function LemonModel() {
         const group = groupRef.current;
         if (!group) return;
 
-        // Smooth pointer-driven rotation + subtle idle spin.
-        const targetY = state.pointer.x * 0.8;
-        const targetX = -state.pointer.y * 0.5;
-
-        group.rotation.y = THREE.MathUtils.lerp(group.rotation.y, targetY, 0.10);
-        group.rotation.x = THREE.MathUtils.lerp(group.rotation.x, targetX, 0.10);
-        group.rotation.z += delta * 0.10;
-
-        // Subtle float.
-        group.position.y = Math.sin(state.clock.elapsedTime * 0.8) * 0.12;
+        // Always centered; rotate on itself.
+        group.position.set(0, 0, 0);
+        group.rotation.y += delta * 0.7;
+        group.rotation.x = 0;
+        group.rotation.z = 0;
     });
 
     return (
@@ -52,27 +47,43 @@ function LemonModel() {
 
 useGLTF.preload(LEMON_GLB_URL);
 
-function StarsField() {
-    const starsGroupRef = useRef(null);
+function CameraRig() {
+    useFrame((state) => {
+        const camera = state.camera;
+
+        // Subtle camera parallax toward mouse direction.
+        const targetX = state.pointer.x * 0.35;
+        const targetY = state.pointer.y * 0.22;
+
+        camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.06);
+        camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.06);
+        camera.lookAt(0, 0, 0);
+    });
+
+    return null;
+}
+
+function StarLayer({ radius, depth, count, factor, speed, parallax = 1, rotation = 1 }) {
+    const groupRef = useRef(null);
 
     useFrame((state) => {
-        const group = starsGroupRef.current;
+        const group = groupRef.current;
         if (!group) return;
 
-        // Parallax 3D feel: move and rotate the starfield with the pointer.
-        const targetX = state.pointer.x * 2.5;
-        const targetY = state.pointer.y * 1.5;
+        // Different parallax per layer => depth illusion.
+        const targetX = -state.pointer.x * 3.0 * parallax;
+        const targetY = -state.pointer.y * 2.0 * parallax;
 
-        group.position.x = THREE.MathUtils.lerp(group.position.x, targetX, 0.06);
-        group.position.y = THREE.MathUtils.lerp(group.position.y, targetY, 0.06);
+        group.position.x = THREE.MathUtils.lerp(group.position.x, targetX, 0.04);
+        group.position.y = THREE.MathUtils.lerp(group.position.y, targetY, 0.04);
 
-        group.rotation.y = THREE.MathUtils.lerp(group.rotation.y, state.pointer.x * 0.35, 0.05);
-        group.rotation.x = THREE.MathUtils.lerp(group.rotation.x, -state.pointer.y * 0.25, 0.05);
+        group.rotation.y = THREE.MathUtils.lerp(group.rotation.y, state.pointer.x * 0.25 * rotation, 0.03);
+        group.rotation.x = THREE.MathUtils.lerp(group.rotation.x, -state.pointer.y * 0.18 * rotation, 0.03);
     });
 
     return (
-        <group ref={starsGroupRef}>
-            <Stars radius={120} depth={70} count={7000} factor={4} saturation={0} fade speed={1} />
+        <group ref={groupRef}>
+            <Stars radius={radius} depth={depth} count={count} factor={factor} saturation={0} fade speed={speed} />
         </group>
     );
 }
@@ -90,11 +101,15 @@ export default function Universe() {
                 >
                     <color attach="background" args={['#000000']} />
 
+                    <CameraRig />
+
                     <ambientLight intensity={0.8} />
                     <directionalLight position={[6, 6, 6]} intensity={1.2} />
                     <directionalLight position={[-6, -4, -2]} intensity={0.35} />
 
-                    <StarsField />
+                    <StarLayer radius={55} depth={25} count={2200} factor={2} speed={0.6} parallax={1.3} rotation={1.2} />
+                    <StarLayer radius={95} depth={55} count={4200} factor={3} speed={0.9} parallax={0.8} rotation={1.0} />
+                    <StarLayer radius={140} depth={85} count={6000} factor={4} speed={1.2} parallax={0.45} rotation={0.8} />
 
                     <Suspense fallback={null}>
                         <LemonModel />
