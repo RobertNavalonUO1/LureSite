@@ -1,7 +1,7 @@
 import React, { Suspense, useMemo, useRef } from 'react';
 import { Head } from '@inertiajs/react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Stars, useGLTF } from '@react-three/drei';
+import { Center, Stars, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
 const LEMON_GLB_URL = '/images/models/lemon.glb';
@@ -16,19 +16,13 @@ function LemonModel() {
         // Ensure transforms are up-to-date before measuring.
         cloned.updateMatrixWorld(true);
 
-        // Center the model around (0,0,0) using its bounding box.
+        // Auto-scale (with safety clamp) so it reads like a "real" lemon on screen.
         const box = new THREE.Box3().setFromObject(cloned);
-        const center = box.getCenter(new THREE.Vector3());
-        cloned.position.sub(center);
-
-        cloned.updateMatrixWorld(true);
-
-        // Auto-scale so it reads like a "real" lemon on screen.
-        const boxAfter = new THREE.Box3().setFromObject(cloned);
-        const size = boxAfter.getSize(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x || 0, size.y || 0, size.z || 0) || 1;
-        const targetMaxDim = 1.0;
-        const scaleFactor = targetMaxDim / maxDim;
+        const targetMaxDim = 1.6;
+        const scaleFactorRaw = targetMaxDim / maxDim;
+        const scaleFactor = THREE.MathUtils.clamp(scaleFactorRaw, 0.25, 3.5);
 
         return { model: cloned, scale: scaleFactor };
     }, [scene]);
@@ -46,7 +40,9 @@ function LemonModel() {
 
     return (
         <group ref={groupRef} position={[0, 0, 0]}>
-            <primitive object={model} scale={scale} />
+            <Center>
+                <primitive object={model} scale={scale} />
+            </Center>
         </group>
     );
 }
@@ -100,7 +96,7 @@ export default function Universe() {
             <Head title="Próximamente" />
             <div className="fixed inset-0 overflow-hidden bg-black">
                 <Canvas
-                    camera={{ position: [0, 0, 4.2], fov: 50 }}
+                    camera={{ position: [0, 0, 4.6], fov: 50, near: 0.1, far: 500 }}
                     dpr={[1, 2]}
                     gl={{ antialias: true, alpha: false }}
                     style={{ touchAction: 'none', position: 'absolute', inset: 0 }}
