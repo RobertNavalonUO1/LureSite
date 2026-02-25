@@ -104,6 +104,7 @@ function Planet({
 
 function SolarSystem() {
     // Scaled to fit nicely in a single view without zoom.
+    const planetScale = 0.55;
     const planets = [
         // Mercury
         { orbitRadius: 1.9, size: 0.16, speed: 1.6, phase: 0.2, tint: '#9CA3AF', inclination: 0.06 },
@@ -124,11 +125,11 @@ function SolarSystem() {
     ];
 
     return (
-        <group>
+        <group rotation={[0.35, 0, 0.06]}>
             {planets.map((p, idx) => (
                 <React.Fragment key={idx}>
                     <OrbitRing radius={p.orbitRadius} />
-                    <Planet {...p} />
+                    <Planet {...p} size={p.size * planetScale} />
                 </React.Fragment>
             ))}
         </group>
