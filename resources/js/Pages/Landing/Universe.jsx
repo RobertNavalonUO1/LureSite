@@ -104,38 +104,55 @@ function Planet({
 
 function SolarSystem() {
     // Scaled to fit nicely in a single view without zoom.
-    const planetScale = 0.55;
+    const planetScale = 0.28;
 
     // “More realistic” orbit spacing based on semi-major axis (AU), scaled into scene units.
     // (Not to true scale, but preserves key gaps: inner planets close; big jump to Jupiter; outer planets spaced wider.)
     const orbitBase = 1.5;
     const orbitAuScale = 0.35;
 
+    // Angular speed (rad/s) for Earth's orbit. Other planets scale by Kepler's 3rd law:
+    // orbital period ~ a^(3/2) => angular speed ~ 1 / a^(3/2)
+    const earthAngularSpeed = 0.05;
+
     const planets = [
         // Mercury
-        { au: 0.39, size: 0.16, speed: 1.6, phase: 0.2, tint: '#9CA3AF', inclination: 0.06 },
+        { au: 0.39, size: 0.16, phase: 0.2, tint: '#9CA3AF', inclination: 0.06 },
         // Venus
-        { au: 0.72, size: 0.22, speed: 1.25, phase: 1.1, tint: '#FDE68A', inclination: 0.07 },
+        { au: 0.72, size: 0.22, phase: 1.1, tint: '#FDE68A', inclination: 0.07 },
         // Earth
-        { au: 1.0, size: 0.24, speed: 1.05, phase: 2.2, tint: '#60A5FA', inclination: 0.08 },
+        { au: 1.0, size: 0.24, phase: 2.2, tint: '#60A5FA', inclination: 0.08 },
         // Mars
-        { au: 1.52, size: 0.19, speed: 0.92, phase: 2.9, tint: '#F87171', inclination: 0.09 },
+        { au: 1.52, size: 0.19, phase: 2.9, tint: '#F87171', inclination: 0.09 },
         // Jupiter
-        { au: 5.2, size: 0.52, speed: 0.48, phase: 0.7, tint: '#FDBA74', inclination: 0.12 },
+        { au: 5.2, size: 0.52, phase: 0.7, tint: '#FDBA74', inclination: 0.12 },
         // Saturn (ring)
-        { au: 9.58, size: 0.46, speed: 0.36, phase: 1.9, tint: '#FCD34D', ring: true, inclination: 0.12 },
+        { au: 9.58, size: 0.46, phase: 1.9, tint: '#FCD34D', ring: true, inclination: 0.12 },
         // Uranus (big tilt)
-        { au: 19.2, size: 0.32, speed: 0.26, phase: 2.6, tint: '#67E8F9', axialTilt: 1.1, inclination: 0.14 },
+        { au: 19.2, size: 0.32, phase: 2.6, tint: '#67E8F9', axialTilt: 1.1, inclination: 0.14 },
         // Neptune
-        { au: 30.05, size: 0.31, speed: 0.22, phase: 3.4, tint: '#3B82F6', inclination: 0.16 },
+        { au: 30.05, size: 0.31, phase: 3.4, tint: '#3B82F6', inclination: 0.16 },
     ];
 
     return (
         <group rotation={[0.35, 0, 0.06]}>
             {planets.map((p, idx) => (
                 <React.Fragment key={idx}>
-                    <OrbitRing radius={orbitBase + p.au * orbitAuScale} />
-                    <Planet {...p} orbitRadius={orbitBase + p.au * orbitAuScale} size={p.size * planetScale} />
+                    {(() => {
+                        const orbitRadius = orbitBase + p.au * orbitAuScale;
+                        const speed = earthAngularSpeed / Math.pow(p.au, 1.5);
+                        return (
+                            <>
+                                <OrbitRing radius={orbitRadius} />
+                                <Planet
+                                    {...p}
+                                    orbitRadius={orbitRadius}
+                                    speed={speed}
+                                    size={p.size * planetScale}
+                                />
+                            </>
+                        );
+                    })()}
                 </React.Fragment>
             ))}
         </group>
