@@ -13,13 +13,19 @@ function LemonModel() {
     const { model, scale } = useMemo(() => {
         const cloned = scene.clone(true);
 
+        // Ensure transforms are up-to-date before measuring.
+        cloned.updateMatrixWorld(true);
+
         // Center the model around (0,0,0) using its bounding box.
         const box = new THREE.Box3().setFromObject(cloned);
         const center = box.getCenter(new THREE.Vector3());
         cloned.position.sub(center);
 
+        cloned.updateMatrixWorld(true);
+
         // Auto-scale so it reads like a "real" lemon on screen.
-        const size = box.getSize(new THREE.Vector3());
+        const boxAfter = new THREE.Box3().setFromObject(cloned);
+        const size = boxAfter.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x || 0, size.y || 0, size.z || 0) || 1;
         const targetMaxDim = 1.0;
         const scaleFactor = targetMaxDim / maxDim;
@@ -92,12 +98,12 @@ export default function Universe() {
     return (
         <>
             <Head title="Próximamente" />
-            <div className="h-screen w-screen overflow-hidden bg-black">
+            <div className="fixed inset-0 overflow-hidden bg-black">
                 <Canvas
                     camera={{ position: [0, 0, 4.2], fov: 50 }}
                     dpr={[1, 2]}
                     gl={{ antialias: true, alpha: false }}
-                    style={{ touchAction: 'none' }}
+                    style={{ touchAction: 'none', position: 'absolute', inset: 0 }}
                 >
                     <color attach="background" args={['#000000']} />
 
