@@ -14,16 +14,16 @@ const CartPage = ({ cartItems, cartCount, total }) => {
   };
 
   return (
-    <div className="cart-container p-6 max-w-4xl mx-auto">
+    <div className="cart-container px-4 py-5 sm:p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Carrito de Compras</h1>
       <div className="cart-items space-y-4">
         {cartCount > 0 ? (
           <ul className="space-y-4">
             {Object.values(cartItems).map((item) => (
-              <li key={item.id} className="cart-item flex items-center gap-4 border p-4 rounded-lg">
-                <img src={item.image_url} alt={item.name} className="w-24 h-24 object-cover rounded" />
-                <div className="flex-grow">
-                  <h3 className="text-lg font-semibold">{item.name}</h3>
+              <li key={item.id} className="cart-item flex flex-col gap-4 border p-4 rounded-lg sm:flex-row sm:items-center">
+                <img src={item.image_url} alt={item.name} className="w-20 h-20 object-cover rounded sm:w-24 sm:h-24" />
+                <div className="flex-grow min-w-0">
+                  <h3 className="text-base sm:text-lg font-semibold break-words">{item.name}</h3>
                   <p>Precio: ${item.price}</p>
                   <p>Cantidad: {item.quantity}</p>
                   <button
@@ -45,7 +45,7 @@ const CartPage = ({ cartItems, cartCount, total }) => {
         <h2 className="text-xl font-bold mb-2">Total: ${total}</h2>
         <button
           onClick={handleCheckout}
-          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 w-full sm:w-auto"
         >
           Ir a Checkout
         </button>

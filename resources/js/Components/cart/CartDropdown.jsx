@@ -102,9 +102,10 @@ const CartDropdown = () => {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => toggleDropdown()}
-                className="bg-yellow-500 px-4 py-2 rounded-lg hover:bg-yellow-600 flex items-center transition duration-300 ease-in-out transform hover:scale-105"
+                className="bg-yellow-500 px-3 py-2 rounded-lg hover:bg-yellow-600 flex items-center gap-2 transition duration-300 ease-in-out transform hover:scale-105 sm:px-4"
             >
-                🛒 Ver carrito
+                <span aria-hidden="true">🛒</span>
+                <span className="hidden sm:inline">Ver carrito</span>
                 {cartCount > 0 && (
                     <span className="ml-2 bg-red-500 text-white text-sm px-2 rounded-full">
                         {cartCount}
@@ -112,7 +113,7 @@ const CartDropdown = () => {
                 )}
             </button>
             {isDropdownVisible && (
-                <div className="absolute right-0 bg-white shadow-2xl rounded-lg p-4 mt-2 w-80 max-h-96 overflow-y-auto z-50">
+                <div className="absolute right-2 sm:right-0 bg-white shadow-2xl rounded-lg p-4 mt-2 w-[92vw] sm:w-80 max-h-96 overflow-y-auto z-50">
                     {cartCount > 0 ? (
                         <div>
                             <ul>
@@ -123,8 +124,8 @@ const CartDropdown = () => {
                                             alt={item.title}
                                             className="w-14 h-14 object-cover rounded-lg"
                                         />
-                                        <div className="ml-3 flex-1">
-                                            <p className="font-semibold text-gray-800">{item.title}</p>
+                                        <div className="ml-3 flex-1 min-w-0">
+                                            <p className="font-semibold text-gray-800 text-sm leading-snug break-words">{item.title}</p>
                                             <div className="flex items-center mt-1">
                                                 <button
                                                     onClick={() => handleDecrement(item.id)}

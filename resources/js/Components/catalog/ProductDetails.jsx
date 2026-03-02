@@ -169,7 +169,8 @@ const ProductDetails = ({
                     className="
                       relative mx-auto w-full
                       aspect-[4/3] sm:aspect-square
-                      min-w-[300px] min-h-[300px]
+                      min-w-0 min-h-0
+                      sm:min-w-[300px] sm:min-h-[300px]
                       md:min-w-[380px] md:min-h-[380px]
                       lg:min-w-[420px] lg:min-h-[420px]
                       max-h-[64vh]

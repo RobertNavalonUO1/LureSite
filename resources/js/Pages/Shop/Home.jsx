@@ -431,7 +431,7 @@ const Home = () => {
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/50">
                   Resumen del catalogo
                 </p>
-                <div className="mt-5 grid grid-cols-3 gap-3 text-center">
+                <div className="mt-5 grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
                   <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
                     <p className="text-2xl font-bold">{stats.total}</p>
                     <p className="mt-1 text-xs text-white/70">Productos activos</p>
@@ -861,7 +861,7 @@ const Home = () => {
 
       {isModalVisible && (
         <div
-          className={`${modalClass} fixed bottom-10 left-1/2 -translate-x-1/2 rounded-lg px-6 py-3 text-white shadow-lg`}
+          className={`${modalClass} fixed bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 rounded-lg px-6 py-3 text-white shadow-lg max-w-[92vw] text-center break-words`}
         >
           <p className="text-sm">{modalMessage}</p>
         </div>

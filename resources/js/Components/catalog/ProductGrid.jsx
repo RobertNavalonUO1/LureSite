@@ -10,7 +10,7 @@ const ProductGrid = ({ products, featuredProducts, onAddToCart, onToggleFavorite
   for (let i = 0, fIndex = 0; i < products.length; i += columnsPerRow) {
     const chunk = products.slice(i, i + columnsPerRow);
     rows.push(
-      <div key={`row-${i}`} className="grid grid-cols-4 gap-4">
+      <div key={`row-${i}`} className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
         {chunk.map((product) => (
           <ProductCard
             key={product.id}

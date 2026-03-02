@@ -97,7 +97,7 @@ const Header = ({ isCompact: isCompactProp = false }) => {
     mainPadding: isCompact ? 'py-3' : 'py-5',
     loginButton: clsx(
       'inline-flex items-center rounded-full bg-indigo-600 text-white shadow-md hover:bg-indigo-700 transition',
-      isCompact ? 'px-5 py-2 text-sm font-semibold' : 'px-8 py-3 text-xl font-bold'
+      isCompact ? 'px-5 py-2 text-sm font-semibold' : 'px-5 py-2.5 text-base font-bold sm:px-8 sm:py-3 sm:text-xl'
     ),
     menuButton:
       'lg:hidden inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/80 p-3 text-slate-700 shadow-md hover:bg-white transition',
@@ -128,7 +128,7 @@ const Header = ({ isCompact: isCompactProp = false }) => {
 
           <SearchBar isCompact={isCompact} value={search} onChange={setSearch} onSubmit={handleSearchSubmit} />
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <CartDropdown />
 
             {user ? (

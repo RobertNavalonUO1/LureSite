@@ -127,7 +127,7 @@ const CategoryPage = () => {
 
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
             <aside className="lg:w-64 shrink-0">
-              <div className="sticky top-28 space-y-6">
+              <div className="space-y-6 lg:sticky lg:top-[calc(var(--header-sticky-height,0px)+var(--topnav-sticky-height,0px)+1.5rem)]">
                 <div className="rounded-3xl border border-white/80 bg-white/90 shadow-sm p-6">
                   <h2 className="text-base font-semibold mb-4 text-slate-800">Categorias</h2>
                   <ul className="space-y-1.5 text-sm">
