@@ -77,6 +77,8 @@ Tras poner `DB_URL` real en el `.env` de staging:
   - `PAYPAL_CLIENT_ID`
   - `PAYPAL_CLIENT_SECRET`
 
+Nota: el secret de Firebase solo aplica mientras siga activo el login actual. El siguiente bloque planificado migra auth a Socialite (Google/Facebook) y elimina Firebase (ver “Roadmap features” al final).
+
 ## (Opcional) Landing temporal en producción
 
 Si necesitas mostrar una única página “en construcción” (universo + limón 3D) mientras terminas el sitio:
@@ -117,3 +119,13 @@ Si necesitas mostrar una única página “en construcción” (universo + limó
   - `php artisan test`
 
 Los tests usan SQLite en memoria (ver `phpunit.xml`) para que no dependan de tu `.env`.
+
+---
+
+## Roadmap (features)
+
+Para arrancar el siguiente bloque con otro agente, seguir la guía: [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)
+
+- Auth: Google/Facebook con Socialite (web + API móvil con Sanctum) y retirada Firebase.
+- i18n: `es/en/fr` (sin prefijo en URL) + corrección de acentos/mojibake.
+- Productos: importación manual desde scrapers Python → `temporary_products` → migración a `products`.

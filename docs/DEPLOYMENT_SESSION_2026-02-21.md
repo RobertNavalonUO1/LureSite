@@ -219,3 +219,18 @@ Checklist actualizado de pendientes: ver [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md
 		- Documentación: ver [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md).
 
 Si quieres, puedo dejar preparado el `A` record de `staging` en Cloudflare (solo puedo guiarte, no tengo acceso a tu cuenta) y luego ejecutar el `certbot` en el VPS.
+
+---
+
+## Nota posterior (actualizado 2026-03-02)
+
+Se ha añadido documentación de handoff para el siguiente bloque de features:
+
+- Guía de arranque (próximo agente): [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)
+- Roadmap resumido: [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)
+
+Pendientes funcionales destacados:
+
+- Migración de auth: pasar de Firebase a Socialite (Google/Facebook) y definir flujo móvil con Sanctum.
+- Multiidioma `es/en/fr` y corrección de acentos/mojibake (estandarizar ficheros a UTF-8 y reescribir literales corruptos).
+- Importación manual de productos desde scrapers Python → `temporary_products` → migración a `products`.

@@ -7,6 +7,7 @@ Documentación adicional:
 - Guía extendida de producción y alojamiento: [docs/PRODUCTION.md](docs/PRODUCTION.md)
 - Guía para alternar entornos (dev/staging/prod): [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md)
 - Checklist corto de pendientes: [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)
+- Guía de arranque (próximo bloque con otro agente): [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)
 - Landing temporal “universo + limón” (modo mantenimiento): [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)
 
 ## Estado actual (infra / producción)
@@ -59,9 +60,17 @@ Este README está escrito pensando en un handoff real: explica **cómo funciona*
 - Backend: Laravel (rutas web + controladores + modelos Eloquent + servicios).
 - Frontend: Inertia + React (páginas y componentes) empaquetado con Vite.
 - Estado de carrito: **session** (server-side), compartido a Inertia.
-- Auth: login con Google vía **Firebase Auth** (frontend obtiene `idToken` y lo envía al backend).
+- Auth (actual): login con Google/Facebook vía **Firebase Auth** (frontend obtiene `idToken` y lo envía al backend).
+- Auth (objetivo): migrar a **Laravel Socialite** y retirar Firebase (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)).
 - Pagos: Stripe Checkout + PayPal (SDK).
 - Extra: ejecución de scripts Python desde backend (uso interno/herramientas).
+
+## Estado actual (app)
+
+- Responsive móvil: aplicada una primera tanda de ajustes (checkout/carrito/grids/sticky stack).
+- Landing-only en producción: `LANDING_ONLY=true` sirve solo la landing (ver [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)).
+- Importación de productos: pipeline temporal (`temporary_products`) + migración a `products` y scripts Python (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)).
+- Pendiente: textos con acentos/encoding (mojibake) en algunos ficheros; se corrige estandarizando UTF-8 y reescribiendo literales.
 
 Flujo típico de una página Inertia:
 

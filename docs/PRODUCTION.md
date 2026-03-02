@@ -82,9 +82,12 @@ Pendiente (operativo) para dar por “cerrado” el ciclo dev → staging → pr
 Está escrito para este repo: **Laravel 11 + Inertia.js + React + Vite**, con:
 
 - Carrito en **session**
-- Auth con Google vía **Firebase (frontend)** y sesión **Laravel (backend)**
+- Auth actual con Google/Facebook vía **Firebase (frontend)** y sesión **Laravel (backend)**
+- Auth objetivo: migrar a **Socialite** y retirar Firebase (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md))
 - Checkout con **Stripe** y **PayPal**
 - Endpoints JSON `/api/*` consumidos desde páginas React
+
+Guía de arranque del siguiente bloque (features): [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md).
 
 > Alcance
 >
