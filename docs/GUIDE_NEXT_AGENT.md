@@ -57,8 +57,11 @@ Ejemplos ya detectados:
 
 - Header: en algunos casos entra en bucle (sube/baja) cuando cambia su altura y el estado “compacto” oscila.
   - Revisar: histéresis (umbral de entrada/salida), cómo se calcula/propaga `--header-sticky-height` y los listeners de scroll.
+  - Código principal: `resources/js/Components/navigation/Header.jsx`.
 - Aside/Banners: en ciertos breakpoints un banner derecho puede tapar contenido.
   - Revisar: contenedores `relative/absolute`, stacking context, `z-index` y anchos.
+  - Componente: `resources/js/Components/marketing/SidebarBanners.jsx`.
+  - Snippet asociado (overlay/shimmer en hover): `absolute -left-1/2 ... group-hover:translate-x-[260%] ...`.
 
 ### Productos + scrapers Python (estado)
 
