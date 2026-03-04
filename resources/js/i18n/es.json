@@ -1,0 +1,57 @@
+{
+  "common": {
+    "language": "Idioma",
+    "change_language": "Cambiar idioma",
+    "open_menu": "Abrir menú",
+    "search_placeholder": "Buscar..."
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "register": "Crear cuenta",
+    "logout": "Salir"
+  },
+  "nav": {
+    "deals_today": "Ofertas de hoy",
+    "super_deal": "Super Deal",
+    "fast_shipping": "Envíos rápidos",
+    "new_arrivals": "Novedades",
+    "seasonal": "Temporada",
+    "see_all": "Ver todo"
+  },
+  "home": {
+    "welcome_guest": "Bienvenido a Limoneo",
+    "welcome_user": "Hola, {name}",
+    "hero_title": "Descubre colecciones curadas y listas para enviar hoy",
+    "hero_subtitle": "Seleccionamos lo mejor de electrónica, moda, hogar y más para que encuentres lo que necesitas sin perder tiempo.",
+    "hero_cta_primary": "Explorar productos",
+    "hero_cta_secondary": "Ver lanzamientos",
+    "filters_title": "Filtrar resultados",
+    "filters_subtitle": "Ajusta tu búsqueda por categoría, precio y relevancia.",
+    "filters_clear": "Limpiar",
+    "filters_search_aria": "Buscar productos",
+    "filters_search_placeholder": "Buscar por nombre, marca o categoría",
+    "filters_category_aria": "Categoría",
+    "filters_category_all": "Todas las categorías",
+    "aside_tips_title": "Tips de compra",
+    "aside_tip_1": "Aplica filtros rápidos para comparar categorías en segundos.",
+    "aside_tip_2": "Guarda tus favoritos y recibe alertas de stock y descuentos.",
+    "aside_tip_3": "Prioriza productos con envío rápido si los necesitas en 48h.",
+    "aside_quick_access": "Accesos rápidos",
+    "aside_top_categories": "Top categorías",
+    "aside_safe_title": "Compra segura",
+    "aside_safe_heading": "Soporte y garantías",
+    "aside_safe_body": "Pagos protegidos, devoluciones claras y ayuda rápida cuando la necesitas.",
+    "aside_go": "Ir",
+    "aside_see": "Ver",
+    "aside_tip_label": "Tip",
+    "aside_tip_text": "Usa \"Envío rápido\" para filtrar."
+  },
+  "banners": {
+    "recommended": "Recomendado",
+    "footer_note": "Descubre promociones y lanzamientos seleccionados para ti.",
+    "paused": "Pausado",
+    "auto": "Auto",
+    "view_banner": "Ver banner: {title}",
+    "go_to_banner": "Ir al banner {index}"
+  }
+}

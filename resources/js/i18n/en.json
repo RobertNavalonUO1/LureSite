@@ -1,0 +1,57 @@
+{
+  "common": {
+    "language": "Language",
+    "change_language": "Change language",
+    "open_menu": "Open menu",
+    "search_placeholder": "Search..."
+  },
+  "auth": {
+    "login": "Sign in",
+    "register": "Create account",
+    "logout": "Sign out"
+  },
+  "nav": {
+    "deals_today": "Today's deals",
+    "super_deal": "Super Deal",
+    "fast_shipping": "Fast shipping",
+    "new_arrivals": "New arrivals",
+    "seasonal": "Seasonal",
+    "see_all": "See all"
+  },
+  "home": {
+    "welcome_guest": "Welcome to Limoneo",
+    "welcome_user": "Hi, {name}",
+    "hero_title": "Discover curated collections ready to ship today",
+    "hero_subtitle": "We pick the best in electronics, fashion, home and more so you can find what you need fast.",
+    "hero_cta_primary": "Browse products",
+    "hero_cta_secondary": "See new releases",
+    "filters_title": "Filter results",
+    "filters_subtitle": "Refine by category, price and relevance.",
+    "filters_clear": "Clear",
+    "filters_search_aria": "Search products",
+    "filters_search_placeholder": "Search by name, brand or category",
+    "filters_category_aria": "Category",
+    "filters_category_all": "All categories",
+    "aside_tips_title": "Shopping tips",
+    "aside_tip_1": "Use quick filters to compare categories in seconds.",
+    "aside_tip_2": "Save favorites and get stock/discount alerts.",
+    "aside_tip_3": "Prioritize fast-shipping items if you need them in 48h.",
+    "aside_quick_access": "Quick access",
+    "aside_top_categories": "Top categories",
+    "aside_safe_title": "Safe shopping",
+    "aside_safe_heading": "Support & guarantees",
+    "aside_safe_body": "Protected payments, clear returns and fast help when you need it.",
+    "aside_go": "Go",
+    "aside_see": "View",
+    "aside_tip_label": "Tip",
+    "aside_tip_text": "Use \"Fast shipping\" to filter."
+  },
+  "banners": {
+    "recommended": "Recommended",
+    "footer_note": "Discover selected promos and new releases for you.",
+    "paused": "Paused",
+    "auto": "Auto",
+    "view_banner": "View banner: {title}",
+    "go_to_banner": "Go to banner {index}"
+  }
+}

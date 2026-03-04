@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
+import { useI18n } from '@/i18n';
 
 const FALLBACK_BANNERS = [
   {
@@ -81,6 +82,7 @@ const normalizeBanners = (banners) => {
 };
 
 const SidebarBanners = ({ banners }) => {
+  const { t } = useI18n();
   const bannerList = useMemo(() => normalizeBanners(banners), [banners]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -117,7 +119,12 @@ const SidebarBanners = ({ banners }) => {
   const thumb2 = bannerList[(activeIndex + 2) % bannerList.length];
 
   return (
-    <div className="flex w-full flex-col gap-4 lg:gap-6 lg:sticky lg:top-24">
+    <div
+      className="flex w-full flex-col gap-4 lg:gap-6 lg:sticky"
+      style={{
+        top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px) + 1.5rem)',
+      }}
+    >
       {/* Mobile: swipeable strip */}
       <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 lg:hidden">
         {bannerList.map((banner) => (
@@ -174,14 +181,14 @@ const SidebarBanners = ({ banners }) => {
             ))}
 
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent transition-opacity duration-500 group-hover:from-slate-900/60" />
-            <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+            <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
               <div className="absolute -left-1/2 top-0 h-full w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-0 group-hover:translate-x-[260%] transition-transform duration-700" />
             </div>
 
             <div className="absolute bottom-6 left-6 right-6">
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  <div className="text-sm font-semibold text-slate-200/90">Recomendado</div>
+                  <div className="text-sm font-semibold text-slate-200/90">{t('banners.recommended')}</div>
                   <div className="mt-1 text-lg font-bold text-white leading-snug">
                     {featured?.alt}
                   </div>
@@ -204,7 +211,7 @@ const SidebarBanners = ({ banners }) => {
                 if (nextIndex >= 0) setActiveIndex(nextIndex);
               }}
               className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
-              aria-label={`Ver banner: ${banner.alt}`}
+              aria-label={t('banners.view_banner', { title: banner.alt })}
             >
               <div className="flex items-center gap-4 p-3">
                 <img
@@ -236,21 +243,21 @@ const SidebarBanners = ({ banners }) => {
                   'h-2.5 w-2.5 rounded-full transition-all duration-300',
                   index === activeIndex ? 'bg-indigo-600 w-6' : 'bg-slate-300 hover:bg-slate-400'
                 )}
-                aria-label={`Ir al banner ${index + 1}`}
+                aria-label={t('banners.go_to_banner', { index: index + 1 })}
               />
             ))}
           </div>
 
           {!prefersReducedMotion && (
             <div className="text-xs text-slate-500">
-              {isPaused ? 'Pausado' : 'Auto'}
+              {isPaused ? t('banners.paused') : t('banners.auto')}
             </div>
           )}
         </div>
       </div>
 
       <div className="hidden border-t border-slate-200 pt-4 text-xs text-slate-500 lg:block">
-        Descubre promociones y lanzamientos seleccionados para ti.
+        {t('banners.footer_note')}
       </div>
     </div>
   );

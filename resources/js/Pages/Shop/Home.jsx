@@ -31,6 +31,7 @@ import TopBanner from "@/Components/marketing/TopBanner";
 import AutumnShowcase from "@/Components/marketing/AutumnShowcase.jsx";
 import PromoPopups from "@/Components/marketing/PromoPopups.jsx";
 import useHeaderCompact from "@/Components/navigation/header/useHeaderCompact.js";
+import { useI18n } from "@/i18n";
 
 const CATEGORY_ACCENTS = [
   {
@@ -71,6 +72,7 @@ const Home = () => {
     banners: legacyBanners = [],
     auth,
   } = usePage().props;
+  const { t } = useI18n();
   const user = auth?.user;
   const campaignBanners = campaign?.banners ?? {};
   const generalBanners = campaignBanners.general ?? legacyBanners;
@@ -402,27 +404,27 @@ const Home = () => {
             <div className="grid gap-6 rounded-[32px] border border-slate-100 bg-white/90 p-6 shadow-xl sm:p-8 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
               <div className="space-y-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
-                  {user ? `Hola, ${user.name}` : "Bienvenido a Limoneo"}
+                  {user ? t('home.welcome_user', { name: user.name }) : t('home.welcome_guest')}
                 </p>
                 <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">
-                  Descubre colecciones curadas y listas para enviar hoy
+                  {t('home.hero_title')}
                 </h1>
                 <p className="text-sm leading-relaxed text-slate-600 sm:text-base">
-                  Seleccionamos lo mejor de electronica, moda, hogar y mas para que encuentres lo que necesitas sin perder tiempo.
+                  {t('home.hero_subtitle')}
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
                   <a
                     href="#destacados"
                     className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-slate-800"
                   >
-                    Explorar productos
+                    {t('home.hero_cta_primary')}
                   </a>
                   <button
                     type="button"
                     onClick={() => setSortOrder("newest")}
                     className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
                   >
-                    Ver lanzamientos
+                    {t('home.hero_cta_secondary')}
                   </button>
                 </div>
               </div>
@@ -459,9 +461,9 @@ const Home = () => {
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900">Filtrar resultados</h2>
+                  <h2 className="text-base font-semibold text-slate-900">{t('home.filters_title')}</h2>
                   <p className="text-xs text-slate-500">
-                    Ajusta tu busqueda por categoria, precio y relevancia.
+                    {t('home.filters_subtitle')}
                   </p>
                 </div>
                 <button
@@ -475,14 +477,14 @@ const Home = () => {
                   }}
                   className="inline-flex items-center rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200"
                 >
-                  Limpiar
+                  {t('home.filters_clear')}
                 </button>
               </div>
 
               <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
                 <div className="lg:col-span-1">
                   <label className="sr-only" htmlFor="search-products">
-                    Buscar productos
+                    {t('home.filters_search_aria')}
                   </label>
                   <input
                     id="search-products"
@@ -490,12 +492,12 @@ const Home = () => {
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
                     className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm text-slate-700 shadow-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                    placeholder="Buscar por nombre, marca o categoria"
+                    placeholder={t('home.filters_search_placeholder')}
                   />
                 </div>
                 <div>
                   <label className="sr-only" htmlFor="category-filter">
-                    Categoria
+                    {t('home.filters_category_aria')}
                   </label>
                   <select
                     id="category-filter"
@@ -503,7 +505,7 @@ const Home = () => {
                     onChange={(event) => setSelectedCategory(event.target.value)}
                     className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                   >
-                    <option value="all">Todas las categorias</option>
+                    <option value="all">{t('home.filters_category_all')}</option>
                     {categories.map((category) => {
                       const optionValue =
                         category.id !== undefined && category.id !== null
@@ -752,19 +754,19 @@ const Home = () => {
           <aside className="space-y-6">
             <div className="hidden rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm lg:block">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-indigo-500">
-                Tips de compra
+                {t('home.aside_tips_title')}
               </h3>
               <ul className="mt-4 space-y-3 text-sm text-slate-600">
-                <li>Aplica filtros rapidos para comparar categorias en segundos.</li>
-                <li>Guarda tus favoritos y recibe alertas de stock y descuentos.</li>
-                <li>Prioriza productos con envio rapido si los necesitas en 48h.</li>
+                <li>{t('home.aside_tip_1')}</li>
+                <li>{t('home.aside_tip_2')}</li>
+                <li>{t('home.aside_tip_3')}</li>
               </ul>
             </div>
             <SidebarBanners banners={sidebarBanners} />
 
             <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-700">
-                Accesos rapidos
+                {t('home.aside_quick_access')}
               </h3>
               <div className="mt-4 grid gap-3">
                 {asideQuickLinks.map(({ href, title, subtitle, Icon, accent }) => (
@@ -784,7 +786,7 @@ const Home = () => {
                     </div>
 
                     <span className="text-xs font-semibold text-slate-500 transition group-hover:text-slate-700">
-                      Ver
+                      {t('home.aside_see')}
                     </span>
                   </Link>
                 ))}
@@ -794,7 +796,7 @@ const Home = () => {
             {topCategories.length > 0 && (
               <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-700">
-                  Top categorias
+                  {t('home.aside_top_categories')}
                 </h3>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {topCategories.map((category) => (
@@ -814,11 +816,9 @@ const Home = () => {
             <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-6 text-white shadow-lg">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/55">Compra segura</p>
-                  <h3 className="mt-2 text-lg font-bold">Soporte y garantias</h3>
-                  <p className="mt-2 text-sm text-white/75">
-                    Pagos protegidos, devoluciones claras y ayuda rapida cuando la necesitas.
-                  </p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/55">{t('home.aside_safe_title')}</p>
+                    <h3 className="mt-2 text-lg font-bold">{t('home.aside_safe_heading')}</h3>
+                    <p className="mt-2 text-sm text-white/75">{t('home.aside_safe_body')}</p>
                 </div>
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10">
                   <ShieldCheck className="h-5 w-5 text-[#febd69]" aria-hidden="true" />
@@ -834,7 +834,7 @@ const Home = () => {
                     <HelpCircle className="h-4 w-4 text-white/70" aria-hidden="true" />
                     FAQ
                   </span>
-                  <span className="text-white/60 group-hover:text-white/85">Ir</span>
+                  <span className="text-white/60 group-hover:text-white/85">{t('home.aside_go')}</span>
                 </Link>
                 <Link
                   href="/contact"
@@ -844,13 +844,13 @@ const Home = () => {
                     <Truck className="h-4 w-4 text-white/70" aria-hidden="true" />
                     Contacto
                   </span>
-                  <span className="text-white/60 group-hover:text-white/85">Ir</span>
+                  <span className="text-white/60 group-hover:text-white/85">{t('home.aside_go')}</span>
                 </Link>
               </div>
 
               <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
-                <p className="text-xs font-semibold text-white/70">Tip</p>
-                <p className="text-xs text-white/80">Usa "Envio rapido" para filtrar.</p>
+                <p className="text-xs font-semibold text-white/70">{t('home.aside_tip_label')}</p>
+                <p className="text-xs text-white/80">{t('home.aside_tip_text')}</p>
               </div>
             </div>
           </aside>

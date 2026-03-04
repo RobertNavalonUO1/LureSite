@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
+import { useI18n } from '@/i18n';
 
 /**
  * @param {{
@@ -26,6 +27,7 @@ export default function MobileMenu({
   if (!open) return null;
 
   const { locale, locales } = usePage().props;
+  const { t } = useI18n();
   const currentLocale = locale || 'es';
   const availableLocales = Array.isArray(locales) && locales.length ? locales : ['es', 'en', 'fr'];
 
@@ -41,7 +43,7 @@ export default function MobileMenu({
           type="search"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Buscar..."
+          placeholder={t('common.search_placeholder')}
           className="w-full rounded-xl border border-slate-200 bg-white px-5 py-4 text-lg shadow-md focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400/60 transition"
         />
       </form>
@@ -64,7 +66,7 @@ export default function MobileMenu({
             className="rounded-xl border border-indigo-300 bg-indigo-50 px-5 py-4 text-center font-bold text-indigo-700 hover:bg-indigo-100 transition"
             onClick={onClose}
           >
-            Crear cuenta
+            {t('auth.register')}
           </Link>
         )}
 
@@ -76,14 +78,14 @@ export default function MobileMenu({
             }}
             className="rounded-xl border border-rose-300 bg-rose-100 px-5 py-4 text-left font-bold text-rose-700 hover:bg-rose-200 transition"
           >
-            Salir
+            {t('auth.logout')}
           </button>
         )}
 
         <div className="pt-2">
-          <label className="block text-sm font-semibold text-slate-600 mb-2">Idioma</label>
+          <label className="block text-sm font-semibold text-slate-600 mb-2">{t('common.language')}</label>
           <select
-            aria-label="Cambiar idioma"
+            aria-label={t('common.change_language')}
             value={currentLocale}
             onChange={handleLocaleChange}
             className="w-full rounded-xl border border-slate-200 bg-white px-5 py-4 text-lg shadow-md focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400/60 transition"

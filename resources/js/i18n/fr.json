@@ -1,0 +1,57 @@
+{
+  "common": {
+    "language": "Langue",
+    "change_language": "Changer de langue",
+    "open_menu": "Ouvrir le menu",
+    "search_placeholder": "Rechercher..."
+  },
+  "auth": {
+    "login": "Se connecter",
+    "register": "Créer un compte",
+    "logout": "Se déconnecter"
+  },
+  "nav": {
+    "deals_today": "Offres du jour",
+    "super_deal": "Super Deal",
+    "fast_shipping": "Livraison rapide",
+    "new_arrivals": "Nouveautés",
+    "seasonal": "Saison",
+    "see_all": "Voir tout"
+  },
+  "home": {
+    "welcome_guest": "Bienvenue sur Limoneo",
+    "welcome_user": "Bonjour, {name}",
+    "hero_title": "Découvrez des collections sélectionnées prêtes à être expédiées aujourd'hui",
+    "hero_subtitle": "Nous sélectionnons le meilleur en électronique, mode, maison et plus pour vous faire gagner du temps.",
+    "hero_cta_primary": "Explorer les produits",
+    "hero_cta_secondary": "Voir les nouveautés",
+    "filters_title": "Filtrer les résultats",
+    "filters_subtitle": "Affinez par catégorie, prix et pertinence.",
+    "filters_clear": "Réinitialiser",
+    "filters_search_aria": "Rechercher des produits",
+    "filters_search_placeholder": "Rechercher par nom, marque ou catégorie",
+    "filters_category_aria": "Catégorie",
+    "filters_category_all": "Toutes les catégories",
+    "aside_tips_title": "Conseils d'achat",
+    "aside_tip_1": "Utilisez des filtres rapides pour comparer les catégories en quelques secondes.",
+    "aside_tip_2": "Enregistrez vos favoris et recevez des alertes de stock et de réductions.",
+    "aside_tip_3": "Privilégiez la livraison rapide si vous en avez besoin sous 48h.",
+    "aside_quick_access": "Accès rapides",
+    "aside_top_categories": "Top catégories",
+    "aside_safe_title": "Achat sécurisé",
+    "aside_safe_heading": "Support et garanties",
+    "aside_safe_body": "Paiements protégés, retours clairs et aide rapide quand vous en avez besoin.",
+    "aside_go": "Aller",
+    "aside_see": "Voir",
+    "aside_tip_label": "Astuce",
+    "aside_tip_text": "Utilisez \"Livraison rapide\" pour filtrer."
+  },
+  "banners": {
+    "recommended": "Recommandé",
+    "footer_note": "Découvrez des promotions et nouveautés sélectionnées pour vous.",
+    "paused": "En pause",
+    "auto": "Auto",
+    "view_banner": "Voir la bannière : {title}",
+    "go_to_banner": "Aller à la bannière {index}"
+  }
+}

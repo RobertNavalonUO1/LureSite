@@ -12,14 +12,17 @@ import QuickNav from './header/QuickNav';
 import SearchBar from './header/SearchBar';
 import UserPanel from './header/UserPanel';
 import MobileMenu from './header/MobileMenu';
+import { useI18n } from '@/i18n';
 
 const Header = ({ isCompact: isCompactProp = false }) => {
   const { auth, locale, locales } = usePage().props;
+  const { t } = useI18n();
   const user = auth?.user;
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [isScrolledCompact, setIsScrolledCompact] = React.useState(false);
   const headerRef = React.useRef(null);
+  const lastToggleAtRef = React.useRef(0);
 
   React.useEffect(() => {
     if (isCompactProp) return;
@@ -34,8 +37,18 @@ const Header = ({ isCompact: isCompactProp = false }) => {
     const update = () => {
       const y = window.scrollY;
       setIsScrolledCompact((prev) => {
-        if (prev) return y > EXIT_Y;
-        return y > ENTER_Y;
+        const next = prev ? y > EXIT_Y : y > ENTER_Y;
+
+        // Guard against layout-shift feedback loops (header height change can move scrollY).
+        // If the value would flip too quickly, keep the previous state.
+        if (next !== prev) {
+          const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+          const LOCK_MS = 250;
+          if (now - lastToggleAtRef.current < LOCK_MS) return prev;
+          lastToggleAtRef.current = now;
+        }
+
+        return next;
       });
       ticking = false;
     };
@@ -70,9 +83,14 @@ const Header = ({ isCompact: isCompactProp = false }) => {
     const root = document.documentElement;
     if (!root) return;
 
+    let rafId = 0;
+
     const updateHeight = () => {
-      const height = headerRef.current?.offsetHeight ?? 0;
-      root.style.setProperty('--header-sticky-height', `${height}px`);
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(() => {
+        const height = headerRef.current?.offsetHeight ?? 0;
+        root.style.setProperty('--header-sticky-height', `${height}px`);
+      });
     };
 
     updateHeight();
@@ -82,10 +100,11 @@ const Header = ({ isCompact: isCompactProp = false }) => {
     window.addEventListener('resize', updateHeight);
 
     return () => {
+      if (rafId) cancelAnimationFrame(rafId);
       observer.disconnect();
       window.removeEventListener('resize', updateHeight);
     };
-  }, [isCompact, mobileOpen]);
+  }, []);
 
   const styles = {
     header: clsx(
@@ -140,7 +159,7 @@ const Header = ({ isCompact: isCompactProp = false }) => {
             <CartDropdown />
 
             <select
-              aria-label="Cambiar idioma"
+              aria-label={t('common.change_language')}
               value={currentLocale}
               onChange={handleLocaleChange}
               className="hidden sm:block rounded-full border border-slate-200 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-white transition"
@@ -161,7 +180,7 @@ const Header = ({ isCompact: isCompactProp = false }) => {
               />
             ) : (
               <Link href="/login" className={styles.loginButton}>
-                Iniciar sesión
+                {t('auth.login')}
               </Link>
             )}
 
@@ -170,7 +189,7 @@ const Header = ({ isCompact: isCompactProp = false }) => {
               onClick={() => setMobileOpen((open) => !open)}
               className={styles.menuButton}
               aria-expanded={mobileOpen}
-              aria-label="Abrir menu"
+              aria-label={t('common.open_menu')}
             >
               <svg className="h-8 w-8" viewBox="0 0 20 20" fill="none">
                 <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

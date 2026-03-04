@@ -8,39 +8,40 @@ import {
   CalendarCheck,
   Compass,
 } from "lucide-react";
+import { useI18n } from "@/i18n";
 
 const BASE_NAV_ITEMS = [
   {
     key: "dealsToday",
-    label: "Ofertas de hoy",
+    labelKey: "nav.deals_today",
     href: "/deals/today",
     icon: Flame,
     accent: "text-rose-500",
   },
   {
     key: "superDeal",
-    label: "Super Deal",
+    labelKey: "nav.super_deal",
     href: "/superdeal",
     icon: BadgePercent,
     accent: "text-amber-500",
   },
   {
     key: "fastShipping",
-    label: "Envíos rápidos",
+    labelKey: "nav.fast_shipping",
     href: "/fast-shipping",
     icon: Truck,
     accent: "text-emerald-500",
   },
   {
     key: "newArrivals",
-    label: "Novedades",
+    labelKey: "nav.new_arrivals",
     href: "/new-arrivals",
     icon: Sparkles,
     accent: "text-indigo-500",
   },
   {
     key: "seasonal",
-    label: "Temporada",
+    labelKey: "nav.seasonal",
     href: "/seasonal",
     icon: CalendarCheck,
     accent: "text-purple-500",
@@ -49,6 +50,7 @@ const BASE_NAV_ITEMS = [
 
 const TopNavMenu = () => {
   const { url, props } = usePage();
+  const { t } = useI18n();
   const metrics = props?.navMetrics || {};
   const navRef = useRef(null);
 
@@ -56,10 +58,11 @@ const TopNavMenu = () => {
     () =>
       BASE_NAV_ITEMS.map((item) => ({
         ...item,
+        label: t(item.labelKey),
         badge: metrics?.[item.key]?.count ?? null,
         subtitle: metrics?.[item.key]?.label ?? null,
       })),
-    [metrics]
+    [metrics, t]
   );
 
   useEffect(() => {
@@ -140,7 +143,7 @@ const TopNavMenu = () => {
             className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-5 py-3 text-base font-bold uppercase tracking-wide text-indigo-600 transition hover:bg-indigo-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
             <Compass className="h-5 w-5" />
-            Ver todo
+            {t('nav.see_all')}
           </Link>
         </div>
       </div>
