@@ -89,7 +89,7 @@ class CheckoutController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'DirecciÃ³n guardada correctamente',
+            'message' => 'Dirección guardada correctamente',
             'address' => $validated,
         ]);
     }
@@ -141,7 +141,7 @@ class CheckoutController extends Controller
     {
         $cart = session()->get('cart', []);
         if (empty($cart)) {
-            return back()->withErrors(['method' => 'Tu carrito estÃ¡ vacÃ­o.']);
+            return back()->withErrors(['method' => 'Tu carrito está vacío.']);
         }
 
         $data = $request->validate([
@@ -152,7 +152,7 @@ class CheckoutController extends Controller
         $options = $this->shippingOptionsForSubtotal($subtotal);
 
         if (!array_key_exists($data['method'], $options)) {
-            return back()->withErrors(['method' => 'MÃ©todo de envÃ­o no disponible.']);
+            return back()->withErrors(['method' => 'Método de envío no disponible.']);
         }
 
         $selected = $options[$data['method']];
@@ -165,7 +165,7 @@ class CheckoutController extends Controller
 
         $this->calculateTotals($cart);
 
-        return back()->with('success', 'MÃ©todo de envÃ­o actualizado.');
+        return back()->with('success', 'Método de envío actualizado.');
     }
 
     public function stripeCheckout(Request $request)
@@ -181,12 +181,12 @@ class CheckoutController extends Controller
                 : session()->get('guest_address');
 
             if (!$address) {
-                throw new \Exception('No se encontrÃ³ la direcciÃ³n de envÃ­o.');
+                throw new \Exception('No se encontró la dirección de envío.');
             }
 
             $cart = array_values(session()->get('cart', []));
             if (empty($cart)) {
-                return response()->json(['error' => 'Tu carrito estÃ¡ vacÃ­o.'], 400);
+                return response()->json(['error' => 'Tu carrito está vacío.'], 400);
             }
 
             $totals = $this->calculateTotals($cart);
@@ -197,12 +197,12 @@ class CheckoutController extends Controller
             Stripe::setApiKey(env('STRIPE_SECRET'));
 
             $descriptionParts = [
-                sprintf('%d artÃ­culo(s)', count($cart)),
-                sprintf('EnvÃ­o: %s', $totals['shipping_label']),
+                sprintf('%d artículo(s)', count($cart)),
+                sprintf('Envío: %s', $totals['shipping_label']),
             ];
 
             if ($totals['coupon_code']) {
-                $descriptionParts[] = 'CupÃ³n: ' . $totals['coupon_code'];
+                $descriptionParts[] = 'Cupón: ' . $totals['coupon_code'];
             }
 
             $lineItems = [[
@@ -210,7 +210,7 @@ class CheckoutController extends Controller
                     'currency' => 'usd',
                     'product_data' => [
                         'name' => config('app.name', 'Limoneo'),
-                        'description' => implode(' Â· ', $descriptionParts),
+                        'description' => implode(' · ', $descriptionParts),
                     ],
                     'unit_amount' => (int) round($totals['total'] * 100),
                 ],
@@ -260,12 +260,12 @@ class CheckoutController extends Controller
                 : session()->get('guest_address');
 
             if (!$address) {
-                throw new \Exception('No se encontrÃ³ la direcciÃ³n de envÃ­o.');
+                throw new \Exception('No se encontró la dirección de envío.');
             }
 
             $cart = array_values(session()->get('cart', []));
             if (empty($cart)) {
-                return response()->json(['error' => 'Tu carrito estÃ¡ vacÃ­o.'], 400);
+                return response()->json(['error' => 'Tu carrito está vacío.'], 400);
             }
 
             $totals = $this->calculateTotals($cart);
@@ -304,7 +304,7 @@ class CheckoutController extends Controller
             $approvalLink = collect($response->result->links)->firstWhere('rel', 'approve')->href ?? null;
 
             if (!$approvalLink) {
-                throw new \Exception('No se encontrÃ³ el enlace de aprobaciÃ³n.');
+                throw new \Exception('No se encontró el enlace de aprobación.');
             }
 
             session()->put('paypal_order_id', $response->result->id);
@@ -375,7 +375,7 @@ class CheckoutController extends Controller
                 'checkout.total',
             ]);
 
-            return redirect()->route('dashboard')->with('success', 'Â¡Pago completado con Ã©xito!');
+            return redirect()->route('dashboard')->with('success', '¡Pago completado con éxito!');
         } catch (\Exception $e) {
             Log::error('Error al guardar la orden: ' . $e->getMessage());
             return redirect()->route('dashboard')->with('error', 'Error al guardar la orden.');
@@ -441,22 +441,22 @@ class CheckoutController extends Controller
     {
         return [
             'standard' => [
-                'label' => 'EnvÃ­o estÃ¡ndar',
+                'label' => 'Envío estándar',
                 'description' => 'Gratis en pedidos superiores a $50',
-                'eta' => '3-5 dÃ­as hÃ¡biles',
+                'eta' => '3-5 días hábiles',
                 'cost' => 4.99,
                 'free_over' => 50,
                 'badge' => 'Popular',
             ],
             'express' => [
-                'label' => 'EnvÃ­o exprÃ©s',
+                'label' => 'Envío exprés',
                 'description' => 'Entrega prioritaria en 48h',
-                'eta' => '1-2 dÃ­as hÃ¡biles',
+                'eta' => '1-2 días hábiles',
                 'cost' => 9.99,
-                'badge' => 'MÃ¡s rÃ¡pido',
+                'badge' => 'Más rápido',
             ],
             'priority' => [
-                'label' => 'Entrega al dÃ­a siguiente',
+                'label' => 'Entrega al día siguiente',
                 'description' => 'Despacho en menos de 12h',
                 'eta' => '24h garantizadas',
                 'cost' => 14.99,

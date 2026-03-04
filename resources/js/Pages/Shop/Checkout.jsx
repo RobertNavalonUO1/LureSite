@@ -146,7 +146,7 @@ const Checkout = () => {
           console.error(result.error.message);
         }
       } else {
-        console.error('No se recibi� sessionId:', data.error);
+        console.error('No se recibió sessionId:', data.error);
       }
     } catch (error) {
       console.error('Error al iniciar el pago con Stripe:', error);
@@ -173,7 +173,7 @@ const Checkout = () => {
       if (data.approvalLink) {
         window.location.href = data.approvalLink;
       } else {
-        console.error('No se recibi� approvalLink:', data.error);
+        console.error('No se recibió approvalLink:', data.error);
       }
     } catch (error) {
       console.error('Error al iniciar el pago con PayPal:', error);
@@ -215,7 +215,7 @@ const Checkout = () => {
         <header className="space-y-2">
           <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Proceso de compra</p>
           <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">Checkout</h1>
-          <p className="text-slate-500 max-w-2xl">Revisa tu pedido, confirma tus datos y selecciona la mejor opci�n de env�o antes de completar el pago.</p>
+          <p className="text-slate-500 max-w-2xl">Revisa tu pedido, confirma tus datos y selecciona la mejor opción de envío antes de completar el pago.</p>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -223,14 +223,14 @@ const Checkout = () => {
             <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
               <div className="px-6 py-5 bg-gradient-to-r from-indigo-600 to-sky-500 text-white">
                 <h2 className="text-xl font-semibold">Resumen del pedido</h2>
-                <p className="text-sm text-indigo-100">Incluye tus art�culos, datos de contacto, direcci�n y beneficios de env�o.</p>
+                <p className="text-sm text-indigo-100">Incluye tus artículos, datos de contacto, dirección y beneficios de envío.</p>
               </div>
 
               <div className="divide-y divide-slate-100">
                 <div className="p-6 space-y-4">
-                  <h3 className="text-lg font-semibold text-slate-800">Art�culos ({items.length})</h3>
+                  <h3 className="text-lg font-semibold text-slate-800">Artículos ({items.length})</h3>
                   {items.length === 0 ? (
-                    <p className="text-sm text-slate-500">Tu carrito est� vac�o. Agrega productos para continuar.</p>
+                    <p className="text-sm text-slate-500">Tu carrito está vacío. Agrega productos para continuar.</p>
                   ) : (
                     <ul className="space-y-4">
                       {items.map((item) => {
@@ -303,22 +303,22 @@ const Checkout = () => {
                   <h3 className="text-lg font-semibold text-slate-800">Datos del usuario</h3>
                   {isGuest ? (
                     <div className="rounded-2xl border border-amber-200 bg-amber-50 text-amber-700 p-4">
-                      <p className="text-sm">Debes iniciar sesi�n para completar el proceso de compra.</p>
+                      <p className="text-sm">Debes iniciar sesión para completar el proceso de compra.</p>
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-1 text-sm text-slate-700">
                       <p><span className="font-semibold text-slate-900">Nombre:</span> {user.name} {user.lastname}</p>
                       <p><span className="font-semibold text-slate-900">Email:</span> {user.email}</p>
-                      <p><span className="font-semibold text-slate-900">Tel�fono:</span> {user.phone || 'No disponible'}</p>
+                      <p><span className="font-semibold text-slate-900">Teléfono:</span> {user.phone || 'No disponible'}</p>
                     </div>
                   )}
                 </div>
 
                 <div className="p-6 space-y-4">
-                  <h3 className="text-lg font-semibold text-slate-800">Direcci�n de env�o</h3>
+                  <h3 className="text-lg font-semibold text-slate-800">Dirección de envío</h3>
                   {isGuest ? (
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                      <p>Inicia sesi�n o crea una cuenta para gestionar tus direcciones.</p>
+                      <p>Inicia sesión o crea una cuenta para gestionar tus direcciones.</p>
                     </div>
                   ) : addresses.length > 0 ? (
                     <div className="space-y-4">
@@ -347,7 +347,7 @@ const Checkout = () => {
                             onClick={() => openEditAddress(currentAddress)}
                             className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100"
                           >
-                            Editar direcci�n seleccionada
+                            Editar dirección seleccionada
                           </button>
                         )}
                         <button
@@ -355,7 +355,7 @@ const Checkout = () => {
                           onClick={openCreateAddress}
                           className="inline-flex items-center rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
                         >
-                          A�adir nueva direcci�n
+                          Añadir nueva dirección
                         </button>
                       </div>
                     </div>
@@ -367,7 +367,7 @@ const Checkout = () => {
                         onClick={openCreateAddress}
                         className="inline-flex items-center rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
                       >
-                        A�adir direcci�n
+                        Añadir dirección
                       </button>
                     </div>
                   )}
@@ -377,20 +377,20 @@ const Checkout = () => {
                   <h3 className="text-lg font-semibold text-slate-800">Beneficios de tu compra</h3>
                   <ul className="grid gap-3 sm:grid-cols-2 text-sm text-slate-600">
                     <li className="flex items-start gap-3">
-                      <span className="mt-0.5 text-indigo-600">??</span>
+                      <span className="mt-0.5 text-indigo-600">✓</span>
                       <span>Entrega fiable con seguimiento en todas las modalidades disponibles.</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="mt-0.5 text-indigo-600">??</span>
-                      <span>Pagos seguros con protecci�n contra fraudes y encriptaci�n avanzada.</span>
+                      <span className="mt-0.5 text-indigo-600">✓</span>
+                      <span>Pagos seguros con protección contra fraudes y encriptación avanzada.</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="mt-0.5 text-indigo-600">??</span>
+                      <span className="mt-0.5 text-indigo-600">✓</span>
                       <span>Soporte 24/7 para resolver dudas y gestionar incidencias.</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="mt-0.5 text-indigo-600">??</span>
-                      <span>M�ltiples m�todos de pago, incluidos Stripe y PayPal.</span>
+                      <span className="mt-0.5 text-indigo-600">✓</span>
+                      <span>Múltiples métodos de pago, incluidos Stripe y PayPal.</span>
                     </li>
                   </ul>
                 </div>
@@ -408,7 +408,7 @@ const Checkout = () => {
                   </div>
                   {discountApplied && (
                     <div className="flex items-center justify-between text-sm text-emerald-600">
-                      <span>{coupon?.label || 'Cup�n aplicado'}</span>
+                      <span>{coupon?.label || 'Cupón aplicado'}</span>
                       <div className="flex items-center gap-2">
                         <span>-{formatPrice(totals.discount)}</span>
                         <button
@@ -423,9 +423,9 @@ const Checkout = () => {
                   )}
                   <div className="flex items-start justify-between text-sm text-slate-600">
                     <span>
-                      Env�o
+                      Envío
                       <span className="block text-xs text-slate-400">
-                        {shipping?.label || 'Selecciona un m�todo'} � {shipping?.eta || ''}
+                        {shipping?.label || 'Selecciona un método'} · {shipping?.eta || ''}
                       </span>
                     </span>
                     <span className="font-medium text-slate-800">{formatPrice(totals.shipping)}</span>
@@ -434,18 +434,18 @@ const Checkout = () => {
                     <span>Total estimado</span>
                     <span>{formatPrice(totals.total)}</span>
                   </div>
-                  <p className="text-xs text-slate-400">Incluye impuestos aplicables. Los cargos finales reflejar�n el m�todo de env�o seleccionado.</p>
+                  <p className="text-xs text-slate-400">Incluye impuestos aplicables. Los cargos finales reflejarán el método de envío seleccionado.</p>
                 </div>
 
                 <form onSubmit={handleApplyCoupon} className="space-y-2">
-                  <label htmlFor="coupon" className="text-sm font-semibold text-slate-800">�Tienes un cup�n?</label>
+                  <label htmlFor="coupon" className="text-sm font-semibold text-slate-800">¿Tienes un cupón?</label>
                   <div className="flex gap-2">
                     <input
                       id="coupon"
                       name="code"
                       value={couponForm.data.code}
                       onChange={(event) => couponForm.setData('code', event.target.value.toUpperCase())}
-                      placeholder="Ingrese c�digo"
+                      placeholder="Ingresa código"
                       className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 uppercase tracking-wide focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                     />
                     <button
@@ -453,7 +453,7 @@ const Checkout = () => {
                       disabled={couponForm.processing}
                       className="inline-flex items-center rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
                     >
-                      {couponForm.processing ? 'Aplicando�' : 'Aplicar'}
+                      {couponForm.processing ? 'Aplicando…' : 'Aplicar'}
                     </button>
                   </div>
                   {couponForm.errors.code && (
@@ -462,7 +462,7 @@ const Checkout = () => {
                 </form>
 
                 <div className="space-y-3">
-                  <p className="text-sm font-semibold text-slate-800">M�todo de env�o</p>
+                  <p className="text-sm font-semibold text-slate-800">Método de envío</p>
                   <div className="space-y-3">
                     {shippingOptions.map((option) => {
                       const isActive = option.value === shippingMethod;
@@ -482,7 +482,7 @@ const Checkout = () => {
                                   <span className="ml-2 inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">{option.badge}</span>
                                 )}
                               </p>
-                              <p className="text-xs text-slate-500">{option.description} � {option.eta}</p>
+                              <p className="text-xs text-slate-500">{option.description} · {option.eta}</p>
                             </div>
                             <span className="text-sm font-semibold text-slate-800">{formatPrice(option.cost)}</span>
                           </div>
@@ -502,7 +502,7 @@ const Checkout = () => {
                     disabled={!canCheckout || paymentLoading === 'stripe'}
                     className="w-full rounded-2xl bg-indigo-600 px-4 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {paymentLoading === 'stripe' ? 'Redirigiendo a Stripe�' : 'Pagar con tarjeta (Stripe)'}
+                    {paymentLoading === 'stripe' ? 'Redirigiendo a Stripe…' : 'Pagar con tarjeta (Stripe)'}
                   </button>
                   <button
                     type="button"
@@ -510,19 +510,19 @@ const Checkout = () => {
                     disabled={!canCheckout || paymentLoading === 'paypal'}
                     className="w-full rounded-2xl bg-[#ffc439] px-4 py-3 text-center text-sm font-semibold text-slate-900 shadow-lg shadow-amber-400/40 hover:bg-[#ffb400] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {paymentLoading === 'paypal' ? 'Redirigiendo a PayPal�' : 'Pagar con PayPal'}
+                    {paymentLoading === 'paypal' ? 'Redirigiendo a PayPal…' : 'Pagar con PayPal'}
                   </button>
                   {!canCheckout && (
-                    <p className="text-xs text-slate-500">Necesitas una direcci�n v�lida para continuar con el pago.</p>
+                    <p className="text-xs text-slate-500">Necesitas una dirección válida para continuar con el pago.</p>
                   )}
                 </div>
 
                 <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-500">
                   <p className="font-semibold text-slate-700">Seguridad y privacidad</p>
                   <ul className="space-y-1">
-                    <li>? Datos cifrados y verificaci�n en dos pasos.</li>
-                    <li>? Protecci�n al comprador y reembolsos garantizados.</li>
-                    <li>? Operaciones auditadas por proveedores externos.</li>
+                    <li>✓ Datos cifrados y verificación en dos pasos.</li>
+                    <li>✓ Protección al comprador y reembolsos garantizados.</li>
+                    <li>✓ Operaciones auditadas por proveedores externos.</li>
                   </ul>
                 </div>
               </div>
