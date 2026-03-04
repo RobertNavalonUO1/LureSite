@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 
 /**
  * @param {{
@@ -24,6 +24,15 @@ export default function MobileMenu({
   onClose,
 }) {
   if (!open) return null;
+
+  const { locale, locales } = usePage().props;
+  const currentLocale = locale || 'es';
+  const availableLocales = Array.isArray(locales) && locales.length ? locales : ['es', 'en', 'fr'];
+
+  const handleLocaleChange = (event) => {
+    const nextLocale = event.target.value;
+    router.post(route('locale.update'), { locale: nextLocale }, { preserveScroll: true, preserveState: true });
+  };
 
   return (
     <div className="lg:hidden border-t border-slate-200 pb-4">
@@ -70,6 +79,22 @@ export default function MobileMenu({
             Salir
           </button>
         )}
+
+        <div className="pt-2">
+          <label className="block text-sm font-semibold text-slate-600 mb-2">Idioma</label>
+          <select
+            aria-label="Cambiar idioma"
+            value={currentLocale}
+            onChange={handleLocaleChange}
+            className="w-full rounded-xl border border-slate-200 bg-white px-5 py-4 text-lg shadow-md focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400/60 transition"
+          >
+            {availableLocales.map((value) => (
+              <option key={value} value={value}>
+                {value.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
     </div>
   );

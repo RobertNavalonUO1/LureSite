@@ -1,5 +1,7 @@
 # Estrategia de paso a producción y despliegue (Limoneo)
 
+Última actualización: 2026-03-03 07:09
+
 Este documento describe una estrategia completa —práctica y realista— para pasar el proyecto a producción y alojarlo públicamente.
 
 Checklist corto de pendientes: ver [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md).
@@ -70,7 +72,7 @@ Pendiente (operativo) para dar por “cerrado” el ciclo dev → staging → pr
 - **Secrets definitivos en servidor**:
   - Stripe (test en staging, live en prod)
   - PayPal (sandbox en staging, live en prod)
-  - Firebase service account en `storage/app/firebase/firebase_credentials.json`
+  - Socialite (OAuth Google/Facebook) en `.env` (`GOOGLE_*`, `FACEBOOK_*`)
 - **Decidir colas/scheduler**:
   - Si `QUEUE_CONNECTION=sync` → no necesitas worker.
   - Si `QUEUE_CONNECTION=database|redis` → necesitas `queue:work` como servicio.
@@ -82,8 +84,7 @@ Pendiente (operativo) para dar por “cerrado” el ciclo dev → staging → pr
 Está escrito para este repo: **Laravel 11 + Inertia.js + React + Vite**, con:
 
 - Carrito en **session**
-- Auth actual con Google/Facebook vía **Firebase (frontend)** y sesión **Laravel (backend)**
-- Auth objetivo: migrar a **Socialite** y retirar Firebase (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md))
+- Auth actual con Google/Facebook vía **Socialite** (web + API móvil con Sanctum)
 - Checkout con **Stripe** y **PayPal**
 - Endpoints JSON `/api/*` consumidos desde páginas React
 
@@ -104,7 +105,7 @@ Guía de arranque del siguiente bloque (features): [docs/GUIDE_NEXT_AGENT.md](do
 1. Crear **staging** idéntico a producción (misma clase de infraestructura).
 
   - Gestión de `.env` por entorno (switch rápido): ver [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md).
-2. Definir **secrets**/variables de entorno (Stripe/PayPal/Firebase/DB/etc.).
+2. Definir **secrets**/variables de entorno (Stripe/PayPal/Socialite/DB/etc.).
 3. Montar CI/CD con pasos: **build** → **deploy** → **migrate** → **cache**.
 4. Activar HTTPS, hardening básico y logging seguro.
 5. Ensayar rollback.
@@ -398,9 +399,9 @@ Opcional:
 
 - **Páginas Inertia**: servidor responde `Inertia::render(...)` → frontend React se resuelve por Vite.
 - **APIs JSON**: `/api/*` se consumen desde páginas Special y otros módulos.
-- **Auth Firebase**:
-  - El frontend obtiene un `id_token` (Firebase JS SDK).
-  - Backend valida token con `FirebaseAuthService` y crea sesión Laravel.
+- **Auth Socialite**:
+  - Web: redirect/callback (sesión Laravel).
+  - API móvil: exchange de `access_token` a token Sanctum.
 
 ---
 
@@ -482,10 +483,18 @@ Si no usas queue worker, no necesitas el `limoneo-queue`.
 - `PAYPAL_CLIENT_ID=...`
 - `PAYPAL_CLIENT_SECRET=...`
 
-**Firebase Admin** (backend):
+**Socialite (OAuth)**:
 
-- Colocar `storage/app/firebase/firebase_credentials.json` (secreto) en el servidor.
-- SSL: nunca usar `FIREBASE_HTTP_VERIFY=false` en prod.
+- Variables en `.env`:
+  - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+  - `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI`
+- Redirect URIs típicos:
+  - `https://tudominio.com/auth/google/callback`
+  - `https://tudominio.com/auth/facebook/callback`
+- Links completos para conseguir credenciales:
+  - Google: https://console.cloud.google.com/apis/credentials
+  - Google consent screen: https://console.cloud.google.com/apis/credentials/consent
+  - Facebook Apps: https://developers.facebook.com/apps/
 
 **Sesiones/colas/cache** (recomendado):
 
@@ -525,7 +534,7 @@ Objetivo: reproducir producción lo más posible.
 - HTTPS activo
 - DB separada de prod
 - Stripe/PayPal en modo **sandbox/test**
-- Firebase project separado o reglas controladas
+- Socialite (Google/Facebook) configurado con credenciales y redirect URIs de `staging.*`
 
 Staging en VPS (layout recomendado):
 
@@ -802,17 +811,14 @@ Cron:
 
 ## 9) Consideraciones específicas del proyecto
 
-### 9.1 Auth Firebase (backend)
+### 9.1 Auth Socialite
 
-- Asegurar el archivo:
-  - `storage/app/firebase/firebase_credentials.json`
-
-- Revisar SSL/certs:
-  - No desactivar SSL en producción.
-
-- Recomendación hardening:
-  - Rate limit a `POST /auth/firebase`.
-  - No registrar `id_token` en logs.
+- Asegurar variables OAuth en `.env` (ver sección 2.1):
+  - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+  - `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI`
+- Hardening recomendado:
+  - Rate limit en rutas `/auth/*` y `POST /api/auth/social`.
+  - No registrar tokens OAuth ni headers `Authorization` en logs.
 
 ### 9.2 Checkout Stripe / PayPal
 
@@ -835,7 +841,7 @@ Cron:
 4) Configurar secrets `.env` y credenciales.
 5) Deploy a staging.
 6) QA:
-   - Login Firebase
+  - Login Socialite (Google/Facebook)
    - Home + categorías sticky
    - Special pages (DealsToday/SuperDeal)
    - Checkout Stripe/PayPal (test)
@@ -869,7 +875,7 @@ php artisan serve
 
 ## 12) Próximas mejoras recomendadas (opcional)
 
-- Añadir rate-limiting explícito para login Firebase y endpoints de checkout.
+- Añadir rate-limiting explícito para login Socialite y endpoints de checkout.
 - Añadir Sentry.
 - Mover assets de imágenes a S3 si se espera volumen.
 - Revisar `PythonScriptController` para ejecutar el Python embebido de forma explícita.

@@ -2,6 +2,8 @@
 
 Este documento es la lista corta y accionable de lo que queda para completar el ciclo **dev → staging → producción**.
 
+Última actualización: 2026-03-03 07:09
+
 ## 1) Staging (recomendado antes de tocar pagos live)
 
 - Staging en VPS (ya preparado):
@@ -58,7 +60,7 @@ Para terminar de “encenderlo”:
 - Configurar `.env` staging con:
   - `APP_ENV=staging`, `APP_DEBUG=false`, `APP_URL=https://staging.limoneo.com`
   - Stripe test + PayPal sandbox
-  - Firebase (idealmente proyecto Firebase separado o reglas controladas)
+  - Socialite (Google/Facebook) con redirect URIs apuntando a `staging.*`
 
 Tras poner `DB_URL` real en el `.env` de staging:
 
@@ -69,7 +71,13 @@ Tras poner `DB_URL` real en el `.env` de staging:
 
 ## 2) Secrets que faltan en el VPS
 
-- `storage/app/firebase/firebase_credentials.json` (service account)
+- Socialite (OAuth):
+  - `GOOGLE_CLIENT_ID`
+  - `GOOGLE_CLIENT_SECRET`
+  - `GOOGLE_REDIRECT_URI` (ej: `https://limoneo.com/auth/google/callback`)
+  - `FACEBOOK_CLIENT_ID`
+  - `FACEBOOK_CLIENT_SECRET`
+  - `FACEBOOK_REDIRECT_URI` (ej: `https://limoneo.com/auth/facebook/callback`)
 - Stripe:
   - `STRIPE_KEY`
   - `STRIPE_SECRET`
@@ -77,7 +85,12 @@ Tras poner `DB_URL` real en el `.env` de staging:
   - `PAYPAL_CLIENT_ID`
   - `PAYPAL_CLIENT_SECRET`
 
-Nota: el secret de Firebase solo aplica mientras siga activo el login actual. El siguiente bloque planificado migra auth a Socialite (Google/Facebook) y elimina Firebase (ver “Roadmap features” al final).
+Links completos para conseguir credenciales OAuth (Socialite):
+
+- Google OAuth (Client ID/Secret): https://console.cloud.google.com/apis/credentials
+  - Consent screen: https://console.cloud.google.com/apis/credentials/consent
+- Facebook Login (App ID/Secret): https://developers.facebook.com/apps/
+  - Doc: https://developers.facebook.com/docs/facebook-login/web/
 
 ## (Opcional) Landing temporal en producción
 
@@ -129,3 +142,13 @@ Para arrancar el siguiente bloque con otro agente, seguir la guía: [docs/GUIDE_
 - Auth: Google/Facebook con Socialite (web + API móvil con Sanctum) y retirada Firebase.
 - i18n: `es/en/fr` (sin prefijo en URL) + corrección de acentos/mojibake.
 - Productos: importación manual desde scrapers Python → `temporary_products` → migración a `products`.
+
+## 6) UX / i18n (siguiente bloque)
+
+- Mejorar páginas (especialmente Home):
+  - Bug: el header puede entrar en bucle “compacto ↔ normal” si su altura oscila con el scroll (revisar histéresis, thresholds y medición de altura).
+  - Bug: un banner/aside derecho puede solapar/tapar parte del contenido en ciertos breakpoints (revisar layout y `z-index`/`position`).
+- Implementar multiidioma “bien” (es/en/fr):
+  - Definir un patrón (diccionarios JSON + `t(key)` simple o lang de Laravel) y aplicarlo de forma consistente.
+- Corregir codificación/acentos en Checkout:
+  - Asegurar archivos guardados como UTF-8 y reescribir literales con mojibake.

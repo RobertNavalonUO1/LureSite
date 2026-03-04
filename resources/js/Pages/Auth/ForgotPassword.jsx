@@ -2,29 +2,17 @@ import InputError from '@/Components/ui/InputError.jsx';
 import PrimaryButton from '@/Components/ui/PrimaryButton.jsx';
 import TextInput from '@/Components/ui/TextInput.jsx';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head } from '@inertiajs/react';
-import { useState } from 'react';
-import { sendResetEmail } from '@/utils/firebaseLogin';
+import { Head, useForm, usePage } from '@inertiajs/react';
 
 export default function ForgotPassword() {
-    const [email, setEmail] = useState('');
-    const [success, setSuccess] = useState(false);
-    const [error, setError] = useState(null);
-    const [processing, setProcessing] = useState(false);
+    const { status } = usePage().props;
+    const { data, setData, post, processing, errors } = useForm({
+        email: '',
+    });
 
-    const submit = async (e) => {
+    const submit = (e) => {
         e.preventDefault();
-        setProcessing(true);
-        setError(null);
-
-        try {
-            await sendResetEmail(email);
-            setSuccess(true);
-        } catch (err) {
-            setError('No se pudo enviar el enlace de recuperación.');
-        } finally {
-            setProcessing(false);
-        }
+        post(route('password.email'));
     };
 
     return (
@@ -35,23 +23,23 @@ export default function ForgotPassword() {
                 Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
             </div>
 
-            {success && (
+            {errors.email && <InputError message={errors.email} className="mt-2" />}
+
+            {status && (
                 <div className="mb-4 text-sm font-medium text-green-600">
-                    Enlace enviado correctamente. Revisa tu bandeja de entrada.
+                    {status}
                 </div>
             )}
-
-            {error && <InputError message={error} className="mt-2" />}
 
             <form onSubmit={submit}>
                 <TextInput
                     id="email"
                     type="email"
                     name="email"
-                    value={email}
+                    value={data.email}
                     className="mt-1 block w-full"
                     isFocused={true}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => setData('email', e.target.value)}
                 />
 
                 <div className="mt-4 flex items-center justify-end">

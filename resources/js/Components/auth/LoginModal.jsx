@@ -4,7 +4,6 @@ import InputLabel from '@/Components/ui/InputLabel';
 import TextInput from '@/Components/ui/TextInput';
 import InputError from '@/Components/ui/InputError';
 import Checkbox from '@/Components/ui/Checkbox';
-import { loginWithGoogle, loginWithFacebook } from '@/utils/firebaseLogin';
 
 export default function LoginModal({ isOpen, onClose, onRegister, onForgot }) {
     const modalRef = useRef(null);
@@ -41,35 +40,8 @@ export default function LoginModal({ isOpen, onClose, onRegister, onForgot }) {
         });
     };
 
-    const submitFirebaseToken = async (idToken) => {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if (!csrfToken) return alert('CSRF token no encontrado.');
-
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/auth/firebase';
-
-        form.innerHTML = `
-            <input type="hidden" name="id_token" value="${idToken}" />
-            <input type="hidden" name="_token" value="${csrfToken}" />
-        `;
-
-        document.body.appendChild(form);
-        form.submit();
-    };
-
-    const handleFirebaseLogin = async (provider) => {
-        try {
-            const idToken =
-                provider === 'google'
-                    ? await loginWithGoogle()
-                    : await loginWithFacebook();
-
-            await submitFirebaseToken(idToken);
-        } catch (err) {
-            console.error(err);
-            alert('Error al iniciar sesión con Firebase: ' + err.message);
-        }
+    const goSocial = (provider) => {
+        window.location.href = route('auth.social.redirect', { provider });
     };
 
     if (!isOpen) return null;
@@ -160,7 +132,8 @@ export default function LoginModal({ isOpen, onClose, onRegister, onForgot }) {
 
                 <div className="mt-6 space-y-3">
                     <button
-                        onClick={() => handleFirebaseLogin('google')}
+                        type="button"
+                        onClick={() => goSocial('google')}
                         className="w-full bg-white border border-gray-300 text-gray-800 hover:bg-gray-50 py-2 rounded-xl shadow-sm flex items-center justify-center gap-2 transition"
                     >
                         <img
@@ -175,7 +148,8 @@ export default function LoginModal({ isOpen, onClose, onRegister, onForgot }) {
                     </button>
 
                     <button
-                        onClick={() => handleFirebaseLogin('facebook')}
+                        type="button"
+                        onClick={() => goSocial('facebook')}
                         className="w-full bg-[#4267B2] hover:bg-[#37569c] text-white py-2 rounded-xl shadow-md flex items-center justify-center gap-2 transition"
                     >
                         <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">

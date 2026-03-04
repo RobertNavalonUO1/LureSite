@@ -3,7 +3,6 @@ import { useForm } from '@inertiajs/react';
 import InputLabel from '@/Components/ui/InputLabel';
 import TextInput from '@/Components/ui/TextInput';
 import InputError from '@/Components/ui/InputError';
-import { registerWithEmail, loginWithGoogle, loginWithFacebook } from '@/utils/firebaseLogin';
 
 export default function RegisterModal({ isOpen, onClose }) {
     const modalRef = useRef(null);
@@ -31,39 +30,16 @@ export default function RegisterModal({ isOpen, onClose }) {
         };
     }, [isOpen]);
 
-    const submitFirebaseToken = async (idToken) => {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/auth/firebase';
-
-        form.innerHTML = `
-            <input type="hidden" name="id_token" value="${idToken}" />
-            <input type="hidden" name="_token" value="${csrfToken}" />
-        `;
-
-        document.body.appendChild(form);
-        form.submit();
+    const goSocial = (provider) => {
+        window.location.href = route('auth.social.redirect', { provider });
     };
 
-    const handleFirebaseRegister = async (provider) => {
-        try {
-            let idToken;
-
-            if (provider === 'google') {
-                idToken = await loginWithGoogle();
-            } else if (provider === 'facebook') {
-                idToken = await loginWithFacebook();
-            } else if (provider === 'email') {
-                idToken = await registerWithEmail(data.name, data.email, data.password);
-            }
-
-            await submitFirebaseToken(idToken);
-        } catch (error) {
-            console.error(error);
-            alert('Error registering with Firebase: ' + error.message);
-        }
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('register'), {
+            onSuccess: () => onClose(),
+            onFinish: () => reset('password', 'password_confirmation'),
+        });
     };
 
     if (!isOpen) return null;
@@ -86,13 +62,7 @@ export default function RegisterModal({ isOpen, onClose }) {
                     Crear tu cuenta
                 </h2>
 
-                <form
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        handleFirebaseRegister('email');
-                    }}
-                    className="space-y-4"
-                >
+                <form onSubmit={submit} className="space-y-4">
                     <div>
                         <InputLabel htmlFor="name" value="Nombre completo" />
                         <TextInput
@@ -157,7 +127,8 @@ export default function RegisterModal({ isOpen, onClose }) {
 
                 <div className="mt-6 space-y-3">
                     <button
-                        onClick={() => handleFirebaseRegister('google')}
+                        type="button"
+                        onClick={() => goSocial('google')}
                         className="w-full bg-white border border-gray-300 text-gray-800 hover:bg-gray-50 py-2 rounded-xl shadow-sm flex items-center justify-center gap-2 transition"
                     >
                         <img
@@ -172,7 +143,8 @@ export default function RegisterModal({ isOpen, onClose }) {
                     </button>
 
                     <button
-                        onClick={() => handleFirebaseRegister('facebook')}
+                        type="button"
+                        onClick={() => goSocial('facebook')}
                         className="w-full bg-[#4267B2] hover:bg-[#37569c] text-white py-2 rounded-xl shadow-md flex items-center justify-center gap-2 transition"
                     >
                         <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">

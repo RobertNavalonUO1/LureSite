@@ -25,8 +25,9 @@ class User extends Authenticatable
         'password',
         'default_address_id',
         'avatar',
-        'firebase_uid',  // ✅ Nuevo: ID único del usuario en Firebase
-        'photo_url',     // ✅ Nuevo: foto de perfil de Google/Firebase
+        'photo_url',
+        'oauth_provider',
+        'oauth_provider_id',
     ];
 
     /**

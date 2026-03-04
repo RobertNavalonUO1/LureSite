@@ -2,9 +2,11 @@
 
 Este documento es un **handoff accionable** para implementar el siguiente bloque de trabajo sin ambigüedades.
 
+Última actualización: 2026-03-03 07:09
+
 ## Decisiones ya tomadas (importante)
 
-- Auth: migrar a **Laravel Socialite** y **eliminar Firebase** cuando esté listo.
+- Auth: usar **Laravel Socialite** (Google/Facebook) y **eliminar Firebase**.
 - Login social: **web + API móvil** (emite tokens **Sanctum**).
 - Idiomas: `es`, `en`, `fr`.
 - i18n: **sin prefijo en URL** (locale en sesión/cookie).
@@ -19,18 +21,27 @@ Este documento es un **handoff accionable** para implementar el siguiente bloque
   - Toggle: `config/landing.php`
   - Guard de rutas: `routes/web.php` (bloque “Landing-only mode (production)”).
 
-### Auth actual (Firebase)
+### Auth actual (Socialite)
 
-- Web:
-  - Frontend obtiene `idToken` y lo envía a `POST /auth/firebase`.
-  - Backend verifica token (Kreait) y crea sesión Laravel.
-- Móvil:
-  - `POST /api/auth/firebase-mobile` devuelve token Sanctum.
+- Web (sesión Laravel):
+  - `GET /auth/{provider}/redirect`
+  - `GET /auth/{provider}/callback`
+- API móvil (Sanctum):
+  - `POST /api/auth/social` (exchange de `access_token` → token Sanctum)
 - Código:
-  - `resources/js/firebase.js` y `resources/js/utils/firebaseLogin.js`
-  - `app/Http/Controllers/Auth/FirebaseLoginController.php`
-  - `app/Services/FirebaseAuthService.php`
+  - `app/Http/Controllers/Auth/SocialAuthController.php`
+  - `app/Http/Controllers/Api/SocialAuthController.php`
+  - `config/services.php`
   - Rutas: `routes/web.php` y `routes/api.php`
+- Configuración requerida (`.env`):
+  - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+  - `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI`
+
+Links completos para obtener variables OAuth:
+
+- Google: https://console.cloud.google.com/apis/credentials
+  - Consent screen: https://console.cloud.google.com/apis/credentials/consent
+- Facebook: https://developers.facebook.com/apps/
 
 ### Problema actual: acentos / mojibake
 
@@ -41,6 +52,13 @@ Ejemplos ya detectados:
 - `resources/js/Pages/Shop/Checkout.jsx`
 - `app/Http/Controllers/CheckoutController.php`
 - `routes/web.php`
+
+### Problemas UI actuales: Home / Header / Banners
+
+- Header: en algunos casos entra en bucle (sube/baja) cuando cambia su altura y el estado “compacto” oscila.
+  - Revisar: histéresis (umbral de entrada/salida), cómo se calcula/propaga `--header-sticky-height` y los listeners de scroll.
+- Aside/Banners: en ciertos breakpoints un banner derecho puede tapar contenido.
+  - Revisar: contenedores `relative/absolute`, stacking context, `z-index` y anchos.
 
 ### Productos + scrapers Python (estado)
 
@@ -55,70 +73,24 @@ Gotchas conocidos:
 
 ---
 
-## 1) Auth: Socialite (Google/Facebook) + retirada de Firebase
+## 1) Auth: Socialite (Google/Facebook)
 
 ### Objetivo
 
-- Reemplazar Firebase Auth por **Socialite** para:
-  - **Web**: sesión Laravel estándar.
-  - **API móvil**: emitir token **Sanctum** tras login social.
-- Eliminar rutas, código y configuración Firebase cuando Socialite esté estable.
+- Mantener Socialite como auth principal (web + API móvil) y asegurar que el `.env` esté configurado por entorno.
 
-### Alcance (lo mínimo)
+### Configuración (lo mínimo)
 
-- Google login: redirect + callback.
-- Facebook login: redirect + callback.
-- Unificar creación/actualización del `User`.
-- Mantener experiencia SPA Inertia (sin romper navegación).
-
-### Diseño recomendado (alto nivel)
-
-1) **Web (sesión)**
-- Rutas:
-  - `GET /auth/google/redirect`
-  - `GET /auth/google/callback`
-  - `GET /auth/facebook/redirect`
-  - `GET /auth/facebook/callback`
-- En callback:
-  - Buscar usuario por email.
-  - Si no existe: crear.
-  - Guardar `provider`, `provider_id` (recomendado añadir columnas o tabla `social_accounts`).
-  - `auth()->login($user, true)` + `session()->regenerate()`.
-  - Redirect a `/`.
-
-2) **API móvil (Sanctum)**
-- Evitar abrir un navegador “webview” sin control.
-- Enfoque práctico (depende del cliente móvil):
-  - Opción A (más simple): el móvil abre un navegador externo con callback a un esquema deep-link; el backend al completar el callback emite un **código** de un solo uso; el móvil lo intercambia por token Sanctum.
-  - Opción B: usar OAuth PKCE nativo (mejor, más trabajo).
-
-Para este repo: documenta bien qué opción eliges y deja endpoints claros.
-
-### Checklist de implementación
-
-- Dependencias:
-  - `laravel/socialite`
-- Configuración:
-  - `config/services.php` (google/facebook)
-  - `.env`:
-    - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
-    - `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI`
-- Modelo `User`:
-  - Añadir campos o relación para vincular cuentas sociales.
-  - Decidir qué hacer con `firebase_uid` a futuro (deprecación).
-- Rutas + controlador Socialite.
-- Frontend:
-  - Sustituir botones Firebase por links a los redirect Socialite.
-- Retirada Firebase:
-  - Eliminar `POST /auth/firebase` y `POST /api/auth/firebase-mobile`.
-  - Eliminar `resources/js/firebase.js` y helpers si ya no se usan.
-  - Eliminar `FirebaseAuthService` si queda huérfano.
+- Asegurar redirect URIs correctos (por dominio):
+  - `GOOGLE_REDIRECT_URI=https://<dominio>/auth/google/callback`
+  - `FACEBOOK_REDIRECT_URI=https://<dominio>/auth/facebook/callback`
+- Ejecutar migraciones pendientes en el entorno:
+  - `php artisan migrate`
 
 ### Definition of Done
 
-- Login Google/Facebook funciona en web y crea sesión.
-- API móvil obtiene token Sanctum desde Socialite (flujo definido y documentado).
-- No quedan referencias activas a Firebase en rutas/UI.
+- Login Google/Facebook funciona en web (sesión) y móvil (Sanctum).
+- No existen referencias activas a Firebase en rutas/UI/dependencias.
 
 ---
 
@@ -129,6 +101,11 @@ Para este repo: documenta bien qué opción eliges y deja endpoints claros.
 - La web permite cambiar idioma entre `es`, `en`, `fr`.
 - Los acentos y caracteres especiales se ven correctamente.
 - URLs no cambian (sin `/es/...`).
+
+Estado actual:
+
+- Locale `es/en/fr` ya se guarda por cookie/sesión y hay selector en header (desktop y mobile).
+- Si hace falta traducción real de strings en React, todavía hay textos hardcodeados pendientes de migrar a un diccionario.
 
 ### Paso 0 — Arreglar mojibake (imprescindible antes de i18n)
 
@@ -171,7 +148,8 @@ Elige una opción y documenta el patrón en un README corto dentro de `resources
 
 ### Estado actual
 
-- Existe ejecución de scripts y pantalla de migración, pero falta un “pegamento” claro que convierta salida del scraper en filas `TemporaryProduct`/`TemporaryProductImage`.
+- Existe ejecución de scripts y pantalla de migración.
+- Ya existe endpoint admin para importar JSON a `temporary_products` y el Link Aggregator puede ofrecer un botón de importación si el output del script devuelve un JSON con `products`.
 
 ### Diseño recomendado de salida de scraper
 
@@ -196,14 +174,12 @@ Elige una opción y documenta el patrón en un README corto dentro de `resources
 
 ### Checklist de implementación (backend)
 
-- Crear un endpoint/admin action “Import from JSON” que:
-  - Valide el JSON.
-  - Cree `TemporaryProduct`.
-  - Cree `TemporaryProductImage` por cada imagen extra.
-  - Evite duplicados (por `product_url` si existe, o hash del título+precio).
-- Ajustar `PythonScriptController` si se necesita:
+Pendientes opcionales (mejoras):
+
+- Evitar duplicados en importación (por `product_url` o hash) si se detecta que el scraper repite productos.
+- Revisar `PythonScriptController`:
   - Usar el python embebido consistentemente.
-  - Evitar el archivo temporal fijo.
+  - Evitar el archivo temporal fijo si hay concurrencia.
 
 ### Definition of Done
 

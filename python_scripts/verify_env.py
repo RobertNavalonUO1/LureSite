@@ -11,12 +11,18 @@ import os
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-# Ruta absoluta al entorno embebido
-embed_path = os.path.join(os.getcwd(), "python_embed", "Lib", "site-packages")
+# Rutas absolutas al entorno embebido (stdlib + site-packages)
+cwd = os.getcwd()
+python_home = os.path.join(cwd, "python_embed")
+candidate_paths = [
+    os.path.join(python_home, "Lib"),
+    os.path.join(python_home, "Lib", "site-packages"),
+    os.path.join(python_home, "site-packages"),
+]
 
-# Insertar en sys.path si no existe
-if embed_path not in sys.path:
-    sys.path.insert(0, embed_path)
+for p in candidate_paths:
+    if os.path.isdir(p) and p not in sys.path:
+        sys.path.insert(0, p)
 
 # ==============================================
 # 🧱 DEPENDENCIAS DEL SISTEMA
@@ -59,24 +65,27 @@ except Exception as e:
 # 🧪 PRUEBA DE CONEXIÓN MYSQL
 # ==============================================
 
-print("\n[INFO] Probando conexión MySQL a 127.0.0.1:3306...")
-
-try:
-    import mysql.connector
-    conn = mysql.connector.connect(
-        host="127.0.0.1",
-        port=3306,
-        user="root",         # <-- cambia si tu usuario MySQL es distinto
-        password="",         # <-- agrega contraseña si aplica
-        database="webpage_db"  # <-- cambia al nombre correcto de tu base de datos
-    )
-    if conn.is_connected():
-        safe_print("[OK] Conexión MySQL:", "exitosa")
-        conn.close()
-    else:
-        print("[ERROR] Conexión MySQL: fallida")
-except Exception as e:
-    print("[ERROR] Conexión MySQL:", e)
+print("\n[INFO] Prueba de conexión MySQL (opcional)")
+if os.getenv("VERIFY_ENV_MYSQL") == "1":
+    print("[INFO] Probando conexión MySQL a 127.0.0.1:3306...")
+    try:
+        import mysql.connector
+        conn = mysql.connector.connect(
+            host=os.getenv("VERIFY_ENV_MYSQL_HOST", "127.0.0.1"),
+            port=int(os.getenv("VERIFY_ENV_MYSQL_PORT", "3306")),
+            user=os.getenv("VERIFY_ENV_MYSQL_USER", "root"),
+            password=os.getenv("VERIFY_ENV_MYSQL_PASSWORD", ""),
+            database=os.getenv("VERIFY_ENV_MYSQL_DATABASE", "webpage_db"),
+        )
+        if conn.is_connected():
+            safe_print("[OK] Conexión MySQL:", "exitosa")
+            conn.close()
+        else:
+            print("[ERROR] Conexión MySQL: fallida")
+    except Exception as e:
+        print("[ERROR] Conexión MySQL:", e)
+else:
+    print("[INFO] VERIFY_ENV_MYSQL!=1; se omite la prueba de conexión.")
 
 # ==============================================
 # 🧠 INFORMACIÓN DEL ENTORNO

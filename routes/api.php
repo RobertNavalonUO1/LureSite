@@ -1,21 +1,16 @@
 <?php
 
-use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\MobileApiController;
+use App\Http\Controllers\Api\SocialAuthController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
 */
-// routes/api.php
-use App\Http\Controllers\Auth\FirebaseLoginController;
 
-
-Route::post('/auth/firebase-mobile', [FirebaseLoginController::class, 'handleMobile']); // App móvil
-
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\MobileApiController;
+Route::post('/auth/social', [SocialAuthController::class, 'exchange']);
 
 Route::post('/mobile/register', [MobileApiController::class, 'register']);
 Route::post('/mobile/login', [MobileApiController::class, 'login']);

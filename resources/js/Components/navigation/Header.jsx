@@ -1,6 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 
 import CartDropdown from '@/Components/cart/CartDropdown.jsx';
 import site from '@/config/site';
@@ -14,7 +14,7 @@ import UserPanel from './header/UserPanel';
 import MobileMenu from './header/MobileMenu';
 
 const Header = ({ isCompact: isCompactProp = false }) => {
-  const { auth } = usePage().props;
+  const { auth, locale, locales } = usePage().props;
   const user = auth?.user;
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
@@ -107,6 +107,14 @@ const Header = ({ isCompact: isCompactProp = false }) => {
     logout();
   };
 
+  const currentLocale = locale || 'es';
+  const availableLocales = Array.isArray(locales) && locales.length ? locales : ['es', 'en', 'fr'];
+
+  const handleLocaleChange = (event) => {
+    const nextLocale = event.target.value;
+    router.post(route('locale.update'), { locale: nextLocale }, { preserveScroll: true, preserveState: true });
+  };
+
   const handleSearchSubmit = (event) => {
     event.preventDefault();
     goToSearch(search);
@@ -131,6 +139,19 @@ const Header = ({ isCompact: isCompactProp = false }) => {
           <div className="flex items-center gap-2 sm:gap-4">
             <CartDropdown />
 
+            <select
+              aria-label="Cambiar idioma"
+              value={currentLocale}
+              onChange={handleLocaleChange}
+              className="hidden sm:block rounded-full border border-slate-200 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-white transition"
+            >
+              {availableLocales.map((value) => (
+                <option key={value} value={value}>
+                  {value.toUpperCase()}
+                </option>
+              ))}
+            </select>
+
             {user ? (
               <UserPanel
                 isCompact={isCompact}
@@ -140,7 +161,7 @@ const Header = ({ isCompact: isCompactProp = false }) => {
               />
             ) : (
               <Link href="/login" className={styles.loginButton}>
-                Iniciar sesion
+                Iniciar sesión
               </Link>
             )}
 

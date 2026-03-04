@@ -1,5 +1,7 @@
 # Limoneo — bitácora de despliegue (2026-02-21)
 
+Última actualización: 2026-03-03 07:09
+
 Este documento resume **todo lo realizado**, los **comandos principales** usados y los **problemas** encontrados durante el despliegue de Limoneo.
 
 > Nota de seguridad: se han **redactado secretos** (passwords, tokens, claves). Si necesitas el valor real, debe vivir solo en el `.env` del VPS / gestores de secretos.
@@ -188,7 +190,7 @@ Seeders ajustados:
 
 Checklist actualizado de pendientes: ver [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md).
 
-1. Subir `storage/app/firebase/firebase_credentials.json` al VPS si se quiere login con Firebase en producción.
+1. Configurar login social (Socialite) en el `.env` del VPS (Google/Facebook) y revisar los redirect URIs.
 2. Configurar variables de pago (Stripe/PayPal) en `.env`.
 3. Decidir si en prod se quieren datos fake (instalar Faker en `require`) o solo seed mínimo.
 
@@ -234,3 +236,27 @@ Pendientes funcionales destacados:
 - Migración de auth: pasar de Firebase a Socialite (Google/Facebook) y definir flujo móvil con Sanctum.
 - Multiidioma `es/en/fr` y corrección de acentos/mojibake (estandarizar ficheros a UTF-8 y reescribir literales corruptos).
 - Importación manual de productos desde scrapers Python → `temporary_products` → migración a `products`.
+
+---
+
+## Nota posterior (actualizado 2026-03-03 07:09)
+
+Estado del bloque de features (auth + i18n + importación):
+
+- Auth: se migró a **Laravel Socialite** (Google/Facebook) y se retiró Firebase del backend y frontend.
+- API móvil: login social vía `POST /api/auth/social` y emisión de token Sanctum.
+- i18n: locale `es/en/fr` por cookie/sesión + selector en header.
+- Importación: endpoint admin para importar JSON a `temporary_products` (y botón en Link Aggregator si el output contiene `products`).
+
+Links completos para obtener las variables OAuth (Socialite):
+
+- Google OAuth (Client ID/Secret): https://console.cloud.google.com/apis/credentials
+	- Pantalla de consentimiento (si aplica): https://console.cloud.google.com/apis/credentials/consent
+	- Doc (visión general OAuth web): https://developers.google.com/identity/protocols/oauth2
+- Facebook Login (App ID/Secret): https://developers.facebook.com/apps/
+	- Doc (Facebook Login Web): https://developers.facebook.com/docs/facebook-login/web/
+
+Variables esperadas en `.env` (ver también `config/services.php`):
+
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` (ej: `https://limoneo.com/auth/google/callback`)
+- `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI` (ej: `https://limoneo.com/auth/facebook/callback`)

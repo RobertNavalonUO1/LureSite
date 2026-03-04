@@ -19,12 +19,14 @@ use App\Http\Controllers\{
     ProductMigrationController,
     ContactController,
     OrderController,
-    Auth\FirebaseLoginController,
+    Auth\SocialAuthController,
+    LocaleController,
     AdminController,
     CategoryController,
     ReviewController
 };
 use App\Services\CampaignBannerResolver;
+use App\Http\Controllers\Admin\TemporaryProductImportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,83 +50,30 @@ if (app()->environment('production') && config('landing.only')) {
 
 /*
 |--------------------------------------------------------------------------
-| API (PÃºblicas)
+| API (Públicas)
 |--------------------------------------------------------------------------
 */
 Route::get('/banners', [\App\Http\Controllers\Api\BannerController::class, 'index']);
-Route::get('/api/scripts', fn () => response()->json(
-    collect(File::files(base_path('python_scripts')))
-        ->filter(fn($file) => $file->getExtension() === 'py')
-        ->map(fn($file) => $file->getFilename())
-        ->values()
-));
 Route::get('/api/search/suggestions', [SearchController::class, 'suggest'])->name('search.suggestions');
 Route::get('/api/deals-today', [ProductController::class, 'dealsToday']);
 Route::get('/api/superdeals', [ProductController::class, 'superdeals']);
 Route::get('/api/fast-shipping', [ProductController::class, 'fastShipping']);
 
+Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
+
 /*
 |--------------------------------------------------------------------------
-| AutenticaciÃ³n con Firebase
+| Autenticación Social (Socialite)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['web'])->group(function () {
-    // Exempt Firebase login from CSRF to avoid 419 for SPA posts
-    Route::post('/auth/firebase', [FirebaseLoginController::class, 'handle'])
-        ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
-        ->name('auth.firebase');
-});
+Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('auth.social.redirect');
+Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('auth.social.callback');
+
+// (Firebase debug route removed)
 
 /*
 |--------------------------------------------------------------------------
-| Debug (solo local)
-|--------------------------------------------------------------------------
-*/
-Route::get('/debug/firebase-ssl', function () {
-    abort_unless(app()->environment('local'), 404);
-
-    $url = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
-
-    $result = [
-        'app_env' => app()->environment(),
-        'php_sapi' => PHP_SAPI,
-        'php_version' => PHP_VERSION,
-        'php_ini_loaded_file' => php_ini_loaded_file(),
-        'curl.cainfo' => ini_get('curl.cainfo'),
-        'openssl.cafile' => ini_get('openssl.cafile'),
-        'env_FIREBASE_CA_BUNDLE' => env('FIREBASE_CA_BUNDLE'),
-        'env_FIREBASE_HTTP_VERIFY' => env('FIREBASE_HTTP_VERIFY'),
-        'test_url' => $url,
-    ];
-
-    if (!function_exists('curl_init')) {
-        $result['curl'] = ['available' => false];
-        return response()->json($result, 500);
-    }
-
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-
-    $body = curl_exec($ch);
-    $errno = curl_errno($ch);
-    $error = curl_error($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-    $result['curl'] = [
-        'available' => true,
-        'http_code' => $httpCode,
-        'errno' => $errno,
-        'error' => $error,
-        'bytes' => is_string($body) ? strlen($body) : null,
-    ];
-
-    return response()->json($result, $errno === 0 ? 200 : 500);
-});
-
-/*
-|--------------------------------------------------------------------------
-| PÃ¡ginas PÃºblicas
+| Páginas Públicas
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
@@ -153,7 +102,7 @@ Route::get('/', function () {
             'image_url' => $p->image_url,
             'category' => [
                 'id' => $p->category->id ?? null,
-                'name' => $p->category->name ?? 'Sin categorÃ­a',
+                'name' => $p->category->name ?? 'Sin categoría',
             ],
             'is_adult' => $p->is_adult,
             'link' => $p->link,
@@ -172,8 +121,10 @@ Route::post('/contact', [ContactController::class, 'send']);
 Route::get('/faq', fn () => Inertia::render('Static/Faq'))->name('faq');
 Route::get('/terms', fn () => Inertia::render('Static/Terms'))->name('terms');
 Route::get('/privacy', fn () => Inertia::render('Static/Privacy'))->name('privacy');
-Route::get('/agregador-enlaces', fn () => Inertia::render('Tools/LinkAggregator'));
-Route::get('/link-aggregator', fn () => Inertia::render('Tools/LinkAggregator'));
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/agregador-enlaces', fn () => Inertia::render('Tools/LinkAggregator'));
+    Route::get('/link-aggregator', fn () => Inertia::render('Tools/LinkAggregator'));
+});
 Route::get('/deals/today', fn () => Inertia::render('Special/DealsToday'))->name('deals.today');
 Route::get('/superdeal', fn () => Inertia::render('Special/SuperDeal'))->name('superdeal');
 Route::get('/new-arrivals', fn () => Inertia::render('Special/NewArrivals'))->name('new.arrivals');
@@ -187,7 +138,7 @@ Route::get('/search', [SearchController::class, 'search'])->name('search');
 
 /*
 |--------------------------------------------------------------------------
-| Productos y CategorÃ­as
+| Productos y Categorías
 |--------------------------------------------------------------------------
 */
 Route::get('/product/{id}', fn ($id) => Inertia::render('Layouts/ProductPageLayout', [
@@ -204,7 +155,7 @@ Route::get('/select-products', [ProductController::class, 'showTemporaryProducts
 Route::post('/migrate-selected-products', [ProductController::class, 'migrateSelectedProducts'])->name('products.migrate');
 Route::post('/add-temporary-product', [ProductController::class, 'storeTemporaryProduct'])->name('products.storeTemporary');
 
-// MigraciÃ³n de productos
+// Migración de productos
 Route::prefix('migrate-products')->group(function () {
     Route::get('/', [ProductMigrationController::class, 'index'])->name('migrate.products');
     Route::post('/{id}', [ProductMigrationController::class, 'migrate'])->name('migrate.product');
@@ -253,7 +204,7 @@ Inertia::share([
 
 /*
 |--------------------------------------------------------------------------
-| Rutas con AutenticaciÃ³n
+| Rutas con Autenticación
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
@@ -318,13 +269,13 @@ Route::middleware(['auth', 'admin'])
         Route::get('/users', [AdminController::class, 'users'])->name('users.index');
         Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('users.toggle');
 
-        // Productos (listado + alta rÃ¡pida)
+        // Productos (listado + alta rápida)
         Route::get('/products', [AdminController::class, 'products'])->name('products.index');
         Route::get('/products/create', [AddProdukController::class, 'create'])->name('products.create');
         Route::post('/products', [AddProdukController::class, 'store'])->name('products.store');
         Route::post('/products/{product}/delete', [AdminController::class, 'deleteProduct'])->name('products.delete');
 
-        // CategorÃ­as
+        // Categorías
         Route::get('/categories', [AdminController::class, 'categories'])->name('categories.index');
         Route::post('/categories/{category}/delete', [AdminController::class, 'deleteCategory'])->name('categories.delete');
         Route::post('/categories/store', [AdminController::class, 'storeCategory'])->name('categories.store');
@@ -338,18 +289,22 @@ Route::middleware(['auth', 'admin'])
         Route::get('/reviews', [AdminController::class, 'reviews'])->name('reviews.index');
         Route::post('/reviews/{review}/delete', [AdminController::class, 'deleteReview'])->name('reviews.delete');
 
-        // Logs & mÃ©tricas
+        // Importación a temporales (scrapers)
+        Route::post('/temporary-products/import', [TemporaryProductImportController::class, 'import'])
+            ->name('temporary-products.import');
+
+        // Logs & métricas
         Route::get('/logs', [AdminController::class, 'logs'])->name('logs.index');
         Route::get('/stats', [AdminController::class, 'stats'])->name('stats.index');
 
-        // Cupones (lista + alias â€œcreateâ€ para el dashboard)
+        // Cupones (lista + alias "create" para el dashboard)
         Route::get('/coupons', [CouponController::class, 'index'])->name('coupons.index');
         Route::get('/coupons/create', [CouponController::class, 'index'])->name('coupons.create');
         Route::post('/coupons/store', [CouponController::class, 'store'])->name('coupons.store');
         Route::post('/coupons/{coupon}/delete', [CouponController::class, 'destroy'])->name('coupons.delete');
         Route::post('/coupons/{coupon}/update', [CouponController::class, 'update'])->name('coupons.update');
 
-        // ConfiguraciÃ³n
+        // Configuración
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings.index');
         Route::post('/settings/update', [AdminController::class, 'updateSettings'])->name('settings.update');
 
@@ -358,9 +313,20 @@ Route::middleware(['auth', 'admin'])
             'ok'       => true,
             'user'     => Auth::user(),
             'is_admin' => Auth::user()?->is_admin,
-            'message'  => 'Â¡Tienes acceso como admin!',
+            'message'  => '¡Tienes acceso como admin!',
         ]))->name('debug');
     });
+
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/api/scripts', fn () => response()->json(
+        collect(File::files(base_path('python_scripts')))
+            ->filter(fn ($file) => $file->getExtension() === 'py')
+            ->map(fn ($file) => $file->getFilename())
+            ->values()
+    ));
+
+    Route::post('/run-script', [PythonScriptController::class, 'run'])->name('run.script');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -374,9 +340,7 @@ require __DIR__ . '/auth.php';
 | Test Routes (solo desarrollo)
 |--------------------------------------------------------------------------
 */
-Route::get('/test', fn () => Inertia::render('Orders/ShippedOrders', ['message' => 'Â¡Hola Inertia!']));
-
-Route::post('/run-script', [PythonScriptController::class, 'run'])->name('run.script');
+Route::get('/test', fn () => Inertia::render('Orders/ShippedOrders', ['message' => '¡Hola Inertia!']));
 
 
 

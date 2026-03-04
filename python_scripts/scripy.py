@@ -4,6 +4,7 @@ import sys
 import json
 import argparse
 import copy
+import subprocess
 from urllib.parse import urlsplit, urlunsplit
 from html import escape
 from bs4 import BeautifulSoup
@@ -504,6 +505,69 @@ def solicitar_modo():
         print("[WARN] Opcion no valida. Escribe 1 o 2.")
 
 
+def preguntar_subida_bd() -> bool:
+    print()
+    print("¿Quieres subir ahora los productos a la tabla temporary_products?")
+    while True:
+        opcion = input("Subir a BD [s/N]: ").strip().lower()
+        if opcion in ("", "n", "no"):
+            return False
+        if opcion in ("s", "si", "sí", "y", "yes"):
+            return True
+        print("[WARN] Opcion no valida. Responde s o n.")
+
+
+def subir_productos_a_bd(json_path: str) -> bool:
+    try:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(script_dir)
+        artisan_path = os.path.join(project_root, "artisan")
+
+        if not os.path.exists(artisan_path):
+            print(f"[ERROR] No se encontró artisan en: {artisan_path}")
+            return False
+
+        cmd = [
+            "php",
+            "artisan",
+            "temporary-products:import-json",
+            f"--file={json_path}",
+        ]
+
+        print("[INFO] Ejecutando importación en Laravel...")
+        try:
+            result = subprocess.run(
+                cmd,
+                cwd=project_root,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=False,
+            )
+        except FileNotFoundError:
+            print("[ERROR] No se encontró el comando 'php' en el PATH.")
+            return False
+        except Exception as exc:
+            print(f"[ERROR] Falló la ejecución del comando de importación: {exc}")
+            return False
+
+        if result.stdout:
+            print(result.stdout.strip())
+        if result.stderr:
+            print(result.stderr.strip())
+
+        if result.returncode != 0:
+            print(f"[ERROR] La importación terminó con código {result.returncode}.")
+            return False
+
+        print("[OK] Productos subidos a la base de datos temporal.")
+        return True
+    except Exception as exc:
+        print(f"[ERROR] Error inesperado durante la subida a BD: {exc}")
+        return False
+
+
 def ejecutar_modo_listado(args, productos):
     prompt = "Pega el HTML (listado y/o slider en el mismo bloque):"
     html = leer_html_stdin_interactivo(prompt)
@@ -708,9 +772,14 @@ def main():
         print("[INFO] No se detectaron cambios en los productos.")
         return
 
-    guardar_productos(productos, args.out)
+    json_path = guardar_productos(productos, args.out)
     regenerar_html(productos, args.out)
     print(f"[INFO] Productos guardados: {len(productos)}")
+
+    if preguntar_subida_bd():
+        subir_productos_a_bd(json_path)
+    else:
+        print("[INFO] Subida a BD omitida por el usuario.")
 
 
 if __name__ == "__main__":

@@ -60,3 +60,30 @@ Esto hace que Vite busque `.env.staging*` (solo para variables `VITE_*`). No afe
 - Ejecutar tests:
 	- `php artisan test`
 	- o `composer test`
+
+## Ver SQLite local en VS Code (desarrollo)
+
+En local (dev) este proyecto usa SQLite por defecto.
+El fichero es:
+
+- `database/database.sqlite`
+
+### Opción A (recomendada): SQLTools
+
+1) Instala extensiones:
+
+- `SQLTools`
+- `SQLTools SQLite` (driver)
+
+2) Crea una conexión SQLite apuntando a:
+
+- `${workspaceFolder}/database/database.sqlite`
+
+Nota: esto funciona bien si abres como workspace la carpeta raíz del proyecto (la que contiene `artisan`, `app/`, `database/`).
+
+### Opción B: Database Client (ruta absoluta)
+
+Algunas extensiones tipo “Database Client” no expanden `${workspaceFolder}` dentro del path de SQLite.
+Si ves errores donde intenta abrir literalmente `${workspaceFolder}/...`, usa una ruta absoluta al archivo, por ejemplo:
+
+- `C:\Users\<TU_USUARIO>\Desktop\webdrop\All\database\database.sqlite`

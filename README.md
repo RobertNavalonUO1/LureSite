@@ -1,5 +1,7 @@
 # Limoneo (Laravel + Inertia + React)
 
+Última actualización: 2026-03-03 07:15
+
 Aplicación web tipo e-commerce construida con **Laravel 11** + **Inertia.js** + **React** (Vite). El backend sirve páginas Inertia y APIs JSON, y el frontend vive en `resources/js`.
 
 Documentación adicional:
@@ -60,8 +62,7 @@ Este README está escrito pensando en un handoff real: explica **cómo funciona*
 - Backend: Laravel (rutas web + controladores + modelos Eloquent + servicios).
 - Frontend: Inertia + React (páginas y componentes) empaquetado con Vite.
 - Estado de carrito: **session** (server-side), compartido a Inertia.
-- Auth (actual): login con Google/Facebook vía **Firebase Auth** (frontend obtiene `idToken` y lo envía al backend).
-- Auth (objetivo): migrar a **Laravel Socialite** y retirar Firebase (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)).
+- Auth: login web con **Laravel Socialite** (Google/Facebook) + flujo móvil con **Sanctum** (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)).
 - Pagos: Stripe Checkout + PayPal (SDK).
 - Extra: ejecución de scripts Python desde backend (uso interno/herramientas).
 
@@ -95,7 +96,10 @@ Flujo típico de una página Inertia:
 - Rutas web + endpoints JSON: [routes/web.php](routes/web.php)
     - **Páginas públicas**: `/`, `/about`, `/contact`, `/faq`, `/terms`, `/privacy`, y páginas especiales (`/deals/today`, `/superdeal`, etc.).
     - **APIs públicas JSON**: `/api/deals-today`, `/api/superdeals`, `/api/fast-shipping`, `/api/search/suggestions`, `/banners`.
-    - **Auth Firebase**: `POST /auth/firebase` (exento de CSRF para evitar 419 en posts SPA).
+    - **Auth Socialite (web)**:
+        - `GET /auth/{provider}/redirect`
+        - `GET /auth/{provider}/callback`
+    - **Locale**: `POST /locale` (cookie + sesión).
     - **Carrito/checkout**: `/cart/*`, `/checkout/*`.
     - **Inertia share**: comparte carrito, total, csrf, etc.
 
@@ -213,26 +217,37 @@ Variables de entorno esperadas (resumen):
 - `STRIPE_KEY`, `STRIPE_SECRET`
 - `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
 
-### Auth con Google (Firebase)
+### Auth social (Google/Facebook) (Socialite + Sanctum)
 
-Objetivo: permitir login web usando Firebase Auth, pero con sesión Laravel.
+Flujo **web** (sesión Laravel):
 
-1) Frontend (React) inicia Google login (Firebase JS SDK) y obtiene un `idToken`.
-2) Frontend hace `POST /auth/firebase` con `id_token`.
-3) Backend valida token y crea/actualiza el usuario local.
-4) Backend hace `auth()->login($user, true)` + `session()->regenerate()` y redirige.
+1) El usuario pulsa “Continuar con Google/Facebook”.
+2) Frontend redirige a `GET /auth/{provider}/redirect`.
+3) Socialite hace el OAuth handshake.
+4) Callback en `GET /auth/{provider}/callback`:
+    - crea/actualiza usuario local
+    - hace `auth()->login(...)` y regenera sesión
+    - redirige al home.
 
-Archivos:
+Flujo **móvil** (token Sanctum):
 
-- Controller: [app/Http/Controllers/Auth/FirebaseLoginController.php](app/Http/Controllers/Auth/FirebaseLoginController.php)
-- Servicio de verificación: [app/Services/FirebaseAuthService.php](app/Services/FirebaseAuthService.php)
+1) La app móvil obtiene un `access_token` del proveedor (Google/Facebook).
+2) La app llama `POST /api/auth/social` con JSON:
 
-Requisitos del servicio:
+```json
+{ "provider": "google", "access_token": "..." }
+```
 
-- Credenciales Firebase service account en: `storage/app/firebase/firebase_credentials.json`
-- (Opcional) Config SSL para evitar errores tipo cURL 60:
-    - `FIREBASE_CA_BUNDLE` (path al CA bundle)
-    - `FIREBASE_HTTP_VERIFY=false` (solo desarrollo; desactiva verificación SSL)
+3) Backend valida el token con Socialite (`userFromToken`) y devuelve:
+    - `token` (Sanctum)
+    - `user`
+
+Enlaces oficiales para crear credenciales OAuth:
+
+- Google Cloud Console (Credenciales): https://console.cloud.google.com/apis/credentials
+- Google (Pantalla de consentimiento OAuth): https://console.cloud.google.com/apis/credentials/consent
+- Facebook Developers (Apps): https://developers.facebook.com/apps/
+- Docs Facebook Login (Web): https://developers.facebook.com/docs/facebook-login/web/
 
 ### Scripts Python (herramientas)
 
@@ -253,7 +268,6 @@ Notas operativas:
 - PHP >= 8.2
 - Composer
 - Node.js (recomendado 18+)
-- Extensiones/certs según tu setup (para Firebase SSL en Windows a veces hace falta CA bundle)
 
 ### Setup inicial
 
@@ -283,6 +297,8 @@ Por defecto `.env.example` usa SQLite + `SESSION_DRIVER=database` + `QUEUE_CONNE
 - Ejecuta migraciones:
 
 `php artisan migrate`
+
+Tip: para inspeccionar la SQLite en VS Code (tablas/datos), ver [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md) → “Ver SQLite local en VS Code (desarrollo)”.
 
 5) Storage link (imágenes en `storage/`):
 
@@ -355,7 +371,9 @@ Los assets generados se escriben en `public/build/` (ver plugin `laravel-vite-pl
 - Configurar:
     - Stripe: `STRIPE_KEY`, `STRIPE_SECRET`
     - PayPal: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
-    - Firebase service account: `storage/app/firebase/firebase_credentials.json` (montado como secreto)
+    - Socialite:
+        - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+        - `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI`
 
 ### Migraciones y caches
 
@@ -383,5 +401,7 @@ En producción normalmente conviene `redis` para colas/cache/sesión.
 - [resources/js/Pages/Shop/Home.jsx](resources/js/Pages/Shop/Home.jsx): home + filtros + aside.
 - [app/Http/Controllers/CartController.php](app/Http/Controllers/CartController.php): carrito en session.
 - [app/Http/Controllers/CheckoutController.php](app/Http/Controllers/CheckoutController.php): checkout + pagos.
-- [app/Http/Controllers/Auth/FirebaseLoginController.php](app/Http/Controllers/Auth/FirebaseLoginController.php): login web/móvil Firebase.
-- [app/Services/FirebaseAuthService.php](app/Services/FirebaseAuthService.php): verificación token + HTTP verify.
+- [app/Http/Controllers/Auth/SocialAuthController.php](app/Http/Controllers/Auth/SocialAuthController.php): login web Socialite (redirect/callback).
+- [app/Http/Controllers/Api/SocialAuthController.php](app/Http/Controllers/Api/SocialAuthController.php): exchange móvil (access_token → token Sanctum).
+- [app/Http/Controllers/LocaleController.php](app/Http/Controllers/LocaleController.php): cambio de idioma (cookie + sesión).
+- [app/Http/Middleware/SetLocale.php](app/Http/Middleware/SetLocale.php): aplica locale a cada request.

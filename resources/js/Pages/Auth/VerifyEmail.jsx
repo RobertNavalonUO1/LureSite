@@ -1,32 +1,15 @@
 import PrimaryButton from '@/Components/ui/PrimaryButton.jsx';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head } from '@inertiajs/react';
-import { auth } from '@/firebase';
-import { sendEmailVerification } from 'firebase/auth';
-import { useState } from 'react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 
 export default function VerifyEmail() {
-    const [status, setStatus] = useState(null);
-    const [error, setError] = useState(null);
-    const [processing, setProcessing] = useState(false);
+    const { status } = usePage().props;
+    const resendForm = useForm({});
+    const logoutForm = useForm({});
 
-    const resend = async (e) => {
+    const resend = (e) => {
         e.preventDefault();
-        setProcessing(true);
-        setError(null);
-
-        try {
-            if (auth.currentUser) {
-                await sendEmailVerification(auth.currentUser);
-                setStatus('verification-link-sent');
-            } else {
-                setError('No hay usuario autenticado.');
-            }
-        } catch (err) {
-            setError('No se pudo enviar el correo de verificación.');
-        } finally {
-            setProcessing(false);
-        }
+        resendForm.post(route('verification.send'));
     };
 
     return (
@@ -44,20 +27,14 @@ export default function VerifyEmail() {
                 </div>
             )}
 
-            {error && (
-                <div className="mb-4 text-sm font-medium text-red-600">
-                    {error}
-                </div>
-            )}
-
             <form onSubmit={resend}>
                 <div className="mt-4 flex items-center justify-between">
-                    <PrimaryButton disabled={processing}>
+                    <PrimaryButton disabled={resendForm.processing}>
                         Reenviar correo de verificación
                     </PrimaryButton>
                     <button
                         type="button"
-                        onClick={() => auth.signOut().then(() => window.location.href = '/login')}
+                        onClick={() => logoutForm.post(route('logout'))}
                         className="text-sm text-gray-600 underline hover:text-gray-900"
                     >
                         Cerrar sesión

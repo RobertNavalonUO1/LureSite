@@ -1,5 +1,6 @@
 ﻿// resources/js/Pages/LinkAggregator.jsx
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePage } from '@inertiajs/react';
 
 const MAX_HISTORY = 5;
 
@@ -112,7 +113,37 @@ const trimForPreview = (text, limit = 160) => {
     return `${text.slice(0, limit - 3)}...`;
 };
 
+const extractJsonPayload = (text) => {
+    if (!text) return null;
+    const firstObject = text.indexOf('{');
+    const firstArray = text.indexOf('[');
+    const first = firstObject === -1 ? firstArray : firstArray === -1 ? firstObject : Math.min(firstObject, firstArray);
+    if (first === -1) return null;
+
+    const lastObject = text.lastIndexOf('}');
+    const lastArray = text.lastIndexOf(']');
+    const last = lastObject === -1 ? lastArray : lastArray === -1 ? lastObject : Math.max(lastObject, lastArray);
+    if (last === -1 || last <= first) return null;
+
+    return text.slice(first, last + 1).trim();
+};
+
+const parseProductsFromOutput = (text) => {
+    try {
+        const maybeJson = extractJsonPayload(text) ?? text;
+        const parsed = JSON.parse(maybeJson);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed && Array.isArray(parsed.products)) return parsed.products;
+        return null;
+    } catch {
+        return null;
+    }
+};
+
 export default function LinkAggregator() {
+    const { auth } = usePage().props;
+    const isAdmin = !!auth?.user?.is_admin;
+
     const [htmlInput, setHtmlInput] = useState('');
     const [script, setScript] = useState('');
     const [availableScripts, setAvailableScripts] = useState([]);
@@ -126,12 +157,28 @@ export default function LinkAggregator() {
     const [executionDetails, setExecutionDetails] = useState(null);
     const [executionHistory, setExecutionHistory] = useState([]);
     const [scriptMode, setScriptMode] = useState('');
+    const [importProducts, setImportProducts] = useState(null);
+    const [importLoading, setImportLoading] = useState(false);
+    const [importMessage, setImportMessage] = useState('');
 
     useEffect(() => {
         let cancelled = false;
 
-        fetch('/api/scripts')
-            .then((res) => res.json())
+        fetch('/api/scripts', { credentials: 'same-origin' })
+            .then(async (res) => {
+                if (!res.ok) {
+                    const status = res.status;
+                    if (status === 401) {
+                        throw new Error('Necesitas iniciar sesión para ver los scripts.');
+                    }
+                    if (status === 403) {
+                        throw new Error('No tienes permisos para ver los scripts (solo admin).');
+                    }
+                    throw new Error('No se pudieron cargar los scripts (error del servidor).');
+                }
+
+                return res.json();
+            })
             .then((data) => {
                 if (cancelled) return;
 
@@ -144,9 +191,9 @@ export default function LinkAggregator() {
                     setScriptsError('No se recibieron scripts disponibles desde la API.');
                 }
             })
-            .catch(() => {
+            .catch((err) => {
                 if (cancelled) return;
-                setScriptsError('No se pudieron cargar los scripts disponibles.');
+                setScriptsError(err?.message || 'No se pudieron cargar los scripts disponibles.');
             });
 
         return () => {
@@ -188,6 +235,7 @@ export default function LinkAggregator() {
 
             const response = await fetch('/run-script', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers,
                 body: JSON.stringify({
                     script: 'verify_env.py',
@@ -226,6 +274,8 @@ export default function LinkAggregator() {
             startedAt,
             inputChars: htmlInput.length
         });
+        setImportProducts(null);
+        setImportMessage('');
 
         try {
             const csrfToken = getCsrfToken();
@@ -247,6 +297,7 @@ export default function LinkAggregator() {
 
             const response = await fetch('/run-script', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers,
                 body: JSON.stringify(body)
             });
@@ -270,6 +321,7 @@ export default function LinkAggregator() {
                     message: 'Ejecucion completada sin errores.'
                 };
                 setOutput(data.output || 'Sin salida generada.');
+                setImportProducts(parseProductsFromOutput(data.output || ''));
                 setExecutionDetails(record);
                 setExecutionHistory((prev) => [record, ...prev].slice(0, MAX_HISTORY));
             } else {
@@ -304,6 +356,44 @@ export default function LinkAggregator() {
             setLoading(false);
         }
     };
+
+    const handleImport = useCallback(async () => {
+        if (!isAdmin || !Array.isArray(importProducts) || importProducts.length === 0) return;
+
+        setImportLoading(true);
+        setImportMessage('');
+
+        try {
+            const csrfToken = getCsrfToken();
+            const headers = {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+            };
+            if (csrfToken) {
+                headers['X-CSRF-TOKEN'] = csrfToken;
+            }
+
+            const response = await fetch('/admin/temporary-products/import', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers,
+                body: JSON.stringify({ products: importProducts }),
+            });
+
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                const message = data?.message || data?.error || 'No se pudo importar.';
+                setImportMessage(`Error: ${message}`);
+                return;
+            }
+
+            setImportMessage(`Importación completada: ${data.created ?? 0} productos.`);
+        } catch (err) {
+            setImportMessage(`Error de red: ${err.message}`);
+        } finally {
+            setImportLoading(false);
+        }
+    }, [importProducts, isAdmin]);
 
     const statusDetails = executionDetails ? getStatusDetails(executionDetails.status) : getStatusDetails();
 
@@ -541,6 +631,27 @@ export default function LinkAggregator() {
                             <span className="text-xs text-gray-500">Ultima actualizacion: {formatDateTime(Date.now())}</span>
                         )}
                     </div>
+
+                    {isAdmin && Array.isArray(importProducts) && importProducts.length > 0 && (
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 p-4">
+                            <div className="text-sm text-amber-900">
+                                Se detectó salida JSON con <strong>{importProducts.length}</strong> productos.
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleImport}
+                                disabled={importLoading}
+                                className="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-amber-300"
+                            >
+                                {importLoading ? 'Importando...' : 'Importar a temporales'}
+                            </button>
+                        </div>
+                    )}
+
+                    {importMessage && (
+                        <p className="mt-3 text-sm text-gray-700">{importMessage}</p>
+                    )}
+
                     {output ? (
                         <pre className="mt-4 max-h-96 overflow-auto rounded-md border border-green-200 bg-green-50 p-4 text-sm text-gray-800 whitespace-pre-wrap">
                             {output}

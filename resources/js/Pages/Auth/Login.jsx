@@ -12,11 +12,6 @@ import Footer from '@/Components/navigation/Footer.jsx';
 import { FcGoogle } from 'react-icons/fc';
 import { FaFacebookF } from 'react-icons/fa';
 
-import {
-  loginWithGoogle,
-  loginWithFacebook,
-} from '@/utils/firebaseLogin';
-
 export default function Login({ status, canResetPassword }) {
   const { data, setData, post, processing, errors, reset } = useForm({
     email: '',
@@ -35,48 +30,8 @@ export default function Login({ status, canResetPassword }) {
     });
   };
 
-  const submitFirebaseToken = async (idToken) => {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-    if (!csrfToken) {
-      alert('CSRF token no encontrado. Recarga la página.');
-      return;
-    }
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/auth/firebase';
-
-    const tokenInput = document.createElement('input');
-    tokenInput.type = 'hidden';
-    tokenInput.name = 'id_token';
-    tokenInput.value = idToken;
-
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = '_token';
-    csrfInput.value = csrfToken;
-
-    form.appendChild(tokenInput);
-    form.appendChild(csrfInput);
-    document.body.appendChild(form);
-    form.submit();
-  };
-
-  const handleFirebaseLogin = async (provider) => {
-    try {
-      let idToken;
-      if (provider === 'google') {
-        idToken = await loginWithGoogle();
-      } else if (provider === 'facebook') {
-        idToken = await loginWithFacebook();
-      }
-
-      await submitFirebaseToken(idToken);
-    } catch (err) {
-      console.error(err);
-      alert('Error al iniciar sesión con Firebase: ' + err.message);
-    }
+  const goSocial = (provider) => {
+    window.location.href = route('auth.social.redirect', { provider });
   };
 
   return (
@@ -177,7 +132,8 @@ export default function Login({ status, canResetPassword }) {
         {/* Botones sociales */}
         <div className="grid grid-cols-1 gap-3">
           <button
-            onClick={() => handleFirebaseLogin('google')}
+            type="button"
+            onClick={() => goSocial('google')}
             className="flex items-center justify-center gap-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 font-semibold py-2 rounded-lg shadow-sm transition"
           >
             <FcGoogle size={20} />
@@ -185,7 +141,8 @@ export default function Login({ status, canResetPassword }) {
           </button>
 
           <button
-            onClick={() => handleFirebaseLogin('facebook')}
+            type="button"
+            onClick={() => goSocial('facebook')}
             className="flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg shadow transition"
           >
             <FaFacebookF size={18} />
