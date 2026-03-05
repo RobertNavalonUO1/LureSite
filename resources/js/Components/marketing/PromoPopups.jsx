@@ -7,8 +7,8 @@ const PROMOTIONS = {
   global: [
     {
       id: 'autumn-flash',
-      title: 'Venta flash de otono',
-      message: 'Aprovecha 25% de descuento en la coleccion de decoracion calida hasta medianoche.',
+      title: 'Venta flash de otoño',
+      message: 'Aprovecha 25% de descuento en la colección de decoración cálida hasta medianoche.',
       cta: 'Ver venta flash',
       href: '/ofertas/otono',
       accentClass: 'bg-amber-500',
@@ -17,7 +17,7 @@ const PROMOTIONS = {
     {
       id: 'bundle-warm',
       title: 'Pack hogar acogedor',
-      message: 'Combina mantas, velas y luces con envio gratis a partir de 49 EUR.',
+      message: 'Combina mantas, velas y luces con envío gratis a partir de 49 EUR.',
       cta: 'Armar mi pack',
       href: '/packs/otono',
       accentClass: 'bg-rose-500',
@@ -27,8 +27,8 @@ const PROMOTIONS = {
   category: [
     {
       id: 'category-extra',
-      title: '10% extra en tu categoria',
-      message: 'Usa el cupon CATEGORIA10 al finalizar compra y obtienelo en los productos destacados.',
+      title: '10% extra en tu categoría',
+      message: 'Usa el cupón CATEGORIA10 al finalizar la compra y obténlo en los productos destacados.',
       cta: 'Aplicar cupon',
       href: '#destacados',
       accentClass: 'bg-indigo-500',
@@ -36,9 +36,9 @@ const PROMOTIONS = {
     },
     {
       id: 'free-shipping',
-      title: 'Envio express sin costo',
-      message: 'Entrega en 48h disponible en articulos con etiqueta de envio rapido.',
-      cta: 'Buscar envio rapido',
+      title: 'Envío exprés sin costo',
+      message: 'Entrega en 48h disponible en artículos con etiqueta de envío rápido.',
+      cta: 'Buscar envío rápido',
       href: '/envio-rapido',
       accentClass: 'bg-emerald-500',
       ringClass: 'focus:ring-emerald-200',

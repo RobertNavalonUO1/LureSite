@@ -4,7 +4,7 @@ import Header from '@/Components/navigation/Header.jsx';
 import Footer from '@/Components/navigation/Footer.jsx';
 import { Truck, Clock, PackageCheck, MapPin, ArrowLeftCircle, XCircle, RotateCcw } from 'lucide-react';
 
-const progressSteps = ['Pago recibido', 'Preparando envio', 'Enviado', 'Entregado'];
+const progressSteps = ['Pago recibido', 'Preparando envío', 'Enviado', 'Entregado'];
 
 const STATUS_DETAILS = {
   pagado: {
@@ -14,39 +14,39 @@ const STATUS_DETAILS = {
     note: 'Tu pago fue recibido y estamos preparando el pedido.',
   },
   cancelacion_pendiente: {
-    label: 'Cancelacion pendiente',
+    label: 'Cancelación pendiente',
     progress: 0,
     allowCancel: false,
     allowRefund: false,
-    highlight: 'Tu solicitud de cancelacion esta en revision. Te confirmaremos el resultado en 24-48 horas.',
+    highlight: 'Tu solicitud de cancelación está en revisión. Te confirmaremos el resultado en 24-48 horas.',
   },
   pendiente_envio: {
-    label: 'Pendiente de envio',
+    label: 'Pendiente de envío',
     progress: 1,
     allowCancel: true,
-    note: 'Estamos preparando tu paquete para el envio.',
+    note: 'Estamos preparando tu paquete para el envío.',
   },
   enviado: {
     label: 'Enviado',
     progress: 2,
-    note: 'Tu pedido ya salio del almacen.',
+    note: 'Tu pedido ya salió del almacén.',
   },
   entregado: {
     label: 'Entregado',
     progress: 3,
-    note: 'El pedido fue entregado en la direccion indicada.',
+    note: 'El pedido fue entregado en la dirección indicada.',
     allowConfirm: true,
   },
   confirmado: {
     label: 'Confirmado',
     progress: 3,
-    note: 'Confirmaste la recepcion del pedido.',
+    note: 'Confirmaste la recepción del pedido.',
   },
   devolucion_aprobada: {
-    label: 'Devolucion aprobada',
+    label: 'Devolución aprobada',
     progress: 3,
     allowRefund: true,
-    note: 'La devolucion fue aprobada. Puedes solicitar el reembolso.',
+    note: 'La devolución fue aprobada. Puedes solicitar el reembolso.',
   },
   reembolsado: {
     label: 'Reembolsado',
@@ -57,7 +57,7 @@ const STATUS_DETAILS = {
 };
 
 const CANCEL_WARNING =
-  'Al confirmar la solicitud iniciaremos la gestion de cancelacion. El resultado se confirmara en 24-48 horas si es posible. Deseas continuar?';
+  'Al confirmar la solicitud iniciaremos la gestión de cancelación. El resultado se confirmará en 24-48 horas si es posible. ¿Deseas continuar?';
 
 const getProgressStep = (status, fallback) => {
   const detail = STATUS_DETAILS[status];

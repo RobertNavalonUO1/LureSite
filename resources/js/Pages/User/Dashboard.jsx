@@ -23,13 +23,13 @@ import { motion } from 'framer-motion';
 const STATUS_LABELS = {
   pendiente_pago: 'Pendiente de pago',
   pagado: 'Pagado',
-  pendiente_envio: 'Pendiente de envio',
+  pendiente_envio: 'Pendiente de envío',
   enviado: 'Enviado',
   entregado: 'Entregado',
   confirmado: 'Confirmado',
-  cancelacion_pendiente: 'Cancelacion en proceso',
+  cancelacion_pendiente: 'Cancelación en proceso',
   cancelado: 'Cancelado',
-  devolucion_aprobada: 'Devolucion aprobada',
+  devolucion_aprobada: 'Devolución aprobada',
   reembolsado: 'Reembolsado',
 };
 
@@ -156,7 +156,7 @@ const Dashboard = () => {
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full border border-white/30 px-3 py-1">
                     <ShoppingCart className="h-4 w-4" />
-                    {cartCount} articulos en carrito
+                    {cartCount} artículos en carrito
                   </span>
                   {user?.is_admin && (
                     <span className="inline-flex items-center gap-2 rounded-full border border-white/30 px-3 py-1">
@@ -170,7 +170,7 @@ const Dashboard = () => {
                   <Clock className="h-4 w-4" />
                   {nextDelivery
                     ? `Pedido #${nextDelivery.id} ${STATUS_LABELS[nextDelivery.status] ?? nextDelivery.status}`
-                    : 'Sin envios activos por ahora.'}
+                    : 'Sin envíos activos por ahora.'}
                 </div>
               </div>
             </div>

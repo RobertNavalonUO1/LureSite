@@ -54,7 +54,7 @@ const deliveryLabel = (product) => {
 
 const ProductCard = ({ product, onQuickView }) => {
   const title = product.name || "Producto";
-  const categoryName = product.category?.name || "Envio rapido";
+  const categoryName = product.category?.name || "Envío rápido";
   const originalPrice = deriveOriginalPrice(product);
   const discount = getDiscountFromProduct(product);
   const link =
@@ -71,7 +71,7 @@ const ProductCard = ({ product, onQuickView }) => {
           loading="lazy"
         />
         <span className="absolute left-3 top-3 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow">
-          Envio rapido
+          Envío rápido
         </span>
         {discount !== null && (
           <span className="absolute right-3 top-3 rounded-full bg-rose-500 px-3 py-1 text-xs font-semibold text-white shadow">
@@ -112,7 +112,7 @@ const ProductCard = ({ product, onQuickView }) => {
           onClick={() => onQuickView(product)}
           className="rounded-full border border-blue-200 px-4 py-2 text-sm font-semibold text-blue-600 transition-colors duration-200 hover:bg-blue-50"
         >
-          Vista rapida
+          Vista rápida
         </button>
       </div>
     </article>
@@ -147,7 +147,7 @@ const QuickViewModal = ({ product, onClose }) => {
           <div>
             <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
             <p className="mt-2 text-sm uppercase tracking-wide text-slate-400">
-              {product.category?.name || "Envio rapido"}
+              {product.category?.name || "Envío rápido"}
             </p>
             <div className="mt-4 flex items-end gap-3">
               <span className="text-2xl font-bold text-blue-700">{formatCurrency(product.price)}</span>
@@ -164,19 +164,19 @@ const QuickViewModal = ({ product, onClose }) => {
             </div>
             <p className="mt-4 text-sm text-slate-600">
               {product.description ||
-                "Envio asegurado con entrega agil y seguimiento desde la salida del almacen."}
+                "Envío asegurado con entrega ágil y seguimiento desde la salida del almacén."}
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-semibold text-blue-600">
               <span className="rounded-full bg-blue-100 px-3 py-1">{deliveryLabel(product)}</span>
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">
-                Garantia de entrega
+                Garantía de entrega
               </span>
             </div>
             <button
               type="button"
               className="mt-6 w-full rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700"
             >
-              Anadir al carrito
+              Añadir al carrito
             </button>
           </div>
         </div>
@@ -240,7 +240,7 @@ export default function FastShipping() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-blue-50 via-white to-blue-100 text-slate-800">
-      <Head title="Productos con envio rapido" />
+      <Head title="Productos con envío rápido" />
       <Header />
       <TopNavMenu />
 
@@ -260,7 +260,7 @@ export default function FastShipping() {
                     : "bg-blue-50 text-blue-600 hover:bg-blue-100"
                 }`}
               >
-                Todas las categorias
+                Todas las categorías
               </button>
               {categories.map((category) => (
                 <button
@@ -284,7 +284,7 @@ export default function FastShipping() {
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 className="w-full rounded-full border border-blue-100 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                placeholder="Buscar por producto o categoria"
+                placeholder="Buscar por producto o categoría"
               />
             </div>
           </div>
@@ -303,8 +303,8 @@ export default function FastShipping() {
                   Compra hoy y recibe antes de 48 horas
                 </h1>
                 <p className="mt-4 max-w-2xl text-base sm:text-lg text-white/85">
-                  Productos seleccionados con envio prioritario, seguimiento en tiempo real y
-                  politica de devoluciones flexible.
+                  Productos seleccionados con envío prioritario, seguimiento en tiempo real y
+                  política de devoluciones flexible.
                 </p>
                 <div className="mt-6 grid gap-6 sm:grid-cols-3">
                   <div>
@@ -334,7 +334,7 @@ export default function FastShipping() {
               <div className="rounded-2xl border border-blue-100 bg-white p-10 text-center shadow-sm">
                 <p className="text-lg font-semibold text-slate-900">Sin coincidencias</p>
                 <p className="mt-2 text-sm text-slate-500">
-                  Ajusta la busqueda o selecciona otra categoria para ver mas productos con envio rapido.
+                  Ajusta la búsqueda o selecciona otra categoría para ver más productos con envío rápido.
                 </p>
               </div>
             ) : (
@@ -360,7 +360,7 @@ export default function FastShipping() {
               {banners?.fastShipping?.[0] && (
                 <img
                   src={banners.fastShipping[0].src}
-                  alt={banners.fastShipping[0].alt || "Promocion envio rapido"}
+                  alt={banners.fastShipping[0].alt || "Promoción envío rápido"}
                   className="h-40 w-full object-cover"
                   loading="lazy"
                 />

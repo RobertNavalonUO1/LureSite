@@ -130,7 +130,7 @@ const Home = () => {
       },
       {
         href: "/fast-shipping",
-        title: "Envio rapido",
+        title: "Envío rápido",
         subtitle: "48h en seleccionados",
         Icon: Truck,
         accent: "from-emerald-500/15 via-white to-white",
@@ -345,7 +345,7 @@ const Home = () => {
           } else if (error) {
             showModal(error, true);
           } else {
-            showModal("Producto anadido al carrito.", false);
+            showModal("Producto añadido al carrito.", false);
           }
         },
         onError: () => {
@@ -431,7 +431,7 @@ const Home = () => {
 
               <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-6 text-white shadow-lg">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/50">
-                  Resumen del catalogo
+                  Resumen del catálogo
                 </p>
                 <div className="mt-5 grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
                   <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
@@ -444,11 +444,11 @@ const Home = () => {
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
                     <p className="text-2xl font-bold">{stats.fastShipping}</p>
-                    <p className="mt-1 text-xs text-white/70">Envio rapido</p>
+                    <p className="mt-1 text-xs text-white/70">Envío rápido</p>
                   </div>
                 </div>
                 <p className="mt-6 text-xs text-white/60">
-                  Actualizamos inventario y ofertas varias veces al dia.
+                  Actualizamos inventario y ofertas varias veces al día.
                 </p>
               </div>
             </div>

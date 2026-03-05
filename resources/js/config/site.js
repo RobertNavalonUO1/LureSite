@@ -10,8 +10,8 @@ const site = {
     logoAlt: 'Limoneo',
   },
   promo: {
-    label: 'Oferta del dia:',
-    highlight: 'envios gratis',
+    label: 'Oferta del día:',
+    highlight: 'envíos gratis',
     suffix: 'en compras mayores a $50',
   },
   support: {

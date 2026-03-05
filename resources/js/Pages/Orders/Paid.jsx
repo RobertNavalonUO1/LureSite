@@ -11,17 +11,17 @@ const STATUS_INFO = {
     icon: <CreditCard className="w-5 h-5 text-purple-600" />,
   },
   pendiente_envio: {
-    label: 'Pendiente de envio',
+    label: 'Pendiente de envío',
     color: 'bg-blue-100 text-blue-800 border-blue-300',
     icon: <CreditCard className="w-5 h-5 text-blue-600" />,
   },
   cancelacion_pendiente: {
-    label: 'Cancelacion en proceso',
+    label: 'Cancelación en proceso',
     color: 'bg-amber-100 text-amber-800 border-amber-300',
     icon: <XCircle className="w-5 h-5 text-amber-600" />,
   },
   devolucion_aprobada: {
-    label: 'Devolucion aprobada',
+    label: 'Devolución aprobada',
     color: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     icon: <RotateCcw className="w-5 h-5 text-emerald-600" />,
   },
@@ -33,7 +33,7 @@ const STATUS_INFO = {
 };
 
 const CANCEL_WARNING =
-  'Al confirmar la solicitud iniciaremos la gestion de cancelacion. El resultado se confirmara en 24-48 horas si es posible. Deseas continuar?';
+  'Al confirmar la solicitud iniciaremos la gestión de cancelación. El resultado se confirmará en 24-48 horas si es posible. ¿Deseas continuar?';
 
 const PaidOrders = () => {
   const { orders, csrfToken } = usePage().props;

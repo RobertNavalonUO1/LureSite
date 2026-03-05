@@ -3,16 +3,16 @@ import { Link } from '@inertiajs/react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
 const FALLBACK_DESCRIPTION =
-  'Explora productos seleccionados, ofertas activas y envios seguros adaptados a lo que necesitas.';
+  'Explora productos seleccionados, ofertas activas y envíos seguros adaptados a lo que necesitas.';
 
 const VISUAL_TAGS = [
-  'Envio sin complicaciones',
+  'Envío sin complicaciones',
   'Soporte especializado',
   'Devoluciones sencillas',
 ];
 
 const CategoryHero = ({ category = {}, productCount = 0, isCondensed = false }) => {
-  const { name = 'Categoria', description } = category;
+  const { name = 'Categoría', description } = category;
   const safeDescription =
     description && description.trim().length > 0 ? description : FALLBACK_DESCRIPTION;
 
@@ -42,7 +42,7 @@ const CategoryHero = ({ category = {}, productCount = 0, isCondensed = false }) 
           <div className="flex-1 space-y-6">
             <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50/70 px-4 py-1 text-xs sm:text-sm uppercase tracking-wide text-indigo-600 shadow-sm">
               <Sparkles className="h-4 w-4" />
-              Categoria destacada
+              Categoría destacada
             </span>
 
             <div className="space-y-4">

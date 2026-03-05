@@ -625,7 +625,7 @@ export default function MigrateProducts() {
         if (existingProducts.length === 0) {
             return (
                 <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-gray-500">
-                    Todav�a no hay productos migrados.
+                    Todavía no hay productos migrados.
                 </div>
             );
         }
@@ -639,7 +639,7 @@ export default function MigrateProducts() {
                                 Producto
                             </th>
                             <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                Imagenes
+                                Imágenes
                             </th>
                             <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                                 Acciones
@@ -705,7 +705,7 @@ export default function MigrateProducts() {
         if (!editingProduct) {
             return (
                 <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-gray-500">
-                    Selecciona un producto para editarlo y agregar nuevas imagenes.
+                    Selecciona un producto para editarlo y agregar nuevas imágenes.
                 </div>
             );
         }
@@ -784,7 +784,7 @@ export default function MigrateProducts() {
                                     >
                                         <img
                                             src={url}
-                                            alt={`Opcion ${index + 1}`}
+                                            alt={`Opción ${index + 1}`}
                                             className="h-full w-full object-cover"
                                             onError={(event) => {
                                                 event.target.onerror = null;
@@ -814,9 +814,9 @@ export default function MigrateProducts() {
                 </div>
 
                 <div className="border-t border-gray-200 pt-4">
-                    <h5 className="text-sm font-semibold text-gray-700">Agregar nuevas imagenes</h5>
+                    <h5 className="text-sm font-semibold text-gray-700">Agregar nuevas imágenes</h5>
                     <p className="text-xs text-gray-500">
-                        Ingresa una URL por linea (o separadas por comas). Se ignorar�n duplicados automaticamente.
+                        Ingresa una URL por línea (o separadas por comas). Se ignorarán duplicados automáticamente.
                     </p>
                     <textarea
                         value={newImagesText}
@@ -834,7 +834,7 @@ export default function MigrateProducts() {
                             }`}
                         >
                             <Images className="h-4 w-4" />
-                            Agregar imagenes
+                            Agregar imágenes
                         </button>
                     </div>
                 </div>
@@ -842,7 +842,7 @@ export default function MigrateProducts() {
         );
     };
     const tabs = [
-        { id: 'migration', label: 'Migracion' },
+        { id: 'migration', label: 'Migración' },
         { id: 'existing', label: 'Productos migrados' },
     ];
     return (
@@ -850,7 +850,7 @@ export default function MigrateProducts() {
             <div className="mx-auto mt-10 max-w-7xl space-y-10 rounded-2xl bg-gradient-to-br from-white to-gray-50 p-6 shadow-xl">
                 <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <h1 className="text-3xl font-semibold tracking-tight text-gray-800">Panel de Migracion</h1>
+                        <h1 className="text-3xl font-semibold tracking-tight text-gray-800">Panel de Migración</h1>
                         <p className="mt-1 text-sm text-gray-500">
                             Migra productos temporales y gestiona los ya creados desde un solo lugar.
                         </p>
@@ -887,10 +887,10 @@ export default function MigrateProducts() {
                 {activeTab === 'migration' && (
                     <section className="space-y-8">
                         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow">
-                            <h2 className="mb-6 text-xl font-medium text-gray-700">Configuraci�n de Migracion</h2>
+                            <h2 className="mb-6 text-xl font-medium text-gray-700">Configuración de Migración</h2>
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                                 <div>
-                                    <label className="mb-2 block text-sm font-semibold text-gray-600">Categor�a</label>
+                                    <label className="mb-2 block text-sm font-semibold text-gray-600">Categoría</label>
                                     <select
                                         value={data.category_id}
                                         onChange={(event) => setData('category_id', event.target.value)}
@@ -1001,7 +1001,7 @@ export default function MigrateProducts() {
                         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow">
                             <h2 className="text-xl font-medium text-gray-700">Productos en la base de datos</h2>
                             <p className="mt-1 text-sm text-gray-500">
-                                Selecciona un producto para editar su informaci�n o agregar Imagenes adicionales.
+                                Selecciona un producto para editar su información o agregar imágenes adicionales.
                             </p>
                         </div>
 

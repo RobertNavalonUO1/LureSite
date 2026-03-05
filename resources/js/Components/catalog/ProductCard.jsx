@@ -52,13 +52,13 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
   const shippingLabel =
     product.shipping_label ||
     product.delivery_estimate ||
-    (product.fast_shipping ? "Envio en 48h" : "Envio estandar");
+    (product.fast_shipping ? "Envío en 48h" : "Envío estándar");
 
   const stockStatus =
     product.stock > 10
       ? "Stock disponible"
       : product.stock > 0
-      ? "Ultimas unidades"
+      ? "Últimas unidades"
       : "Sin stock";
 
   const goToProduct = () => {
@@ -104,7 +104,7 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
 
         {(product.badge || product.is_new || product.fast_shipping) && (
           <span className="absolute left-4 top-4 z-20 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow">
-            {product.badge || (product.is_new ? "Nuevo" : "Entrega rapida")}
+            {product.badge || (product.is_new ? "Nuevo" : "Entrega rápida")}
           </span>
         )}
 

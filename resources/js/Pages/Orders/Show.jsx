@@ -8,22 +8,22 @@ const STATUS_INFO = {
   pendiente_pago: {
     label: 'Pendiente de pago',
     color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    description: 'Tu pedido esta pendiente de pago. Realiza el pago para continuar.',
+    description: 'Tu pedido está pendiente de pago. Realiza el pago para continuar.',
   },
   pagado: {
     label: 'Pagado',
     color: 'bg-green-100 text-green-800 border-green-300',
-    description: 'El pedido ha sido pagado y esta en proceso.',
+    description: 'El pedido ha sido pagado y está en proceso.',
   },
   pendiente_envio: {
-    label: 'Pendiente de envio',
+    label: 'Pendiente de envío',
     color: 'bg-blue-100 text-blue-800 border-blue-300',
-    description: 'Tu pedido esta pendiente de ser enviado.',
+    description: 'Tu pedido está pendiente de ser enviado.',
   },
   enviado: {
     label: 'Enviado',
     color: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-    description: 'Tu pedido ha sido enviado. Pronto lo recibiras.',
+    description: 'Tu pedido ha sido enviado. Pronto lo recibirás.',
   },
   entregado: {
     label: 'Entregado',
@@ -33,12 +33,12 @@ const STATUS_INFO = {
   confirmado: {
     label: 'Confirmado',
     color: 'bg-green-50 text-green-700 border-green-200',
-    description: 'Has confirmado la recepcion del pedido.',
+    description: 'Has confirmado la recepción del pedido.',
   },
   cancelacion_pendiente: {
-    label: 'Cancelacion en proceso',
+    label: 'Cancelación en proceso',
     color: 'bg-amber-100 text-amber-800 border-amber-300',
-    description: 'Tu cancelacion esta en revision. Recibiras respuesta en 24-48 horas.',
+    description: 'Tu cancelación está en revisión. Recibirás respuesta en 24-48 horas.',
   },
   cancelado: {
     label: 'Cancelado',
@@ -56,7 +56,7 @@ const STATUS_INFO = {
     description: 'El pago ha fallado. Intenta nuevamente.',
   },
   devolucion_solicitada: {
-    label: 'Devolucion solicitada',
+    label: 'Devolución solicitada',
     color: 'bg-orange-100 text-orange-800 border-orange-300',
     description: 'Has solicitado la devolucion de este pedido.',
   },

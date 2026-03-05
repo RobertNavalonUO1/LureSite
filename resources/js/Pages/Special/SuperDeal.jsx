@@ -54,12 +54,12 @@ const FeaturedDealCard = ({ product }) => {
     <article className="relative grid gap-6 overflow-hidden rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-white to-amber-100 p-6 shadow-lg transition duration-200 hover:-translate-y-1 hover:shadow-xl lg:grid-cols-[1.4fr_1fr]">
       <div>
         <span className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow">
-          Super deal del dia
+          Super deal del día
         </span>
         <h2 className="mt-4 text-3xl font-black text-slate-900 lg:text-4xl">{title}</h2>
         <p className="mt-4 max-w-xl text-sm text-slate-600">
           {product.description ||
-            "Aprovecha esta oportunidad limitada con envio rapido, garantia extendida y soporte prioritario."}
+            "Aprovecha esta oportunidad limitada con envío rápido, garantía extendida y soporte prioritario."}
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <span className="text-3xl font-bold text-orange-600">{formatCurrency(product.price)}</span>
