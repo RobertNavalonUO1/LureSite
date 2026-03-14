@@ -60,6 +60,21 @@ Esto hace que Vite busque `.env.staging*` (solo para variables `VITE_*`). No afe
 - Ejecutar tests:
 	- `php artisan test`
 	- o `composer test`
+	- suite focalizada principal: `composer test:critical`
+	- verificación del dataset QA: `composer test:qa-dataset`
+
+## Dataset QA local
+
+Para preparar un entorno local con datos amplios para pruebas manuales:
+
+- `composer qa:refresh`
+  - hace `migrate:fresh` y carga el seeder `Database\\Seeders\\QaDatasetSeeder`
+- `composer seed:qa`
+  - reinyecta el dataset QA sobre una base ya migrada
+
+El dataset QA está pensado para desarrollo/local y deja usuarios, direcciones, catálogo, staging temporal, cupones, banners, pedidos por estado, devoluciones y transacciones fallidas con volumen suficiente para validar flujos reales.
+
+Detalle y credenciales: ver [docs/QA_DATASET.md](docs/QA_DATASET.md).
 
 ## Ver SQLite local en VS Code (desarrollo)
 

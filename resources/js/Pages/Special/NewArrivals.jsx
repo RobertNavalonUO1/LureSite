@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Inertia } from "@inertiajs/inertia";
 import { usePage, Head } from "@inertiajs/react";
 
@@ -10,23 +10,7 @@ import TopNavMenu from "@/Components/navigation/TopNavMenu.jsx";
 import CookieConsentModal from "@/Components/cookies/CookieConsentModal.jsx";
 import CustomizeCookiesModal from "@/Components/cookies/CustomizeCookiesModal.jsx";
 import UI_CONFIG from "@/config/ui.config";
-
-const currencyFormatter = new Intl.NumberFormat("es-ES", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 2,
-});
-
-const normalizePrice = (value) => {
-  if (value === null || value === undefined || value === "") return 0;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  const sanitized = String(value).trim().replace(/[^\d,.-]/g, "");
-  const normalized = sanitized.replace(/,/g, ".");
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const formatCurrency = (value) => currencyFormatter.format(normalizePrice(value));
+import { formatCurrency, normalizePrice } from "@/utils/pricing";
 
 const getDiscountPercentage = (currentPrice, previousPrice) => {
   const current = normalizePrice(currentPrice);
@@ -97,7 +81,7 @@ const ProductCard = ({ product, onAddToCart }) => {
       <p className="mb-6 line-clamp-3 text-sm text-slate-600">
         {product.short_description ||
           product.description ||
-          "Edición limitada con disponibilidad exclusiva durante esta temporada."}
+          "Recien incorporado al catalogo con stock confirmado y ficha de producto completa."}
       </p>
       <div className="mt-auto flex items-center justify-between gap-3">
         <a
@@ -298,7 +282,7 @@ const NewArrivals = () => {
 
       <div
         className="sticky z-30 border-b border-indigo-100 bg-white/85 shadow-sm backdrop-blur"
-        style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px))' }}
+        style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px) - var(--header-compact-offset-active, 0px))' }}
       >
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -362,10 +346,10 @@ const NewArrivals = () => {
               <div className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-500 px-6 py-8 text-white sm:px-10">
                 <p className="text-sm font-semibold uppercase tracking-[0.3em]">Nuevas incorporaciones</p>
                 <h1 className="mt-2 text-3xl font-black sm:text-4xl">
-                  Descubre lo último en tecnología, moda y lifestyle
+                  Novedades reales del catalogo listas para compra inmediata
                 </h1>
                 <p className="mt-4 max-w-2xl text-base sm:text-lg text-white/85">
-                  Seleccionamos semanalmente productos con stock limitado, descuentos exclusivos y disponibilidad inmediata.
+                  Reunimos los productos que acaban de entrar en operacion, con stock visible, precio actualizado y salida activa desde tienda.
                 </p>
                 <div className="mt-6 flex flex-wrap items-center gap-4">
                   <button
@@ -449,7 +433,7 @@ const NewArrivals = () => {
             </section>
 
             <p className="text-center text-sm text-slate-500">
-              ¿Quieres estar al día? Suscríbete a nuestro boletín y recibe novedades antes que nadie.
+              Esta seleccion se renueva conforme entran referencias nuevas y se valida su disponibilidad comercial.
             </p>
           </section>
 
@@ -457,7 +441,7 @@ const NewArrivals = () => {
             <div className="hidden rounded-3xl border border-indigo-100 bg-white/70 p-6 shadow-lg lg:block">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-indigo-500">Consejo</h2>
               <p className="mt-2 text-sm text-slate-600">
-                Añade tus favoritos al carrito para recibir alertas cuando el stock esté por agotarse.
+                Prioriza los articulos con descuento activo o pocas unidades para no perder el stock inicial de lanzamiento.
               </p>
             </div>
 

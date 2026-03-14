@@ -1,8 +1,9 @@
-import React, { Suspense, useEffect, useMemo, useRef } from 'react';
+﻿import React, { Suspense, useEffect, useMemo, useRef } from 'react';
 import { Head } from '@inertiajs/react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Center, Stars, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { useI18n } from '@/i18n';
 
 const LEMON_GLB_URL = '/images/models/lemon.glb';
 
@@ -106,7 +107,7 @@ function SolarSystem() {
     // Scaled to fit nicely in a single view without zoom.
     const planetScale = 0.28;
 
-    // “More realistic” orbit spacing based on semi-major axis (AU), scaled into scene units.
+    // More realistic orbit spacing based on semi-major axis (AU), scaled into scene units.
     // (Not to true scale, but preserves key gaps: inner planets close; big jump to Jupiter; outer planets spaced wider.)
     const orbitBase = 1.5;
     const orbitAuScale = 0.35;
@@ -269,9 +270,11 @@ function StarLayer({ radius, depth, count, factor, speed, parallax = 1, rotation
 }
 
 export default function Universe() {
+    const { t } = useI18n();
+
     return (
         <>
-            <Head title="Próximamente" />
+            <Head title={t('landing.universe.head_title')} />
             <div className="fixed inset-0 overflow-hidden bg-black">
                 <Canvas
                     camera={{ position: [0, 0, 14], fov: 50, near: 0.1, far: 500 }}
@@ -296,6 +299,30 @@ export default function Universe() {
                         <LemonModel />
                     </Suspense>
                 </Canvas>
+
+                <div className="pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-b from-black/10 via-transparent to-black/70 px-6 py-10 sm:items-center sm:justify-start sm:px-10 lg:px-16">
+                    <div className="pointer-events-auto w-full max-w-2xl rounded-[32px] border border-white/10 bg-slate-950/45 p-6 text-white shadow-2xl backdrop-blur-xl sm:p-8">
+                        <p className="text-xs font-semibold uppercase tracking-[0.38em] text-amber-300/90">Limoneo</p>
+                        <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">Catálogo activo, pagos verificados y soporte orientado al pedido real.</h1>
+                        <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-200 sm:text-base">
+                            Esta experiencia resume la dirección del proyecto: una tienda con catálogo navegable, campañas visibles, checkout con proveedores reales y trazabilidad administrativa cuando una compra necesita seguimiento.
+                        </p>
+                        <div className="mt-6 flex flex-wrap gap-3">
+                            <a
+                                href="/"
+                                className="inline-flex items-center justify-center rounded-full bg-amber-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-300"
+                            >
+                                Entrar en la tienda
+                            </a>
+                            <a
+                                href="/contact"
+                                className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                            >
+                                Contactar soporte
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </>
     );

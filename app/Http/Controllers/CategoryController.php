@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Support\CatalogDataLocalizer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -10,12 +11,13 @@ class CategoryController extends Controller
 {
     public function show($id)
     {
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
         $category = Category::with('products')->findOrFail($id);
 
         return Inertia::render('Shop/CategoryPage', [
-            'category'   => $category,
-            'products'   => $category->products,
-            'categories' => Category::all(), // ✅ añadido
+            'category'   => $catalogLocalizer->categoryPayload($category),
+            'products'   => $category->products->load('category')->map(fn ($product) => $catalogLocalizer->productPayload($product)),
+            'categories' => Category::all()->map(fn ($item) => $catalogLocalizer->categoryPayload($item)),
             'auth'       => [
                 'user' => auth()->user(),
             ],
@@ -24,21 +26,10 @@ class CategoryController extends Controller
 
     public function showBySlug($slug)
     {
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
         $category = Category::where('slug', $slug)->firstOrFail();
         $products = $category->products()->with('category')->latest()->get()
-    ->map(fn($product) => [
-        'id' => $product->id,
-        'name' => $product->name,
-        'price' => $product->price,
-        'stock' => $product->stock,
-        'image_url' => $product->image_url,
-        'category' => [
-            'id' => $product->category->id ?? null,
-            'name' => $product->category->name ?? 'Sin categoría',
-        ],
-        'is_adult' => $product->is_adult,
-        'link' => $product->link,
-    ]);
+            ->map(fn ($product) => $catalogLocalizer->productPayload($product));
 
 
         $banners = [
@@ -47,9 +38,9 @@ class CategoryController extends Controller
         ];
 
         return Inertia::render('Shop/CategoryPage', [
-            'category'   => $category,
+            'category'   => $catalogLocalizer->categoryPayload($category),
             'products'   => $products,
-            'categories' => Category::all(), // ✅ añadido
+            'categories' => Category::all()->map(fn ($item) => $catalogLocalizer->categoryPayload($item)),
             'banners'    => $banners,
             'auth'       => [
                 'user' => auth()->user(),

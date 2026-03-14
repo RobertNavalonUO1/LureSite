@@ -1,27 +1,11 @@
-// resources/js/Pages/SuperDeal.jsx
+﻿// resources/js/Pages/SuperDeal.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { usePage, Head } from "@inertiajs/react";
 import Header from "@/Components/navigation/Header.jsx";
 import TopNavMenu from "@/Components/navigation/TopNavMenu.jsx";
 import SidebarBanners from "@/Components/marketing/SidebarBanners.jsx";
 import { ArrowUp, RefreshCcw, Search, X } from "lucide-react";
-
-const currencyFormatter = new Intl.NumberFormat("es-ES", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 2,
-});
-
-const normalizePrice = (value) => {
-  if (value === null || value === undefined || value === "") return 0;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  const sanitized = String(value).trim().replace(/[^\d,.-]/g, "");
-  const normalized = sanitized.replace(/,/g, ".");
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const formatCurrency = (value) => currencyFormatter.format(normalizePrice(value));
+import { formatCurrency, normalizePrice } from "@/utils/pricing";
 
 const getDiscountPercentage = (currentPrice, previousPrice) => {
   const current = normalizePrice(currentPrice);
@@ -59,7 +43,7 @@ const FeaturedDealCard = ({ product }) => {
         <h2 className="mt-4 text-3xl font-black text-slate-900 lg:text-4xl">{title}</h2>
         <p className="mt-4 max-w-xl text-sm text-slate-600">
           {product.description ||
-            "Aprovecha esta oportunidad limitada con envío rápido, garantía extendida y soporte prioritario."}
+            "Referencia priorizada por ahorro real, disponibilidad vigente y salida comercial inmediata."}
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <span className="text-3xl font-bold text-orange-600">{formatCurrency(product.price)}</span>
@@ -82,7 +66,7 @@ const FeaturedDealCard = ({ product }) => {
             Comprar ahora
           </a>
           <span className="rounded-full bg-white/70 px-4 py-2 text-xs font-semibold text-orange-600 shadow">
-            Oferta expira pronto
+            Revision diaria de stock
           </span>
         </div>
       </div>
@@ -143,7 +127,7 @@ const DealCard = ({ product }) => {
         )}
       </div>
       <p className="mb-6 line-clamp-3 text-sm text-slate-600">
-        {product.short_description || "Descuento exclusivo solo por tiempo limitado."}
+        {product.short_description || "Oferta reforzada dentro del catalogo por su nivel de ahorro y disponibilidad actual."}
       </p>
       <div className="mt-auto flex items-center justify-between gap-3">
         <a
@@ -265,7 +249,7 @@ const SuperDeal = () => {
 
       <div
         className="sticky z-30 border-b border-orange-200 bg-white/85 shadow-sm backdrop-blur"
-        style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px))' }}
+        style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px) - var(--header-compact-offset-active, 0px))' }}
       >
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -363,10 +347,10 @@ const SuperDeal = () => {
               <div className="bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-6 py-8 text-white sm:px-10">
                 <p className="text-sm font-semibold uppercase tracking-[0.3em]">Super deals</p>
                 <h1 className="mt-2 text-3xl font-black sm:text-4xl">
-                  Descuentos irrepetibles en productos premium
+                  Ofertas reforzadas con ahorro visible y stock operativo
                 </h1>
                 <p className="mt-4 max-w-2xl text-base sm:text-lg text-white/85">
-                  Cada super deal esta seleccionado por nuestro equipo para ofrecerte el mejor precio del mercado con garantia total.
+                  Este bloque destaca productos que concentran descuento, disponibilidad y conversion historica dentro del catalogo activo.
                 </p>
                 <div className="mt-6 flex flex-wrap items-center gap-4">
                   <button
@@ -398,7 +382,7 @@ const SuperDeal = () => {
                   <dd className="mt-2 text-2xl font-bold text-slate-900">
                     {insights.averageDiscount ? `-${insights.averageDiscount}%` : "Sin datos"}
                   </dd>
-                  <p className="mt-1 text-xs text-slate-500">Sobre el precio original</p>
+                  <p className="mt-1 text-xs text-slate-500">Sobre el precio original visible</p>
                 </div>
               </dl>
             </div>

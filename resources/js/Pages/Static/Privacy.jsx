@@ -1,48 +1,39 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import Header from '@/Components/navigation/Header.jsx';
 import TopNavMenu from '@/Components/navigation/TopNavMenu.jsx';
+import { useI18n } from '@/i18n';
 
 export default function Privacy() {
+  const { t } = useI18n();
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
-      <Head title="Política de privacidad | Limoneo" />
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800">
+      <Head title={t('static.privacy.head_title')} />
       <Header />
       <TopNavMenu />
-      <main className="flex-grow max-w-3xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-indigo-700 mb-6 text-center">Política de privacidad</h1>
-        <div className="bg-white rounded-xl shadow p-6 space-y-4 text-gray-700 text-sm">
+      <main className="mx-auto flex-grow max-w-3xl p-6">
+        <h1 className="mb-6 text-center text-3xl font-bold text-indigo-700">{t('static.privacy.title')}</h1>
+        <div className="space-y-4 rounded-xl bg-white p-6 text-sm text-gray-700 shadow">
+          <p>{t('static.privacy.intro')}</p>
+          <h2 className="mt-4 font-semibold text-indigo-600">{t('static.privacy.sections.collected.title')}</h2>
+          <p>{t('static.privacy.sections.collected.body')}</p>
+          <h2 className="mt-4 font-semibold text-indigo-600">{t('static.privacy.sections.usage.title')}</h2>
+          <p>{t('static.privacy.sections.usage.body')}</p>
+          <h2 className="mt-4 font-semibold text-indigo-600">{t('static.privacy.sections.protection.title')}</h2>
+          <p>{t('static.privacy.sections.protection.body')}</p>
+          <h2 className="mt-4 font-semibold text-indigo-600">{t('static.privacy.sections.sharing.title')}</h2>
+          <p>{t('static.privacy.sections.sharing.body')}</p>
+          <h2 className="mt-4 font-semibold text-indigo-600">{t('static.privacy.sections.cookies.title')}</h2>
+          <p>{t('static.privacy.sections.cookies.body')}</p>
+          <h2 className="mt-4 font-semibold text-indigo-600">{t('static.privacy.sections.rights.title')}</h2>
           <p>
-            En Limoneo, tu privacidad es fundamental. Esta política explica cómo recopilamos, usamos y protegemos tu información personal.
+            {t('static.privacy.sections.rights.body_prefix')}{' '}
+            <Link href="/contact" className="text-indigo-600 underline">{t('static.privacy.sections.rights.body_link')}</Link>
+            {t('static.privacy.sections.rights.body_suffix')}
           </p>
-          <h2 className="font-semibold text-indigo-600 mt-4">1. Información recopilada</h2>
-          <p>
-            Recopilamos datos que nos proporcionas al registrarte, realizar compras o contactar soporte, como nombre, correo electrónico, dirección y detalles de pago.
-          </p>
-          <h2 className="font-semibold text-indigo-600 mt-4">2. Uso de la información</h2>
-          <p>
-            Utilizamos tus datos para procesar pedidos, mejorar tu experiencia, enviar notificaciones relevantes y cumplir con obligaciones legales.
-          </p>
-          <h2 className="font-semibold text-indigo-600 mt-4">3. Protección de datos</h2>
-          <p>
-            Implementamos medidas de seguridad para proteger tu información contra accesos no autorizados, alteraciones o divulgación.
-          </p>
-          <h2 className="font-semibold text-indigo-600 mt-4">4. Compartir información</h2>
-          <p>
-            No compartimos tus datos personales con terceros, salvo para procesar pagos, envíos o cuando la ley lo requiera.
-          </p>
-          <h2 className="font-semibold text-indigo-600 mt-4">5. Cookies</h2>
-          <p>
-            Utilizamos cookies para mejorar la navegación y personalizar la experiencia. Puedes gestionar tus preferencias en cualquier momento.
-          </p>
-          <h2 className="font-semibold text-indigo-600 mt-4">6. Derechos del usuario</h2>
-          <p>
-            Puedes acceder, modificar o eliminar tus datos personales contactándonos a través de la página de <a href="/contact" className="text-indigo-600 underline">Contacto</a>.
-          </p>
-          <h2 className="font-semibold text-indigo-600 mt-4">7. Cambios en la política</h2>
-          <p>
-            Nos reservamos el derecho de actualizar esta política. Te notificaremos sobre cambios importantes a través del sitio web o por correo electrónico.
-          </p>
+          <h2 className="mt-4 font-semibold text-indigo-600">{t('static.privacy.sections.changes.title')}</h2>
+          <p>{t('static.privacy.sections.changes.body')}</p>
         </div>
       </main>
     </div>

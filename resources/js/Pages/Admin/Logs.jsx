@@ -1,4 +1,4 @@
-// resources/js/Pages/Admin/Logs.jsx
+﻿// resources/js/Pages/Admin/Logs.jsx
 import React from 'react';
 
 export default function Logs({ logs }) {

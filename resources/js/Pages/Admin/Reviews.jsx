@@ -1,6 +1,17 @@
-import React from 'react';
+﻿import React from 'react';
+import { router } from '@inertiajs/react';
 
 export default function Reviews({ reviews }) {
+  const handleDelete = (review) => {
+    if (!window.confirm(`¿Eliminar la review #${review.id}?`)) {
+      return;
+    }
+
+    router.delete(`/admin/reviews/${review.id}`, {
+      preserveScroll: true,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-2xl font-bold mb-6">Gestión de Reviews</h1>
@@ -24,9 +35,7 @@ export default function Reviews({ reviews }) {
               <td>{review.rating}</td>
               <td>{review.comment}</td>
               <td>
-                <form method="POST" action={`/admin/reviews/${review.id}/delete`}>
-                  <button type="submit" className="bg-red-500 text-white px-3 py-1 rounded">Eliminar</button>
-                </form>
+                <button type="button" onClick={() => handleDelete(review)} className="bg-red-500 text-white px-3 py-1 rounded">Eliminar</button>
               </td>
             </tr>
           ))}

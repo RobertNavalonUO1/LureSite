@@ -1,8 +1,10 @@
-import PrimaryButton from '@/Components/ui/PrimaryButton.jsx';
+﻿import PrimaryButton from '@/Components/ui/PrimaryButton.jsx';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
+import { useI18n } from '@/i18n';
 
 export default function VerifyEmail() {
+    const { t } = useI18n();
     const { status } = usePage().props;
     const resendForm = useForm({});
     const logoutForm = useForm({});
@@ -14,30 +16,29 @@ export default function VerifyEmail() {
 
     return (
         <GuestLayout>
-            <Head title="Verificar Correo" />
+            <Head title={t('auth.verify_email_title')} />
 
             <div className="mb-4 text-sm text-gray-600">
-                Gracias por registrarte. Por favor, revisa tu correo electrónico y haz clic en el enlace de verificación.
-                Si no lo recibiste, puedes solicitar otro.
+                {t('auth.verify_email_desc')}
             </div>
 
             {status === 'verification-link-sent' && (
                 <div className="mb-4 text-sm font-medium text-green-600">
-                    Se envió un nuevo enlace de verificación a tu correo.
+                    {t('auth.verify_email_sent')}
                 </div>
             )}
 
             <form onSubmit={resend}>
                 <div className="mt-4 flex items-center justify-between">
                     <PrimaryButton disabled={resendForm.processing}>
-                        Reenviar correo de verificación
+                        {t('auth.resend_verification')}
                     </PrimaryButton>
                     <button
                         type="button"
                         onClick={() => logoutForm.post(route('logout'))}
                         className="text-sm text-gray-600 underline hover:text-gray-900"
                     >
-                        Cerrar sesión
+                        {t('auth.logout')}
                     </button>
                 </div>
             </form>

@@ -2,7 +2,7 @@
 
 Este documento es un **handoff accionable** para implementar el siguiente bloque de trabajo sin ambigüedades.
 
-Última actualización: 2026-03-03 07:09
+Última actualización: 2026-03-14
 
 ## Decisiones ya tomadas (importante)
 
@@ -13,6 +13,66 @@ Este documento es un **handoff accionable** para implementar el siguiente bloque
 - Productos: importación **manual** (admin ejecuta scraper → ingesta → migración a `products`).
 
 ## Estado actual (para situarte rápido)
+
+### Dataset QA disponible
+
+- Ya existe un seeder dedicado para poblar un entorno local con volumen alto de datos funcionales:
+  - `Database\\Seeders\\QaDatasetSeeder`
+- Comandos preparados en `composer.json`:
+  - `composer qa:refresh`
+  - `composer seed:qa`
+  - `composer test:qa-dataset`
+- Cobertura del dataset:
+  - usuarios QA con credenciales conocidas
+  - direcciones y preferencias de cookies
+  - catalogo, detalles, galerias e inventario temporal
+  - cupones y banners
+  - pedidos en todos los estados operativos, incluyendo fallidos, devoluciones y reembolsados
+- Detalle operativo y credenciales: `docs/QA_DATASET.md`
+
+### Estado funcional reciente: rutas, pedidos y admin
+
+- Se cerró una remediación fuerte sobre `routes/web.php` y flujos asociados.
+- Ya están cubiertos en código y tests:
+  - ownership en `GET /orders/{order}`,
+  - validación real de `checkout/success` para Stripe/PayPal,
+  - direcciones alineadas con su API JSON,
+  - protección de rutas internas admin/product migration,
+  - `toggle-admin` endurecido,
+  - mutaciones admin migradas a `DELETE` y `PATCH`,
+  - workflow admin de devoluciones: aprobar, rechazar, reembolsar.
+- Suite focalizada validada al cierre del bloque:
+  - `24 tests`, `104 assertions`.
+
+### Qué no está completamente cerrado todavía
+
+- El refund administrativo ya intenta ejecutarse contra Stripe/PayPal, guarda trazabilidad mínima (`payment_reference_id`, `refund_reference_id`, `refunded_at`, `refund_error`) y cuenta con una primera capa de idempotencia/logging.
+- Aun así, falta endurecer la parte operativa: reintentos, validación por entorno más exhaustiva, observabilidad y posible UI ampliada para errores de refund.
+- El residuo admin más claro (`AdminOrders.jsx`) ya fue retirado, pero todavía conviene revisar si quedan casos menores o duplicados menos evidentes.
+- Los warnings de PHPUnit por metadata en doc-comments siguen pendientes en tests antiguos.
+
+### Estado funcional reciente: rutas públicas especiales y coherencia comercial
+
+- Ya están implementadas las dos APIs públicas que faltaban para las páginas especiales:
+  - `GET /api/new-arrivals`
+  - `GET /api/seasonal-products`
+- También se normalizó el payload de:
+  - `GET /api/deals-today`
+  - `GET /api/superdeals`
+  - `GET /api/fast-shipping`
+- Esos endpoints ahora exponen precio, precio original cuando aplica, categoría, badge y enlace real al producto.
+- `fast-shipping` ya no depende de una colección cruda serializada desde la ruta; recibe un payload alineado con las demás páginas especiales.
+- Catálogo, detalle y páginas especiales muestran moneda alineada con checkout (`USD`).
+- Se limpió el copy más claramente placeholder en `NewArrivals`, `SeasonalProducts`, `DealsToday`, `SuperDeal`, `FastShipping`, `ProductCard` y `ProductDetails`.
+- Validación focalizada nueva:
+  - `php artisan test tests/Feature/AdminRestWorkflowTest.php tests/Feature/PublicCatalogApiTest.php`
+  - resultado: `8 tests`, `46 assertions`.
+
+### Qué sigue abierto en la parte pública
+
+- `FAQ`, `Terms`, `Privacy` y `Contact` ya fueron reescritas con tono y contexto operativos.
+- `Footer`, `TopBanner` y el overlay visible de `Landing/Universe` también quedaron alineados con el estado real del proyecto.
+- Aun así, siguen quedando algunos fallback de marketing y bloques editoriales secundarios que conviene revisar antes de considerar completada la web pública.
 
 ### Landing-only (producción)
 
@@ -45,23 +105,25 @@ Links completos para obtener variables OAuth:
 
 ### Problema actual: acentos / mojibake
 
-Hay literales con codificación rota (ej. `EnvÃ­o`, `direcci�n`, `protecci�n`, `??`) en ficheros PHP y React.
-Esto NO se arregla con `<meta charset="utf-8">` (ya está), sino corrigiendo **la codificación real del archivo** y/o reescribiendo los textos.
+La pasada principal ya quedó hecha en `app/`, `resources/` y `routes/`.
+Si reaparece texto roto, la forma de validarlo sigue siendo la misma: búsqueda global por patrones `Ã`, `Â`, `�`, reescritura del literal y guardado real en UTF-8.
+No intentar “arreglarlo” en runtime.
 
-Ejemplos ya detectados:
-- `resources/js/Pages/Shop/Checkout.jsx`
-- `app/Http/Controllers/CheckoutController.php`
-- `routes/web.php`
+### Estado UI actual: Home / Header / Banners
 
-### Problemas UI actuales: Home / Header / Banners
-
-- Header: en algunos casos entra en bucle (sube/baja) cuando cambia su altura y el estado “compacto” oscila.
-  - Revisar: histéresis (umbral de entrada/salida), cómo se calcula/propaga `--header-sticky-height` y los listeners de scroll.
-  - Código principal: `resources/js/Components/navigation/Header.jsx`.
-- Aside/Banners: en ciertos breakpoints un banner derecho puede tapar contenido.
-  - Revisar: contenedores `relative/absolute`, stacking context, `z-index` y anchos.
-  - Componente: `resources/js/Components/marketing/SidebarBanners.jsx`.
-  - Snippet asociado (overlay/shimmer en hover): `absolute -left-1/2 ... group-hover:translate-x-[260%] ...`.
+- Header: el bucle visual quedó resuelto con una fuente única de estado compacto.
+  - `StorefrontLayout.jsx` calcula `isCompact` con `useScrollCompact()` y lo pasa a `Header.jsx` y `TopNavMenu.jsx`.
+  - `Header.jsx` actualiza `--header-sticky-height` según la altura real activa y mantiene `z-50`.
+  - `TopNavMenu.jsx` queda debajo con `z-40` y usa el `top` calculado desde esa variable.
+- Aside/Banners: la invasión visual del banner derecho sigue contenida.
+  - `SidebarBanners.jsx` no compite como sticky con el panel utilitario.
+  - El aside derecho de Home no debe recibir `z-index` alto salvo que haya una razón concreta.
+- Filtros catálogo: el sistema ya quedó unificado.
+  - Componente base oficial: `resources/js/Components/catalog/CatalogFilterPanel.jsx`.
+  - Resumen de filtros: `resources/js/Components/catalog/ActiveFilters.jsx`.
+  - Tokens sticky compartidos: `resources/js/config/catalogLayout.js`.
+  - Páginas unificadas: `resources/js/Pages/Shop/Home.jsx`, `resources/js/Pages/Search/Results.jsx`, `resources/js/Pages/Shop/CategoryPage.jsx`.
+  - Regla arquitectónica: solo el filtro domina el sticky del aside; marketing/promos no deben usar el mismo anclaje sticky.
 
 ### Productos + scrapers Python (estado)
 
@@ -76,7 +138,41 @@ Gotchas conocidos:
 
 ---
 
-## 1) Auth: Socialite (Google/Facebook)
+## 1) Fase inmediata recomendada: cerrar contenido público y luego volver a refund/admin
+
+### Objetivo
+
+- Cerrar la deuda más visible del sitio público ahora que las rutas especiales ya están conectadas a datos reales, y después continuar con refund/admin residual.
+
+### Qué revisar primero
+
+1. Fallbacks de marketing y copy residual:
+  - revisar `SidebarBanners`, `AutumnShowcase` y otros bloques con contenido de relleno,
+  - sustituir texto decorativo por valor comercial concreto,
+  - barrer componentes del storefront que todavía no se hayan revisado tras esta pasada.
+2. Residuos legacy admin:
+  - buscar pantallas duplicadas o antiguas del admin que no se hayan barrido aún,
+  - revisar formularios o acciones que sigan fuera del patrón Inertia ya adoptado,
+  - asegurar mensajes y confirmaciones coherentes.
+3. Operativa del refund:
+  - revisar `OrderRefundService`, `CheckoutController` y `AdminController`,
+  - endurecer reintentos y tratamiento de fallos temporales,
+  - validar configuración `PAYPAL_MODE` y secretos por entorno,
+  - decidir si el admin debe ver el último error de refund.
+4. Cobertura:
+  - ampliar tests si aparece algún recurso admin fuera de la nueva cobertura,
+  - convertir a atributos las pruebas antiguas con metadata en doc-comments cuando toque limpieza de warnings.
+
+### Definition of Done
+
+- Las páginas públicas principales ya no muestran texto claramente de plantilla.
+- La app no comunica `reembolsado` sin base operativa clara.
+- No quedan consumidores activos del contrato admin antiguo.
+- La cobertura del bloque sigue verde.
+
+---
+
+## 2) Auth: Socialite (Google/Facebook)
 
 ### Objetivo
 
@@ -97,7 +193,7 @@ Gotchas conocidos:
 
 ---
 
-## 2) Multiidioma (es/en/fr) + corrección de acentos
+## 3) Multiidioma (es/en/fr) + corrección de acentos
 
 ### Objetivo
 
@@ -108,29 +204,28 @@ Gotchas conocidos:
 Estado actual:
 
 - Locale `es/en/fr` ya se guarda por cookie/sesión y hay selector en header (desktop y mobile).
-- Si hace falta traducción real de strings en React, todavía hay textos hardcodeados pendientes de migrar a un diccionario.
+- i18n frontend ya está implementado con diccionarios JSON + hook `useI18n()`.
+  - Diccionarios: `resources/js/i18n/{es,en,fr}.json`
+  - Implementación/uso: `resources/js/i18n/README.md`
+- Páginas ya migradas a `t('...')` (ejemplos):
+  - Legacy: `resources/js/Pages/Legacy/Welcome.jsx`, `resources/js/Pages/Legacy/HomePage.jsx`
+  - Landing-only: `resources/js/Pages/Landing/Universe.jsx`
+- Importante (scope actual): las pantallas de Admin se mantienen sin i18n (strings hardcodeados), aunque existan claves `admin.*` en los JSON.
+- Aun así, quedan textos hardcodeados en otras vistas que pueden seguir migrándose si se desea.
 
-### Paso 0 — Arreglar mojibake (imprescindible antes de i18n)
+### Paso 0 — Arreglar mojibake (imprescindible antes de seguir ampliando i18n)
 
 1) Asegura que los archivos se guardan como **UTF-8**.
 2) Reescribe los literales corruptos (no “arreglar en runtime”).
 3) Haz una búsqueda global por patrones típicos:
    - `Ã`, `Â`, `�`, `??`
 
-### i18n: implementación mínima sugerida
+### i18n: implementación (actual)
 
-Como Inertia usa React, hay dos caminos típicos:
+Se está usando el enfoque “Opción A” (diccionarios JSON + `useI18n()`).
 
-- Opción A (recomendada para MVP):
-  - Diccionarios JSON en `resources/js/i18n/{es,en,fr}.json`.
-  - Un `t(key)` muy simple.
-  - Locale en cookie/localStorage.
-  - Backend expone el locale actual en shared props (Inertia).
-
-- Opción B:
-  - Laravel lang files (`resources/lang/...`) + endpoint para enviar traducciones al frontend.
-
-Elige una opción y documenta el patrón en un README corto dentro de `resources/js/i18n/`.
+- Documentación del patrón: `resources/js/i18n/README.md`
+- Nota: el locale viene del backend vía Inertia props (`locale`) y se cambia con `POST /locale`.
 
 ### Definition of Done
 
@@ -140,7 +235,7 @@ Elige una opción y documenta el patrón en un README corto dentro de `resources
 
 ---
 
-## 3) Productos: scrapers Python → TemporaryProduct → migración a Product (manual)
+## 4) Productos: scrapers Python → TemporaryProduct → migración a Product (manual)
 
 ### Objetivo
 
@@ -183,6 +278,10 @@ Pendientes opcionales (mejoras):
 - Revisar `PythonScriptController`:
   - Usar el python embebido consistentemente.
   - Evitar el archivo temporal fijo si hay concurrencia.
+
+### Prioridad relativa
+
+Este bloque ya no es la prioridad inmediata del proyecto. Debe retomarse justo después de cerrar refund real + limpieza REST/admin residual.
 
 ### Definition of Done
 

@@ -1,3 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+	--header-sticky-height-expanded: 6.75rem;
+	--header-sticky-height-compact: 4.125rem;
+	--header-sticky-height: var(--header-sticky-height-expanded);
+	--header-compact-offset: calc(var(--header-sticky-height-expanded) - var(--header-sticky-height-compact));
+	--header-compact-offset-active: 0px;
+	--topnav-sticky-height: 4rem;
+	--category-rail-height: 6.75rem;
+	--category-rail-height-compact: 3.75rem;
+}
+
+@media (min-width: 768px) {
+	:root {
+		--header-sticky-height-expanded: 10.5rem;
+		--header-sticky-height-compact: 5rem;
+		--topnav-sticky-height: 5rem;
+		--category-rail-height: 8.5rem;
+		--category-rail-height-compact: 4.75rem;
+	}
+}

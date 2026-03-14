@@ -2,82 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Address;
-use Illuminate\Http\Request;
+use App\Http\Requests\DeleteUserRequest;
+use App\Http\Requests\ProfileUpdateRequest;
+use App\Services\ProfileService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ProfileController extends Controller
 {
-    /**
-     * Muestra el formulario de edición del perfil.
-     */
-    public function edit()
+    public function __construct(
+        protected ProfileService $profileService
+    ) {
+    }
+
+    public function edit(): Response
     {
-        $user = Auth::user()->load('addresses');
-
-        $uniqueAddresses = $user->addresses
-            ->unique(fn($addr) => $addr->street . $addr->city . $addr->zip_code)
-            ->values();
-
         return Inertia::render('Profile/EditProfile', [
-            'auth' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'lastname' => $user->lastname,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    'avatar' => $user->avatar ?? '/default-avatar.png',
-                    'default_address_id' => $user->default_address_id,
-                ],
-            ],
-            'addresses' => $uniqueAddresses,
-            'paymentMethods' => [
-                'default' => 'stripe',
-                'available' => ['stripe', 'paypal'],
-            ],
+            'profile' => $this->profileService->profilePageData(Auth::user()),
         ]);
     }
 
-    /**
-     * Actualiza el perfil del usuario (nombre, avatar, etc.).
-     */
-    public function update(Request $request)
+    public function update(ProfileUpdateRequest $request)
     {
-        $user = Auth::user();
+        $this->profileService->updateProfile($request->user(), $request->validated());
 
-        $validated = $request->validate([
-            'name' => ['nullable', 'string', 'max:255'],
-            'lastname' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'phone' => ['nullable', 'string', 'regex:/^\+\d{1,4}\s\d{6,15}$/'],
-            'avatar' => ['nullable', 'string', 'max:255'], // Ruta del avatar (URL o asset local)
-            'payment_method' => ['nullable', 'in:stripe,paypal'],
-            'default_address_id' => ['nullable', 'exists:addresses,id'],
-        ]);
-
-        if (array_key_exists('email', $validated) && $validated['email'] !== null && $validated['email'] !== $user->email) {
-            $user->email_verified_at = null;
-        }
-
-        $user->fill($validated);
-        $user->save();
-
-        return Redirect::route('profile.edit')->with('success', 'Perfil actualizado correctamente.');
+        return Redirect::route('profile.edit')->with('success', __('profile.updated'));
     }
 
-    /**
-     * Elimina la cuenta del usuario.
-     */
-    public function destroy(Request $request)
+    public function destroy(DeleteUserRequest $request)
     {
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
-
         $user = $request->user();
 
         Auth::logout();
@@ -88,61 +43,5 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
-    }
-
-    /**
-     * Actualiza una dirección existente del usuario.
-     */
-    public function updateAddress(Request $request, Address $address)
-    {
-        $this->authorize('update', $address);
-
-        $validated = $request->validate([
-            'street' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'province' => 'required|string|max:255',
-            'zip_code' => 'required|string|max:255',
-            'country' => 'required|string|max:255',
-        ]);
-
-        $address->update($validated);
-
-        return back()->with('success', 'Dirección actualizada correctamente.');
-    }
-
-    /**
-     * Elimina una dirección del usuario (si tiene más de una).
-     */
-    public function destroyAddress(Address $address)
-    {
-        $this->authorize('delete', $address);
-
-        $user = Auth::user();
-        if ($user->addresses()->count() <= 1) {
-            return response()->json(['error' => 'Debes tener al menos una dirección.'], 422);
-        }
-
-        if ($user->default_address_id === $address->id) {
-            $user->default_address_id = $user->addresses()->where('id', '!=', $address->id)->first()?->id;
-            $user->save();
-        }
-
-        $address->delete();
-
-        return response()->json(['success' => true]);
-    }
-
-    /**
-     * Define la dirección predeterminada del usuario.
-     */
-    public function setDefaultAddress(Request $request, Address $address)
-    {
-        $this->authorize('update', $address);
-
-        $user = Auth::user();
-        $user->default_address_id = $address->id;
-        $user->save();
-
-        return response()->json(['success' => true, 'default_address_id' => $address->id]);
     }
 }

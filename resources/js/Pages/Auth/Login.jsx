@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import Checkbox from '@/Components/ui/Checkbox.jsx';
 import InputError from '@/Components/ui/InputError.jsx';

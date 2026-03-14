@@ -1,6 +1,17 @@
-import React from 'react';
+﻿import React from 'react';
+import { router } from '@inertiajs/react';
 
 export default function Products({ products }) {
+  const handleDelete = (product) => {
+    if (!window.confirm(`¿Eliminar el producto "${product.name}"?`)) {
+      return;
+    }
+
+    router.delete(`/admin/products/${product.id}`, {
+      preserveScroll: true,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-2xl font-bold mb-6">Gestión de Productos</h1>
@@ -24,9 +35,7 @@ export default function Products({ products }) {
               <td>${product.price}</td>
               <td>{product.stock}</td>
               <td>
-                <form method="POST" action={`/admin/products/${product.id}/delete`}>
-                  <button type="submit" className="bg-red-500 text-white px-3 py-1 rounded">Eliminar</button>
-                </form>
+                <button type="button" onClick={() => handleDelete(product)} className="bg-red-500 text-white px-3 py-1 rounded">Eliminar</button>
               </td>
             </tr>
           ))}

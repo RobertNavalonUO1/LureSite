@@ -79,6 +79,18 @@
         ],
         "test": [
             "@php artisan test"
+        ],
+        "test:critical": [
+            "@php artisan test tests/Feature/AdminRestWorkflowTest.php tests/Feature/AdminDashboardMetricsTest.php tests/Feature/RouteSecurityTest.php tests/Feature/OrderAuthorizationTest.php tests/Feature/AddressManagementTest.php tests/Feature/PublicCatalogApiTest.php"
+        ],
+        "test:qa-dataset": [
+            "@php artisan test tests/Feature/QaDatasetSeederTest.php"
+        ],
+        "seed:qa": [
+            "@php artisan db:seed --class=Database\\Seeders\\QaDatasetSeeder"
+        ],
+        "qa:refresh": [
+            "@php artisan migrate:fresh --seed --class=Database\\Seeders\\QaDatasetSeeder"
         ]
     },
     "extra": {

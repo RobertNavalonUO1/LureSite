@@ -26,6 +26,7 @@ use App\Http\Controllers\{
     ReviewController
 };
 use App\Services\CampaignBannerResolver;
+use App\Support\CatalogDataLocalizer;
 use App\Http\Controllers\Admin\TemporaryProductImportController;
 
 /*
@@ -50,7 +51,7 @@ if (app()->environment('production') && config('landing.only')) {
 
 /*
 |--------------------------------------------------------------------------
-| API (Públicas)
+| API (PÃºblicas)
 |--------------------------------------------------------------------------
 */
 Route::get('/banners', [\App\Http\Controllers\Api\BannerController::class, 'index']);
@@ -58,12 +59,14 @@ Route::get('/api/search/suggestions', [SearchController::class, 'suggest'])->nam
 Route::get('/api/deals-today', [ProductController::class, 'dealsToday']);
 Route::get('/api/superdeals', [ProductController::class, 'superdeals']);
 Route::get('/api/fast-shipping', [ProductController::class, 'fastShipping']);
+Route::get('/api/new-arrivals', [ProductController::class, 'newArrivals']);
+Route::get('/api/seasonal-products', [ProductController::class, 'seasonalProducts']);
 
 Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
 
 /*
 |--------------------------------------------------------------------------
-| Autenticación Social (Socialite)
+| AutenticaciÃ³n Social (Socialite)
 |--------------------------------------------------------------------------
 */
 Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('auth.social.redirect');
@@ -73,7 +76,7 @@ Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'
 
 /*
 |--------------------------------------------------------------------------
-| Páginas Públicas
+| PÃ¡ginas PÃºblicas
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
@@ -89,24 +92,11 @@ Route::get('/', function () {
     $cartCount = array_sum(array_column($cartItems, 'quantity'));
 
     $campaignData = app(CampaignBannerResolver::class)->resolve();
+    $catalogLocalizer = app(CatalogDataLocalizer::class);
 
     return Inertia::render('Shop/Home', [
-        'categories' => Category::all()->map(fn($c) => [
-            'id' => $c->id, 'name' => $c->name, 'slug' => $c->slug, 'description' => $c->description,
-        ]),
-        'products' => Product::with('category')->get()->map(fn($p) => [
-            'id' => $p->id,
-            'name' => $p->name,
-            'price' => $p->price,
-            'stock' => $p->stock,
-            'image_url' => $p->image_url,
-            'category' => [
-                'id' => $p->category->id ?? null,
-                'name' => $p->category->name ?? 'Sin categoría',
-            ],
-            'is_adult' => $p->is_adult,
-            'link' => $p->link,
-        ]),
+        'categories' => Category::all()->map(fn($c) => $catalogLocalizer->categoryPayload($c)),
+        'products' => Product::with('category')->get()->map(fn($p) => $catalogLocalizer->productPayload($p)),
         'auth' => ['user' => Auth::user()],
         'campaign' => $campaignData,
         'cartCount' => $cartCount,
@@ -117,10 +107,11 @@ Route::get('/', function () {
 
 Route::get('/about', fn () => Inertia::render('Static/About'))->name('about');
 Route::get('/contact', fn () => Inertia::render('Static/Contact'))->name('contact');
-Route::post('/contact', [ContactController::class, 'send']);
+Route::post('/contact', [ContactController::class, 'send'])->middleware('throttle:5,1')->name('contact.send');
 Route::get('/faq', fn () => Inertia::render('Static/Faq'))->name('faq');
 Route::get('/terms', fn () => Inertia::render('Static/Terms'))->name('terms');
 Route::get('/privacy', fn () => Inertia::render('Static/Privacy'))->name('privacy');
+Route::get('/cookies', fn () => Inertia::render('Static/Cookies'))->name('cookies');
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/agregador-enlaces', fn () => Inertia::render('Tools/LinkAggregator'));
     Route::get('/link-aggregator', fn () => Inertia::render('Tools/LinkAggregator'));
@@ -130,15 +121,13 @@ Route::get('/superdeal', fn () => Inertia::render('Special/SuperDeal'))->name('s
 Route::get('/new-arrivals', fn () => Inertia::render('Special/NewArrivals'))->name('new.arrivals');
 Route::get('/seasonal', fn () => Inertia::render('Special/SeasonalProducts'))->name('seasonal');
 
-Route::get('/fast-shipping', fn () => Inertia::render('Special/FastShipping', [
-    'products' => Product::where('is_fast_shipping', true)->latest()->get(),
-]))->name('fast.shipping');
+Route::get('/fast-shipping', [ProductController::class, 'fastShippingPage'])->name('fast.shipping');
 
 Route::get('/search', [SearchController::class, 'search'])->name('search');
 
 /*
 |--------------------------------------------------------------------------
-| Productos y Categorías
+| Productos y CategorÃ­as
 |--------------------------------------------------------------------------
 */
 Route::get('/product/{id}', fn ($id) => Inertia::render('Layouts/ProductPageLayout', [
@@ -149,25 +138,27 @@ Route::get('/product/{id}', fn ($id) => Inertia::render('Layouts/ProductPageLayo
 Route::get('/category/{id}', [CategoryController::class, 'show'])->name('category.show');
 Route::get('/categoria/{slug}', [CategoryController::class, 'showBySlug'])->name('category.slug');
 
-Route::get('/products/add', [AddProdukController::class, 'create'])->name('products.create');
-Route::post('/products/store', [AddProdukController::class, 'store'])->name('products.store');
-Route::get('/select-products', [ProductController::class, 'showTemporaryProducts'])->name('products.select');
-Route::post('/migrate-selected-products', [ProductController::class, 'migrateSelectedProducts'])->name('products.migrate');
-Route::post('/add-temporary-product', [ProductController::class, 'storeTemporaryProduct'])->name('products.storeTemporary');
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/products/add', [AddProdukController::class, 'create'])->name('products.create');
+    Route::post('/products/store', [AddProdukController::class, 'store'])->name('products.store');
+    Route::get('/select-products', [ProductController::class, 'showTemporaryProducts'])->name('products.select');
+    Route::post('/migrate-selected-products', [ProductController::class, 'migrateSelectedProducts'])->name('products.migrate');
+    Route::post('/add-temporary-product', [ProductController::class, 'storeTemporaryProduct'])->name('products.storeTemporary');
 
-// Migración de productos
-Route::prefix('migrate-products')->group(function () {
-    Route::get('/', [ProductMigrationController::class, 'index'])->name('migrate.products');
-    Route::post('/{id}', [ProductMigrationController::class, 'migrate'])->name('migrate.product');
-    Route::post('/bulk', [ProductMigrationController::class, 'bulkMigrate'])->name('bulk.migrate.products');
-    Route::patch('/product/{product}', [ProductMigrationController::class, 'updateProduct'])->name('migrate.product.update');
-    Route::post('/product/{product}/images', [ProductMigrationController::class, 'addImages'])->name('migrate.product.addImages');
+    Route::prefix('migrate-products')->group(function () {
+        Route::get('/', [ProductMigrationController::class, 'index'])->name('migrate.products');
+        Route::post('/{id}', [ProductMigrationController::class, 'migrate'])->name('migrate.product');
+        Route::post('/bulk', [ProductMigrationController::class, 'bulkMigrate'])->name('bulk.migrate.products');
+        Route::patch('/product/{product}', [ProductMigrationController::class, 'updateProduct'])->name('migrate.product.update');
+        Route::post('/product/{product}/images', [ProductMigrationController::class, 'addImages'])->name('migrate.product.addImages');
+    });
+
+    Route::post('/bulk-migrate-products', [ProductMigrationController::class, 'bulkMigrate'])->name('bulk.migrate.products.legacy');
 });
-Route::post('/bulk-migrate-products', [ProductMigrationController::class, 'bulkMigrate'])->name('bulk.migrate.products.legacy');
 
 // Reviews
 Route::get('/products/{product}/reviews', [ReviewController::class, 'index']);
-Route::post('/products/{product}/reviews', [ReviewController::class, 'store']);
+Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->middleware('auth');
 
 /*
 |--------------------------------------------------------------------------
@@ -185,7 +176,6 @@ Route::prefix('cart')->group(function () {
 
 Route::prefix('checkout')->group(function () {
     Route::get('/', [CheckoutController::class, 'index'])->name('checkout');
-    Route::post('/guest-address', [CheckoutController::class, 'storeGuestAddress'])->name('checkout.guest_address');
     Route::post('/coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.coupon');
     Route::post('/shipping', [CheckoutController::class, 'updateShipping'])->name('checkout.shipping');
 });
@@ -204,7 +194,7 @@ Inertia::share([
 
 /*
 |--------------------------------------------------------------------------
-| Rutas con Autenticación
+| Rutas con AutenticaciÃ³n
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
@@ -238,9 +228,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
     Route::prefix('addresses')->name('addresses.')->group(function () {
-        Route::post('/store', [AddressController::class, 'store'])->name('store');
-        Route::put('/{address}', [AddressController::class, 'update'])->name('update');
-        Route::put('/{address}/default', [AddressController::class, 'makeDefault'])->name('default');
+        Route::post('/', [AddressController::class, 'store'])->name('store');
+        Route::patch('/{address}', [AddressController::class, 'update'])->name('update');
+        Route::patch('/{address}/default', [AddressController::class, 'makeDefault'])->name('default');
         Route::delete('/{address}', [AddressController::class, 'destroy'])->name('destroy');
     });
 
@@ -261,39 +251,42 @@ Route::middleware(['auth', 'admin'])
 
         // Pedidos
         Route::get('/orders', [AdminController::class, 'orders'])->name('orders.index');
-        Route::post('/orders/{order}/cancel', [AdminController::class, 'cancelOrder'])->name('orders.cancel');
-        Route::post('/orders/{order}/mark-shipped', [AdminController::class, 'markAsShipped'])->name('orders.shipped');
-        Route::post('/orders/{order}/mark-delivered', [AdminController::class, 'markAsDelivered'])->name('orders.delivered');
+        Route::patch('/orders/{order}/cancel', [AdminController::class, 'cancelOrder'])->name('orders.cancel');
+        Route::patch('/orders/{order}/ship', [AdminController::class, 'markAsShipped'])->name('orders.shipped');
+        Route::patch('/orders/{order}/deliver', [AdminController::class, 'markAsDelivered'])->name('orders.delivered');
+        Route::patch('/orders/{order}/approve-return', [AdminController::class, 'approveReturn'])->name('orders.return.approve');
+        Route::patch('/orders/{order}/reject-return', [AdminController::class, 'rejectReturn'])->name('orders.return.reject');
+        Route::patch('/orders/{order}/refund', [AdminController::class, 'processRefund'])->name('orders.refund.process');
 
         // Usuarios
         Route::get('/users', [AdminController::class, 'users'])->name('users.index');
-        Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('users.toggle');
+        Route::patch('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('users.toggle');
 
-        // Productos (listado + alta rápida)
+        // Productos (listado + alta rÃ¡pida)
         Route::get('/products', [AdminController::class, 'products'])->name('products.index');
         Route::get('/products/create', [AddProdukController::class, 'create'])->name('products.create');
         Route::post('/products', [AddProdukController::class, 'store'])->name('products.store');
-        Route::post('/products/{product}/delete', [AdminController::class, 'deleteProduct'])->name('products.delete');
+        Route::delete('/products/{product}', [AdminController::class, 'deleteProduct'])->name('products.delete');
 
-        // Categorías
+        // CategorÃ­as
         Route::get('/categories', [AdminController::class, 'categories'])->name('categories.index');
-        Route::post('/categories/{category}/delete', [AdminController::class, 'deleteCategory'])->name('categories.delete');
+        Route::delete('/categories/{category}', [AdminController::class, 'deleteCategory'])->name('categories.delete');
         Route::post('/categories/store', [AdminController::class, 'storeCategory'])->name('categories.store');
 
         // Banners
         Route::get('/banners', [AdminController::class, 'banners'])->name('banners.index');
-        Route::post('/banners/{banner}/delete', [AdminController::class, 'deleteBanner'])->name('banners.delete');
+        Route::delete('/banners/{banner}', [AdminController::class, 'deleteBanner'])->name('banners.delete');
         Route::post('/banners/store', [AdminController::class, 'storeBanner'])->name('banners.store');
 
         // Reviews
         Route::get('/reviews', [AdminController::class, 'reviews'])->name('reviews.index');
-        Route::post('/reviews/{review}/delete', [AdminController::class, 'deleteReview'])->name('reviews.delete');
+        Route::delete('/reviews/{review}', [AdminController::class, 'deleteReview'])->name('reviews.delete');
 
-        // Importación a temporales (scrapers)
+        // ImportaciÃ³n a temporales (scrapers)
         Route::post('/temporary-products/import', [TemporaryProductImportController::class, 'import'])
             ->name('temporary-products.import');
 
-        // Logs & métricas
+        // Logs & mÃ©tricas
         Route::get('/logs', [AdminController::class, 'logs'])->name('logs.index');
         Route::get('/stats', [AdminController::class, 'stats'])->name('stats.index');
 
@@ -301,10 +294,10 @@ Route::middleware(['auth', 'admin'])
         Route::get('/coupons', [CouponController::class, 'index'])->name('coupons.index');
         Route::get('/coupons/create', [CouponController::class, 'index'])->name('coupons.create');
         Route::post('/coupons/store', [CouponController::class, 'store'])->name('coupons.store');
-        Route::post('/coupons/{coupon}/delete', [CouponController::class, 'destroy'])->name('coupons.delete');
-        Route::post('/coupons/{coupon}/update', [CouponController::class, 'update'])->name('coupons.update');
+        Route::delete('/coupons/{coupon}', [CouponController::class, 'destroy'])->name('coupons.delete');
+        Route::patch('/coupons/{coupon}', [CouponController::class, 'update'])->name('coupons.update');
 
-        // Configuración
+        // ConfiguraciÃ³n
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings.index');
         Route::post('/settings/update', [AdminController::class, 'updateSettings'])->name('settings.update');
 
@@ -340,7 +333,10 @@ require __DIR__ . '/auth.php';
 | Test Routes (solo desarrollo)
 |--------------------------------------------------------------------------
 */
-Route::get('/test', fn () => Inertia::render('Orders/ShippedOrders', ['message' => '¡Hola Inertia!']));
+if (app()->environment('local')) {
+    Route::get('/test', fn () => Inertia::render('Orders/ShippedOrders', ['message' => 'Hola Inertia!']));
+}
+
 
 
 

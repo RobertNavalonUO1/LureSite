@@ -4,9 +4,11 @@
 // ===============================
 
 import React, { useEffect, useMemo, useState } from "react";
-import { router, usePage } from "@inertiajs/react";
+import { usePage } from "@inertiajs/react";
 import SidebarBanners from "@/Components/marketing/SidebarBanners.jsx";
 import ProductReviews from "@/Components/catalog/ProductReviews.jsx";
+import { addCartItem } from "@/utils/cartClient";
+import { formatCurrency } from "@/utils/pricing";
 
 const FALLBACK_IMAGE = "/images/placeholder-product.png";
 
@@ -60,20 +62,9 @@ const ProductDetails = ({
   const requiresColor = colorOptions.length > 0;
   const requiresSize = sizeOptions.length > 0;
 
-  const currencyFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat("es-MX", {
-        style: "currency",
-        currency: "MXN",
-        maximumFractionDigits: 2,
-      }),
-    []
-  );
-
   const priceLabel = useMemo(() => {
-    const price = Number(product.price) || 0;
-    return currencyFormatter.format(price);
-  }, [currencyFormatter, product.price]);
+    return formatCurrency(product.price);
+  }, [product.price]);
 
   const ratingValue =
     typeof product.rating === "number"
@@ -95,26 +86,20 @@ const ProductDetails = ({
 
     setIsLoading(true);
 
-    router.post(
-      `/cart/${product.id}/add`,
-      {
+    addCartItem(product.id, {
         quantity: Math.max(1, Number(quantity) || 1),
         color: requiresColor ? selectedColor : null,
         size: requiresSize ? selectedSize : null,
-      },
-      {
-        preserveScroll: true,
-        onSuccess: () => {
-          onCartOpen?.();
-          setIsLoading(false);
-        },
-        onError: (serverErrors) => {
-          setErrors(serverErrors || {});
-          alert("Error al agregar al carrito");
-          setIsLoading(false);
-        },
-      }
-    );
+      })
+      .then(() => {
+        onCartOpen?.();
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setErrors((prev) => ({ ...prev, form: "Error al agregar al carrito" }));
+        alert("Error al agregar al carrito");
+        setIsLoading(false);
+      });
   };
 
   const banner4 = banners?.[3]
@@ -122,9 +107,9 @@ const ProductDetails = ({
     : [
         {
           src: "/images/banner4.webp",
-          alt: "Promoción destacada",
-          href: "/promocion/3",
-          button: "Descubrir",
+          alt: "Super deal activo",
+          href: "/superdeal",
+          button: "Ver oferta",
         },
       ];
 

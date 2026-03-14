@@ -1,4 +1,4 @@
-import { useForm, usePage } from "@inertiajs/react";
+﻿import { useForm, usePage } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 
 export default function SelectProducts({ temporaryProducts, categories, migratedProducts = [], error }) {
@@ -65,7 +65,7 @@ export default function SelectProducts({ temporaryProducts, categories, migrated
                 return {
                     id: parseInt(id),
                     name: data.title,
-                    description: data.title, // Usamos el título como descripción
+                    description: data.title,
                     price: parseFloat(data.price),
                     image_url: data.image_url,
                     stock: parseInt(data.stock) || 10,
@@ -100,7 +100,7 @@ export default function SelectProducts({ temporaryProducts, categories, migrated
 
             {errorMessage && (
                 <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded relative transition">
-                    <strong className="block mb-1">❌ Error:</strong>
+                    <strong className="block mb-1">Error:</strong>
                     <span>{errorMessage}</span>
                     <button
                         onClick={() => setErrorMessage("")}
@@ -128,7 +128,7 @@ export default function SelectProducts({ temporaryProducts, categories, migrated
                     <table className="w-full border text-sm">
                         <thead className="bg-gray-100">
                             <tr>
-                                <th className="p-2 border">✔</th>
+                                <th className="p-2 border">OK</th>
                                 <th className="p-2 border">Imagen</th>
                                 <th className="p-2 border">Título</th>
                                 <th className="p-2 border">Precio</th>
@@ -232,7 +232,7 @@ export default function SelectProducts({ temporaryProducts, categories, migrated
                             </>
                         ) : (
                             <>
-                                <h3 className="text-xl font-bold text-green-600 mb-2">✅ Productos Migrados</h3>
+                                <h3 className="text-xl font-bold text-green-600 mb-2">Productos migrados</h3>
                                 <ul className="text-left mt-4 max-h-60 overflow-y-auto text-sm">
                                     {migratedTitles.map((name, idx) => (
                                         <li key={idx} className="mb-1">• {name}</li>

@@ -228,7 +228,7 @@ const CategoryCards = ({ categories = [], renderDropdown }) => {
     const dropdown = (
       <CategoryDropdown
         key={type}
-        title={type === "all" ? "Todas las categorias" : "Mas categorias"}
+        title={type === "all" ? "Todas las categorías" : "Más categorías"}
         categories={list}
         position={position}
         onClose={closeDropdown}
@@ -260,7 +260,7 @@ const CategoryCards = ({ categories = [], renderDropdown }) => {
             opacity: canScrollPrev ? 1 : 0,
             pointerEvents: canScrollPrev ? "auto" : "none",
           }}
-          aria-label="Ver categorias anteriores"
+          aria-label="Ver categorías anteriores"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -282,7 +282,7 @@ const CategoryCards = ({ categories = [], renderDropdown }) => {
               aria-expanded={activeDropdown === "all"}
             >
               <Package className="h-4 w-4 text-[#131921]" aria-hidden="true" />
-              <span>Todas las categorias</span>
+              <span>Todas las categorías</span>
               <ChevronDown
                 className={`h-3.5 w-3.5 transition ${
                   activeDropdown === "all" ? "rotate-180" : "group-hover:-translate-y-0.5"
@@ -317,7 +317,7 @@ const CategoryCards = ({ categories = [], renderDropdown }) => {
                 aria-expanded={activeDropdown === "more"}
               >
                 <Plus className="h-4 w-4 text-[#febd69]" aria-hidden="true" />
-                <span>Mas</span>
+                <span>Más</span>
                 <ChevronDown
                   className={`h-3.5 w-3.5 transition ${
                     activeDropdown === "more" ? "rotate-180" : "group-hover:-translate-y-0.5"
@@ -337,7 +337,7 @@ const CategoryCards = ({ categories = [], renderDropdown }) => {
             opacity: canScrollNext ? 1 : 0,
             pointerEvents: canScrollNext ? "auto" : "none",
           }}
-          aria-label="Ver Mas categorias"
+          aria-label="Ver más categorías"
         >
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </button>

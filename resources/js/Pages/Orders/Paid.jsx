@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { usePage } from '@inertiajs/react';
 import Header from '@/Components/navigation/Header.jsx';
 import Footer from '@/Components/navigation/Footer.jsx';
@@ -20,10 +20,30 @@ const STATUS_INFO = {
     color: 'bg-amber-100 text-amber-800 border-amber-300',
     icon: <XCircle className="w-5 h-5 text-amber-600" />,
   },
+  entregado: {
+    label: 'Entregado',
+    color: 'bg-cyan-100 text-cyan-800 border-cyan-300',
+    icon: <CreditCard className="w-5 h-5 text-cyan-600" />,
+  },
+  confirmado: {
+    label: 'Confirmado',
+    color: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    icon: <CreditCard className="w-5 h-5 text-emerald-600" />,
+  },
+  devolucion_solicitada: {
+    label: 'Devolución solicitada',
+    color: 'bg-orange-100 text-orange-800 border-orange-300',
+    icon: <RotateCcw className="w-5 h-5 text-orange-600" />,
+  },
   devolucion_aprobada: {
     label: 'Devolución aprobada',
     color: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     icon: <RotateCcw className="w-5 h-5 text-emerald-600" />,
+  },
+  devolucion_rechazada: {
+    label: 'Devolución rechazada',
+    color: 'bg-rose-100 text-rose-800 border-rose-300',
+    icon: <XCircle className="w-5 h-5 text-rose-600" />,
   },
   reembolsado: {
     label: 'Reembolsado',
@@ -61,7 +81,7 @@ const PaidOrders = () => {
                 color: 'bg-gray-100 text-gray-800 border-gray-300',
                 icon: <CreditCard className="w-5 h-5 text-gray-400" />,
               };
-              const refundDisabled = !['devolucion_aprobada'].includes(order.status);
+              const canRequestRefund = ['entregado', 'confirmado'].includes(order.status);
 
               return (
                 <div key={order.id} className={`bg-white p-6 rounded shadow border-l-4 ${statusInfo.color}`}>
@@ -118,24 +138,14 @@ const PaidOrders = () => {
                       </form>
                     )}
 
-                    {order.status === 'devolucion_aprobada' && (
+                    {canRequestRefund && (
                       <form method="POST" action={`/orders/${order.id}/refund`}>
                         <input type="hidden" name="_token" value={csrfToken} />
                         <button
                           type="submit"
-                          disabled={refundDisabled}
-                          title={
-                            refundDisabled
-                              ? 'La solicitud de reembolso estara disponible cuando la cancelacion sea aprobada.'
-                              : ''
-                          }
-                          className={`px-3 py-1 rounded text-sm flex items-center gap-1 text-white transition ${
-                            refundDisabled
-                              ? 'bg-yellow-300 cursor-not-allowed'
-                              : 'bg-yellow-500 hover:bg-yellow-600'
-                          }`}
+                          className="px-3 py-1 rounded text-sm flex items-center gap-1 text-white transition bg-yellow-500 hover:bg-yellow-600"
                         >
-                          <RotateCcw className="w-4 h-4" /> Solicitar Reembolso
+                          <RotateCcw className="w-4 h-4" /> Solicitar devolución
                         </button>
                       </form>
                     )}
@@ -152,9 +162,19 @@ const PaidOrders = () => {
                       Tu solicitud de cancelacion esta en revision. Te confirmaremos el resultado en 24-48 horas.
                     </p>
                   )}
+                  {order.status === 'devolucion_solicitada' && (
+                    <p className="mt-3 text-sm text-orange-700">
+                      La devolución fue solicitada y está pendiente de revisión por el equipo de soporte.
+                    </p>
+                  )}
                   {order.status === 'devolucion_aprobada' && (
                     <p className="mt-3 text-sm text-emerald-700">
-                      La devolucion fue aprobada. Solicita tu reembolso para completar el proceso.
+                      La devolución fue aprobada. El equipo administrativo procesará el reembolso.
+                    </p>
+                  )}
+                  {order.status === 'devolucion_rechazada' && (
+                    <p className="mt-3 text-sm text-rose-700">
+                      La devolución fue rechazada. Si necesitas más detalle, contacta con soporte.
                     </p>
                   )}
                   {order.status === 'reembolsado' && (

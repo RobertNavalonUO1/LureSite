@@ -1,6 +1,9 @@
-import { Head, Link } from '@inertiajs/react';
+﻿import { Head, Link } from '@inertiajs/react';
+import { useI18n } from '@/i18n';
 
 export default function Welcome({ auth, laravelVersion, phpVersion }) {
+    const { t } = useI18n();
+
     const handleImageError = () => {
         document
             .getElementById('screenshot-container')
@@ -14,7 +17,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
     return (
         <>
-            <Head title="Welcome" />
+            <Head title={t('legacy.welcome.head_title')} />
             <div className="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
                 <img
                     id="background"
@@ -43,7 +46,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                         href={route('dashboard')}
                                         className="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
                                     >
-                                        Dashboard
+                                        {t('legacy.welcome.nav.dashboard')}
                                     </Link>
                                 ) : (
                                     <>
@@ -51,13 +54,13 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                             href={route('login')}
                                             className="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
                                         >
-                                            Log in
+                                            {t('legacy.welcome.nav.login')}
                                         </Link>
                                         <Link
                                             href={route('register')}
                                             className="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
                                         >
-                                            Register
+                                            {t('legacy.welcome.nav.register')}
                                         </Link>
                                     </>
                                 )}
@@ -77,13 +80,13 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                     >
                                         <img
                                             src="https://laravel.com/assets/img/welcome/docs-light.svg"
-                                            alt="Laravel documentation screenshot"
+                                            alt={t('legacy.welcome.docs.image_alt')}
                                             className="aspect-video h-full w-full flex-1 rounded-[10px] object-cover object-top drop-shadow-[0px_4px_34px_rgba(0,0,0,0.06)] dark:hidden"
                                             onError={handleImageError}
                                         />
                                         <img
                                             src="https://laravel.com/assets/img/welcome/docs-dark.svg"
-                                            alt="Laravel documentation screenshot"
+                                            alt={t('legacy.welcome.docs.image_alt')}
                                             className="hidden aspect-video h-full w-full flex-1 rounded-[10px] object-cover object-top drop-shadow-[0px_4px_34px_rgba(0,0,0,0.25)] dark:block"
                                         />
                                         <div className="absolute -bottom-16 -left-16 h-40 w-[calc(100%+8rem)] bg-gradient-to-b from-transparent via-white to-white dark:via-zinc-900 dark:to-zinc-900"></div>
@@ -114,18 +117,11 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
                                             <div className="pt-3 sm:pt-5 lg:pt-0">
                                                 <h2 className="text-xl font-semibold text-black dark:text-white">
-                                                    Documentation
+                                                    {t('legacy.welcome.docs.title')}
                                                 </h2>
 
                                                 <p className="mt-4 text-sm/relaxed">
-                                                    Laravel has wonderful
-                                                    documentation covering every
-                                                    aspect of the framework.
-                                                    Whether you are a newcomer
-                                                    or have prior experience
-                                                    with Laravel, we recommend
-                                                    reading our documentation
-                                                    from beginning to end.
+                                                    {t('legacy.welcome.docs.body')}
                                                 </p>
                                             </div>
                                         </div>
@@ -165,16 +161,11 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
                                     <div className="pt-3 sm:pt-5">
                                         <h2 className="text-xl font-semibold text-black dark:text-white">
-                                            Laracasts
+                                            {t('legacy.welcome.laracasts.title')}
                                         </h2>
 
                                         <p className="mt-4 text-sm/relaxed">
-                                            Laracasts offers thousands of video
-                                            tutorials on Laravel, PHP, and
-                                            JavaScript development. Check them
-                                            out, see for yourself, and massively
-                                            level up your development skills in
-                                            the process.
+                                            {t('legacy.welcome.laracasts.body')}
                                         </p>
                                     </div>
 
@@ -214,16 +205,11 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
                                     <div className="pt-3 sm:pt-5">
                                         <h2 className="text-xl font-semibold text-black dark:text-white">
-                                            Laravel News
+                                            {t('legacy.welcome.news.title')}
                                         </h2>
 
                                         <p className="mt-4 text-sm/relaxed">
-                                            Laravel News is a community driven
-                                            portal and newsletter aggregating
-                                            all of the latest and most important
-                                            news in the Laravel ecosystem,
-                                            including new package releases and
-                                            tutorials.
+                                            {t('legacy.welcome.news.body')}
                                         </p>
                                     </div>
 
@@ -258,92 +244,88 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
                                     <div className="pt-3 sm:pt-5">
                                         <h2 className="text-xl font-semibold text-black dark:text-white">
-                                            Vibrant Ecosystem
+                                            {t('legacy.welcome.ecosystem.title')}
                                         </h2>
 
                                         <p className="mt-4 text-sm/relaxed">
-                                            Laravel's robust library of
-                                            first-party tools and libraries,
-                                            such as{' '}
+                                            {t('legacy.welcome.ecosystem.part_1')}
                                             <a
                                                 href="https://forge.laravel.com"
                                                 className="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#FF2D20] dark:hover:text-white dark:focus-visible:ring-[#FF2D20]"
                                             >
                                                 Forge
                                             </a>
-                                            ,{' '}
+                                            {t('legacy.welcome.ecosystem.part_2')}
                                             <a
                                                 href="https://vapor.laravel.com"
                                                 className="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#FF2D20] dark:hover:text-white"
                                             >
                                                 Vapor
                                             </a>
-                                            ,{' '}
+                                            {t('legacy.welcome.ecosystem.part_2')}
                                             <a
                                                 href="https://nova.laravel.com"
                                                 className="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#FF2D20] dark:hover:text-white"
                                             >
                                                 Nova
                                             </a>
-                                            ,{' '}
+                                            {t('legacy.welcome.ecosystem.part_2')}
                                             <a
                                                 href="https://envoyer.io"
                                                 className="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#FF2D20] dark:hover:text-white"
                                             >
                                                 Envoyer
                                             </a>
-                                            , and{' '}
+                                            {t('legacy.welcome.ecosystem.part_3')}
                                             <a
                                                 href="https://herd.laravel.com"
                                                 className="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#FF2D20] dark:hover:text-white"
                                             >
                                                 Herd
-                                            </a>{' '}
-                                            help you take your projects to the
-                                            next level. Pair them with powerful
-                                            open source libraries like{' '}
+                                            </a>
+                                            {t('legacy.welcome.ecosystem.part_4')}
                                             <a
                                                 href="https://laravel.com/docs/billing"
                                                 className="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#FF2D20] dark:hover:text-white"
                                             >
                                                 Cashier
                                             </a>
-                                            ,{' '}
+                                            {t('legacy.welcome.ecosystem.part_2')}
                                             <a
                                                 href="https://laravel.com/docs/dusk"
                                                 className="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#FF2D20] dark:hover:text-white"
                                             >
                                                 Dusk
                                             </a>
-                                            ,{' '}
+                                            {t('legacy.welcome.ecosystem.part_2')}
                                             <a
                                                 href="https://laravel.com/docs/broadcasting"
                                                 className="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#FF2D20] dark:hover:text-white"
                                             >
                                                 Echo
                                             </a>
-                                            ,{' '}
+                                            {t('legacy.welcome.ecosystem.part_2')}
                                             <a
                                                 href="https://laravel.com/docs/horizon"
                                                 className="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#FF2D20] dark:hover:text-white"
                                             >
                                                 Horizon
                                             </a>
-                                            ,{' '}
+                                            {t('legacy.welcome.ecosystem.part_2')}
                                             <a
                                                 href="https://laravel.com/docs/sanctum"
                                                 className="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#FF2D20] dark:hover:text-white"
                                             >
                                                 Sanctum
                                             </a>
-                                            ,{' '}
+                                            {t('legacy.welcome.ecosystem.part_2')}
                                             <a
                                                 href="https://laravel.com/docs/telescope"
                                                 className="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#FF2D20] dark:hover:text-white"
                                             >
                                                 Telescope
                                             </a>
-                                            , and more.
+                                            {t('legacy.welcome.ecosystem.part_5')}
                                         </p>
                                     </div>
                                 </div>
@@ -351,7 +333,10 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                         </main>
 
                         <footer className="py-16 text-center text-sm text-black dark:text-white/70">
-                            Laravel v{laravelVersion} (PHP v{phpVersion})
+                            {t('legacy.welcome.footer.version', {
+                                laravelVersion,
+                                phpVersion,
+                            })}
                         </footer>
                     </div>
                 </div>

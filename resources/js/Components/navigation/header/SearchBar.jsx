@@ -15,7 +15,8 @@ export default function SearchBar({
   value,
   onChange,
   onSubmit,
-  placeholder = 'Buscar productos, categorias o marcas',
+  placeholder = 'Buscar productos, categorías o marcas',
+  submitLabel = 'Buscar',
 }) {
   const formClass = clsx(
     'hidden transition-all duration-300 ease-out',
@@ -25,7 +26,7 @@ export default function SearchBar({
   const wrapperClass = clsx(
     'relative w-full transition-all duration-300 ease-out',
     isCompact
-      ? 'max-w-[12rem] sm:max-w-[14rem] md:max-w-[16rem] focus-within:max-w-md'
+      ? 'max-w-[12rem] sm:max-w-[14rem] md:max-w-[32rem] focus-within:max-w-[36rem]'
       : 'max-w-xl'
   );
 
@@ -60,7 +61,7 @@ export default function SearchBar({
               />
             </svg>
           ) : (
-            'Buscar'
+            submitLabel
           )}
         </button>
       </div>

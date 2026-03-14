@@ -1,41 +1,46 @@
-import React, { useState } from 'react';
+﻿import React from 'react';
+import { useForm } from '@inertiajs/react';
 
 export default function Settings({ settings }) {
-  const [form, setForm] = useState(settings);
+  const { data, setData, post, processing } = useForm({
+    campaign: {
+      mode: settings?.campaign?.mode || 'auto',
+      manual_slug: settings?.campaign?.manual_slug || '',
+    },
+  });
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    post('/admin/settings/update');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-2xl font-bold mb-6">Configuración Global</h1>
-      <form method="POST" action="/admin/settings/update" className="space-y-4">
-        <input type="hidden" name="_token" value={window.Laravel.csrfToken} />
-        {Object.keys(form).map(key => (
-          <div key={key}>
-            <label className="block font-semibold mb-1">{key.replace('_', ' ')}</label>
-            <input
-              name={key}
-              value={form[key] || ''}
-              onChange={e => setForm({ ...form, [key]: e.target.value })}
-              className="border px-2 py-1 w-full"
-            />
-          </div>
-        ))}
-        {/* Campo para añadir nueva configuración */}
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block font-semibold mb-1">Nuevo campo</label>
+          <label className="block font-semibold mb-1">Modo de campaña</label>
+          <select
+            value={data.campaign.mode}
+            onChange={(event) => setData('campaign', { ...data.campaign, mode: event.target.value })}
+            className="border px-2 py-1 w-full"
+          >
+            <option value="auto">Auto</option>
+            <option value="manual">Manual</option>
+          </select>
+        </div>
+        <div>
+          <label className="block font-semibold mb-1">Slug manual de campaña</label>
           <input
-            name="new_key"
-            placeholder="Clave"
-            className="border px-2 py-1 mr-2"
-            onChange={e => setForm({ ...form, new_key: e.target.value })}
-          />
-          <input
-            name="new_value"
-            placeholder="Valor"
-            className="border px-2 py-1"
-            onChange={e => setForm({ ...form, new_value: e.target.value })}
+            value={data.campaign.manual_slug}
+            onChange={(event) => setData('campaign', { ...data.campaign, manual_slug: event.target.value })}
+            className="border px-2 py-1 w-full"
+            placeholder="campaña-manual"
           />
         </div>
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded mt-4">Guardar cambios</button>
+        <button type="submit" disabled={processing} className="bg-blue-600 text-white px-4 py-2 rounded mt-4 disabled:opacity-60">
+          Guardar cambios
+        </button>
       </form>
     </div>
   );

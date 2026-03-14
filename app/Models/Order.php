@@ -8,13 +8,26 @@ class Order extends Model
 {
     protected $fillable = [
         'user_id',
+        'name',
+        'email',
         'total',
         'status',
         'address',
+        'payment_method',
+        'transaction_id',
+        'payment_reference_id',
+        'refund_reference_id',
         'cancellation_reason',
         'cancelled_by',
         'cancelled_at',
+        'refunded_at',
+        'refund_error',
         // otros campos...
+    ];
+
+    protected $casts = [
+        'cancelled_at' => 'datetime',
+        'refunded_at' => 'datetime',
     ];
 
     public function items()
@@ -22,27 +35,31 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function isCancelable(): bool
     {
-        return in_array($this->status, ['confirmado', 'pendiente_envio', 'pagado']);
+        return in_array($this->status, ['pendiente_pago', 'pagado', 'pendiente_envio'], true);
     }
 
     public function isRefundable(): bool
     {
-        return in_array($this->status, ['cancelado', 'devolucion_aprobada']);
+        return in_array($this->status, ['entregado', 'confirmado'], true);
     }
 
     public function canBeCancelled()
     {
-        // Solo si está pendiente o pagado y no enviado/entregado/cancelado
-        return in_array($this->status, ['pendiente_pago', 'pagado', 'pendiente_envio', 'confirmado'])
+        return in_array($this->status, ['pendiente_pago', 'pagado', 'pendiente_envio'], true)
             && !$this->cancelled_at
             && !$this->isShipped();
     }
 
     public function isShipped()
     {
-        return in_array($this->status, ['enviado', 'entregado']);
+        return in_array($this->status, ['enviado', 'entregado', 'confirmado'], true);
     }
 
     // Scopes para facilitar queries
@@ -56,18 +73,15 @@ class Order extends Model
     {
         return $query->whereIn('status', [
             'pagado',
-            'cancelacion_pendiente',
             'pendiente_envio',
             'enviado',
             'entregado',
             'confirmado',
-            'reembolsado',
-            'devolucion_aprobada'
         ]);
     }
 
     public function scopeShipped($query)
     {
-        return $query->whereIn('status', ['pagado', 'pendiente_envio', 'enviado', 'entregado', 'confirmado', 'devolucion_aprobada']);
+        return $query->whereIn('status', ['enviado', 'entregado', 'confirmado']);
     }
 }

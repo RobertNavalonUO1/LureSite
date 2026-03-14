@@ -69,19 +69,31 @@ const ICON_MAP = {
   regalo: Gift,
 };
 
-const resolveIcon = (name = '') => {
-  const normalized = name
+const normalizeKey = (value = '') =>
+  value
     .toString()
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase();
+    .toLowerCase()
+    .trim();
 
-  return ICON_MAP[normalized] || ICON_MAP[normalized.split(' ')[0]] || Package;
+const resolveIcon = (category) => {
+  const candidates = [category?.slug, category?.name, category]
+    .map((value) => normalizeKey(value || ''))
+    .filter(Boolean);
+
+  for (const candidate of candidates) {
+    const firstWord = candidate.split(/[-_\s]+/)[0];
+    if (ICON_MAP[candidate]) return ICON_MAP[candidate];
+    if (ICON_MAP[firstWord]) return ICON_MAP[firstWord];
+  }
+
+  return Package;
 };
 
 const CategoryDropdown = ({ categories, position, onClose, title }) => (
   <div
-    className="fixed z-[2000] w-[min(360px,92vw)] max-h-[420px] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl ring-1 ring-black/10"
+    className="fixed z-[5200] w-[min(360px,92vw)] max-h-[420px] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl ring-1 ring-black/10"
     style={{
       top: position.top,
       left: position.left,
@@ -93,19 +105,21 @@ const CategoryDropdown = ({ categories, position, onClose, title }) => (
       <Package className="h-4 w-4 text-[#febd69]" aria-hidden="true" />
       <span>{title}</span>
     </div>
-    <ul className="grid grid-cols-1 divide-y divide-slate-100 text-sm text-slate-600 sm:grid-cols-2 sm:divide-y-0 sm:divide-x sm:[&>li]:border-b sm:[&>li]:border-b-0">
+    <ul className="grid grid-cols-1 divide-y divide-slate-100 text-sm text-slate-600 sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
       {categories.map((category) => {
-        const Icon = resolveIcon(category.name);
+        const categoryLabel = category?.name ?? String(category ?? '');
+        const categorySlug = category?.slug ?? category?.id ?? '';
+        const Icon = resolveIcon(category);
         return (
-          <li key={category.id ?? category.slug ?? category.name}>
+          <li key={category?.id ?? category?.slug ?? categoryLabel}>
             <Link
-              href={`/categoria/${category.slug ?? category.id ?? ''}`}
+              href={`/categoria/${categorySlug}`}
               onClick={onClose}
               className="group flex items-center gap-2 px-4 py-3 transition hover:bg-[#fdeac2] hover:text-[#131921]"
               role="menuitem"
             >
               <Icon className="h-4 w-4 flex-shrink-0 text-slate-500 transition group-hover:text-[#f3a847]" aria-hidden="true" />
-              <span className="truncate">{category.name}</span>
+              <span className="truncate">{categoryLabel}</span>
             </Link>
           </li>
         );
@@ -114,19 +128,14 @@ const CategoryDropdown = ({ categories, position, onClose, title }) => (
   </div>
 );
 
-const ChevronBadge = () => (
-  <span className="pointer-events-none absolute -bottom-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full border border-white/10 bg-white/10">
-    <ChevronDown className="h-3 w-3 text-white/70" aria-hidden="true" />
-  </span>
-);
-
-export default function CategoryIconBar({ categories = [], renderDropdown, maxVisible = 7 }) {
+export default function CategoryIconBar({ categories = [], renderDropdown, maxVisible = 7, compact = false }) {
   const [activeDropdown, setActiveDropdown] = React.useState(null);
   const allButtonRef = React.useRef(null);
   const moreButtonRef = React.useRef(null);
 
-  const visible = categories.slice(0, maxVisible);
-  const hidden = categories.slice(maxVisible);
+  const effectiveVisible = compact ? Math.max(5, Math.min(maxVisible, 8)) : maxVisible;
+  const visible = categories.slice(0, effectiveVisible);
+  const hidden = categories.slice(effectiveVisible);
 
   const closeDropdown = React.useCallback(() => {
     setActiveDropdown(null);
@@ -164,7 +173,7 @@ export default function CategoryIconBar({ categories = [], renderDropdown, maxVi
     const dropdown = (
       <CategoryDropdown
         key={type}
-        title={type === 'all' ? 'Todas las categorias' : 'Mas categorias'}
+        title={type === 'all' ? 'Todas las categorías' : 'Más categorías'}
         categories={list}
         position={position}
         onClose={closeDropdown}
@@ -175,42 +184,54 @@ export default function CategoryIconBar({ categories = [], renderDropdown, maxVi
     renderDropdown?.(dropdown);
   };
 
-  const buttonBase =
-    'relative group inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 text-white/80 shadow-sm transition hover:border-white/25 hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400';
+  const buttonBase = compact
+    ? 'group inline-flex h-9 w-9 md:h-10 md:w-10 flex-shrink-0 items-center justify-center rounded-lg md:rounded-xl border border-white/10 bg-white/10 text-white/85 shadow-sm transition hover:border-white/25 hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400'
+    : 'group inline-flex flex-shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/85 shadow-sm transition hover:border-white/25 hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400';
 
   const activeButton = 'border-[#f3a847] bg-[#febd69] text-[#131921] shadow-md';
 
   return (
     <div className="relative">
       <div className="mx-auto w-full max-w-[120rem] px-2 sm:px-4">
-        <div className="relative -mt-3">
-          <div className="flex items-center justify-between gap-3 rounded-full bg-gradient-to-r from-[#131921] via-[#182538] to-[#232f3e] px-3 py-2 shadow-lg ring-1 ring-black/15">
-            <div className="flex w-full items-center gap-2 overflow-x-auto py-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20">
+        <div className={compact ? 'relative mt-0' : 'relative -mt-3'}>
+          <div
+            className={[
+              'flex items-center justify-between gap-3 bg-gradient-to-r from-[#131921] via-[#182538] to-[#232f3e] shadow-lg ring-1 ring-black/15',
+              compact ? 'rounded-xl md:rounded-2xl px-1.5 md:px-2 py-1.5 md:py-2' : 'rounded-full px-3 py-2',
+            ].join(' ')}
+          >
+            <div className={compact ? 'flex w-full items-center gap-1.5 md:gap-2 overflow-x-auto py-0.5 md:py-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20' : 'flex w-full items-center gap-2 overflow-x-auto py-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20'}>
               <button
                 ref={allButtonRef}
                 type="button"
                 onClick={() => openDropdown('all', allButtonRef, categories)}
                 className={`${buttonBase} ${activeDropdown === 'all' ? activeButton : ''}`}
-                aria-label="Todas las categorias"
+                aria-label="Todas las categorías"
                 aria-haspopup="menu"
                 aria-expanded={activeDropdown === 'all'}
-                title="Todas las categorias"
+                title="Todas las categorías"
               >
-                <Package className="h-5 w-5" aria-hidden="true" />
-                <ChevronBadge />
+                <Package className="h-4 w-4" aria-hidden="true" />
+                {!compact ? <span className="whitespace-nowrap">Todas las categorías</span> : null}
+                {!compact ? <ChevronDown className="h-4 w-4 opacity-80" aria-hidden="true" /> : null}
+                {compact ? <span className="sr-only">Todas las categorías</span> : null}
               </button>
 
               {visible.map((category) => {
-                const Icon = resolveIcon(category.name);
+                const categoryLabel = category?.name ?? String(category ?? '');
+                const categorySlug = category?.slug ?? category?.id ?? '';
+                const Icon = resolveIcon(category);
                 return (
                   <Link
-                    key={category.id ?? category.slug ?? category.name}
-                    href={`/categoria/${category.slug ?? category.id ?? ''}`}
+                    key={category?.id ?? category?.slug ?? categoryLabel}
+                    href={`/categoria/${categorySlug}`}
                     className={buttonBase}
-                    aria-label={category.name}
-                    title={category.name}
+                    aria-label={categoryLabel}
+                    title={categoryLabel}
                   >
-                    <Icon className="h-5 w-5 transition group-hover:text-[#febd69]" aria-hidden="true" />
+                    <Icon className="h-4 w-4 text-white/90 transition group-hover:text-[#febd69]" aria-hidden="true" />
+                    {!compact ? <span className="whitespace-nowrap">{categoryLabel}</span> : null}
+                    {compact ? <span className="sr-only">{categoryLabel}</span> : null}
                   </Link>
                 );
               })}
@@ -221,19 +242,21 @@ export default function CategoryIconBar({ categories = [], renderDropdown, maxVi
                   type="button"
                   onClick={() => openDropdown('more', moreButtonRef, hidden)}
                   className={`${buttonBase} ${activeDropdown === 'more' ? activeButton : ''}`}
-                  aria-label="Mas categorias"
+                  aria-label="Más categorías"
                   aria-haspopup="menu"
                   aria-expanded={activeDropdown === 'more'}
-                  title="Mas"
+                  title="Más"
                 >
-                  <Plus className="h-5 w-5" aria-hidden="true" />
-                  <ChevronBadge />
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  {!compact ? <span className="whitespace-nowrap">Más</span> : null}
+                  {!compact ? <ChevronDown className="h-4 w-4 opacity-80" aria-hidden="true" /> : null}
+                  {compact ? <span className="sr-only">Más categorías</span> : null}
                 </button>
               )}
             </div>
 
-            <div className="hidden items-center gap-2 pr-1 text-xs font-semibold text-white/60 sm:flex">
-              <span className="hidden md:inline">Categorias</span>
+            <div className={`hidden items-center gap-2 pr-1 text-xs font-semibold text-white/60 sm:flex ${compact ? 'opacity-0 w-0 overflow-hidden pr-0' : ''}`}>
+              <span className="hidden md:inline">Categorías</span>
               <span className="h-1.5 w-1.5 rounded-full bg-white/25" />
               <span className="hidden lg:inline">Tap para abrir</span>
             </div>

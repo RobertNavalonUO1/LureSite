@@ -9,71 +9,34 @@ use Inertia\Inertia;
 
 class OrderController extends Controller
 {
-    /**
-     * Mostrar todos los pedidos del usuario autenticado.
-     */
     public function index()
     {
-        // Todos los pedidos del usuario autenticado
-        $orders = \App\Models\Order::with(['items.product'])
-            ->byUser(auth()->id())
+        $orders = Order::with(['items.product'])
+            ->byUser(Auth::id())
             ->orderByDesc('created_at')
             ->get()
-            ->map(function ($order) {
-                $estimatedDelivery = $order->created_at
-                    ? $order->created_at->copy()->addDays(5)->format('d/m/Y')
-                    : null;
+            ->map(fn (Order $order) => $this->mapOrderListItem($order));
 
-                return [
-                    'id' => $order->id,
-                    'date' => $order->created_at->format('d/m/Y H:i'),
-                    'status' => $order->status,
-                    'total' => $order->total,
-                    'address' => $order->address,
-                    'estimated_delivery' => $estimatedDelivery,
-                    'items' => $order->items->map(function ($item) {
-                        return [
-                            'id' => $item->id,
-                            'name' => $item->product->name ?? $item->name,
-                            'quantity' => $item->quantity,
-                            'price' => $item->price,
-                            'image_url' => $item->product->image_url ?? null,
-                            'product_id' => $item->product->id ?? null,
-                            'product' => $item->product ? $item->product->toArray() : null,
-                        ];
-                    }),
-                ];
-            });
-
-        return \Inertia\Inertia::render('Orders/Index', [
+        return Inertia::render('Orders/Index', [
             'orders' => $orders,
         ]);
     }
 
-    /**
-     * Mostrar pedidos que han sido enviados, entregados o confirmados.
-     */
     public function shipped()
     {
         $statusDetails = [
-            'pagado' => ['label' => 'Pagado', 'progress' => 0],
-            'pendiente_envio' => ['label' => 'Pendiente de envio', 'progress' => 1],
             'enviado' => ['label' => 'Enviado', 'progress' => 2],
             'entregado' => ['label' => 'Entregado', 'progress' => 3],
             'confirmado' => ['label' => 'Confirmado', 'progress' => 3],
-            'devolucion_aprobada' => ['label' => 'Devolucion aprobada', 'progress' => 3],
         ];
 
-        $orders = \App\Models\Order::with(['items.product'])
-            ->byUser(auth()->id())
+        $orders = Order::with(['items.product'])
+            ->byUser(Auth::id())
             ->shipped()
             ->orderByDesc('created_at')
             ->get()
-            ->map(function ($order) use ($statusDetails) {
+            ->map(function (Order $order) use ($statusDetails) {
                 $detail = $statusDetails[$order->status] ?? [];
-                $estimatedDelivery = $order->created_at
-                    ? $order->created_at->copy()->addDays(5)->format('d/m/Y')
-                    : null;
 
                 return [
                     'id' => $order->id,
@@ -82,68 +45,46 @@ class OrderController extends Controller
                     'status_label' => $detail['label'] ?? ucfirst(str_replace('_', ' ', $order->status)),
                     'total' => $order->total,
                     'address' => $order->address,
-                    'estimated_delivery' => $estimatedDelivery,
+                    'estimated_delivery' => $this->estimatedDelivery($order),
                     'progress_step' => $detail['progress'] ?? 0,
-                    'items' => $order->items->map(function ($item) {
-                        return [
-                            'id' => $item->id,
-                            'name' => $item->product->name ?? $item->name,
-                            'quantity' => $item->quantity,
-                            'price' => $item->price,
-                            'image_url' => $item->product->image_url ?? null,
-                            'product_id' => $item->product->id ?? null,
-                            'product' => $item->product ? $item->product->toArray() : null,
-                        ];
-                    })->values(),
+                    'items' => $order->items->map(fn ($item) => $this->mapOrderItem($item))->values(),
                 ];
             })
             ->values();
 
-        return \Inertia\Inertia::render('Orders/ShippedOrders', [
+        return Inertia::render('Orders/ShippedOrders', [
             'orders' => $orders,
         ]);
     }
 
-    /**
-     * Mostrar pedidos pagados (puedes ajustar según tu lógica de negocio).
-     */
     public function paid()
     {
-        // Solo pedidos pagados y posteriores
-        $orders = \App\Models\Order::with(['items.product'])
-            ->byUser(auth()->id())
+        $orders = Order::with(['items.product'])
+            ->byUser(Auth::id())
             ->paid()
             ->orderByDesc('created_at')
             ->get()
-            ->map(function ($order) {
-                return [
-                    'id' => $order->id,
-                    'date' => $order->created_at->format('d/m/Y H:i'),
-                    'status' => $order->status,
-                    'total' => $order->total,
-                    'address' => $order->address,
-                    'items' => $order->items->map(function ($item) {
-                        return [
-                            'id' => $item->id,
-                            'name' => $item->product->name ?? $item->name,
-                            'quantity' => $item->quantity,
-                            'price' => $item->price,
-                            'image_url' => $item->product->image_url ?? null,
-                            'product_id' => $item->product->id ?? null,
-                            'product' => $item->product ? $item->product->toArray() : null,
-                        ];
-                    }),
-                ];
-            });
+            ->map(fn (Order $order) => $this->mapOrderListItem($order));
 
-        return \Inertia\Inertia::render('Orders/Paid', [
+        return Inertia::render('Orders/Paid', [
             'orders' => $orders,
         ]);
     }
 
-    /**
-     * Mostrar pantalla de confirmacion de cancelacion.
-     */
+    public function cancelled()
+    {
+        $orders = Order::with(['items.product'])
+            ->byUser(Auth::id())
+            ->whereIn('status', ['cancelacion_pendiente', 'cancelado', 'devolucion_solicitada', 'devolucion_aprobada', 'devolucion_rechazada', 'reembolsado'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (Order $order) => $this->mapOrderListItem($order));
+
+        return Inertia::render('Orders/CancelledRefundedOrders', [
+            'orders' => $orders,
+        ]);
+    }
+
     public function cancelPrompt($orderId)
     {
         $order = Order::with('items.product')
@@ -162,21 +103,11 @@ class OrderController extends Controller
                 'date' => $order->created_at?->format('d/m/Y H:i'),
                 'status' => $order->status,
                 'total' => $order->total,
-                'items' => $order->items->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'name' => $item->product->name ?? $item->name,
-                        'quantity' => $item->quantity,
-                        'price' => $item->price,
-                    ];
-                })->values(),
+                'items' => $order->items->map(fn ($item) => $this->mapOrderItem($item))->values(),
             ],
         ]);
     }
 
-    /**
-     * Confirmar que el pedido fue recibido por el cliente.
-     */
     public function confirm($orderId)
     {
         $order = Order::where('id', $orderId)
@@ -193,143 +124,27 @@ class OrderController extends Controller
         return back()->with('error', 'Este pedido no puede ser confirmado todavía.');
     }
 
-    /**
-     * Panel de administración: mostrar todos los pedidos.
-     */
-    public function adminIndex()
-    {
-        $orders = Order::with('items.product')
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(fn($order) => [
-                'id' => $order->id,
-                'user' => $order->name,
-                'email' => $order->email,
-                'total' => number_format($order->total, 2),
-                'status' => $order->status,
-                'date' => $order->created_at->format('Y-m-d'),
-                'address' => $order->address,
-                'items' => $order->items->map(fn($item) => [
-                    'product' => $item->product->name ?? 'Eliminado',
-                    'quantity' => $item->quantity,
-                    'price' => $item->price,
-                ]),
-            ]);
-
-        return Inertia::render('Admin/AdminOrders', ['orders' => $orders]);
-    }
-
-    /**
-     * Marcar un pedido como enviado (admin).
-     */
-    public function markAsShipped(Order $order)
-    {
-        if (in_array($order->status, ['confirmado', 'pagado', 'pendiente_envio'])) {
-            $order->status = 'enviado';
-            $order->save();
-
-            return back()->with('success', 'Pedido marcado como enviado.');
-        }
-
-        return back()->with('error', 'No se puede marcar como enviado en este estado.');
-    }
-public function cancelled()
-{
-    $orders = \App\Models\Order::with(['items.product'])
-        ->byUser(auth()->id())
-        ->whereIn('status', ['cancelacion_pendiente', 'cancelado', 'devolucion_aprobada', 'reembolsado'])
-        ->orderByDesc('created_at')
-        ->get()
-        ->map(function ($order) {
-            return [
-                'id' => $order->id,
-                'date' => $order->created_at->format('d/m/Y H:i'),
-                'status' => $order->status,
-                'total' => $order->total,
-                'items' => $order->items->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'name' => $item->product->name ?? $item->name,
-                        'quantity' => $item->quantity,
-                        'price' => $item->price,
-                        'image_url' => $item->product->image_url ?? null,
-                        'product_id' => $item->product->id ?? null,
-                        'product' => $item->product ? $item->product->toArray() : null,
-                    ];
-                }),
-            ];
-        });
-
-    return \Inertia\Inertia::render('Orders/CancelledRefundedOrders', [
-        'orders' => $orders,
-    ]);
-}
-
-    /**
-     * Marcar un pedido como entregado (admin).
-     */
-    public function markAsDelivered(Order $order)
-    {
-        if ($order->status === 'enviado') {
-            $order->status = 'entregado';
-            $order->save();
-
-            return back()->with('success', 'Pedido marcado como entregado.');
-        }
-
-        return back()->with('error', 'No se puede marcar como entregado en este estado.');
-    }
-
-    /**
-     * Formatear y mapear un pedido.
-     */
-    private function transform(Order $order)
-    {
-        return [
-            'id' => $order->id,
-            'date' => $order->created_at->format('Y-m-d'),
-            'total' => number_format($order->total, 2),
-            'status' => $order->status,
-            'address' => $order->address,
-            'items' => $order->items->map(fn($item) => [
-                'id' => $item->product->id ?? null,
-                'name' => $item->product->name ?? 'Producto eliminado',
-                'image' => $item->product->image ?? null,
-                'quantity' => $item->quantity,
-                'price' => $item->price,
-            ]),
-        ];
-    }
     public function show($orderId)
     {
-        $order = \App\Models\Order::with('items.product')->findOrFail($orderId);
+        $order = Order::with('items.product')
+            ->where('id', $orderId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
-        return \Inertia\Inertia::render('Orders/Show', [
+        return Inertia::render('Orders/Show', [
             'order' => [
                 'id' => $order->id,
                 'date' => $order->created_at->format('d/m/Y H:i'),
                 'status' => $order->status,
                 'total' => $order->total,
+                'address' => $order->address,
                 'can_cancel' => $order->canBeCancelled(),
                 'can_refund' => $order->isRefundable(),
-                'items' => $order->items->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'name' => $item->product->name ?? $item->name,
-                        'quantity' => $item->quantity,
-                        'price' => $item->price,
-                        'image_url' => $item->product->image_url ?? null,
-                        'product_id' => $item->product->id ?? null,
-                        'product' => $item->product ? $item->product->toArray() : null,
-                    ];
-                }),
+                'items' => $order->items->map(fn ($item) => $this->mapOrderItem($item))->values(),
             ],
         ]);
     }
 
-    /**
-     * Cancelar pedido por usuario autenticado.
-     */
     public function cancel(Request $request, $orderId)
     {
         $order = Order::where('id', $orderId)
@@ -355,54 +170,61 @@ public function cancelled()
             ->with('success', 'Solicitud de cancelacion registrada. Revisaremos el pedido y confirmaremos en un plazo estimado de 24-48 horas.');
     }
 
-    /**
-     * Registrar la solicitud de reembolso por parte del usuario.
-     */
-    public function refund(Request $request, $orderId)
+    public function refund($orderId)
     {
         $order = Order::where('id', $orderId)
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
         if (!$order->isRefundable()) {
-            return back()->with('error', 'El pedido aun no es elegible para reembolso.');
+            return back()->with('error', 'El pedido aun no es elegible para devolución.');
         }
 
-        $order->status = 'reembolsado';
+        $order->status = 'devolucion_solicitada';
         $order->save();
 
         return redirect()
             ->route('orders.cancelled')
-            ->with('success', 'Solicitud de reembolso recibida. Procesaremos la devolucion en las proximas 24-48 horas.');
+            ->with('success', 'Solicitud de devolución registrada. Revisaremos el caso antes de emitir el reembolso.');
     }
 
-    /**
-     * Cancelar pedido por administrador.
-     */
-    public function adminCancel(Request $request, $orderId)
+    private function mapOrderListItem(Order $order): array
     {
-        $order = Order::findOrFail($orderId);
+        return [
+            'id' => $order->id,
+            'date' => $order->created_at?->format('d/m/Y H:i'),
+            'status' => $order->status,
+            'total' => $order->total,
+            'address' => $order->address,
+            'estimated_delivery' => $this->estimatedDelivery($order),
+            'items' => $order->items->map(fn ($item) => $this->mapOrderItem($item))->values(),
+        ];
+    }
 
-        if ($order->isShipped() || $order->status === 'cancelado') {
-            return back()->with('error', 'No se puede cancelar un pedido ya enviado o cancelado.');
-        }
+    private function mapOrderItem($item): array
+    {
+        return [
+            'id' => $item->id,
+            'name' => $item->product->name ?? $item->name,
+            'quantity' => $item->quantity,
+            'price' => $item->price,
+            'image_url' => $item->product->image_url ?? null,
+            'product_id' => $item->product->id ?? null,
+            'product' => $item->product ? [
+                'id' => $item->product->id,
+                'name' => $item->product->name,
+                'image_url' => $item->product->image_url,
+                'price' => $item->product->price,
+                'stock' => $item->product->stock,
+                'category_id' => $item->product->category_id,
+            ] : null,
+        ];
+    }
 
-        $order->status = 'cancelado';
-        $order->cancellation_reason = $request->input('reason') ?: 'Cancelado por administrador';
-        $order->cancelled_by = 'admin';
-        $order->cancelled_at = now();
-        $order->save();
-
-        // Opcional: devolución de dinero
-
-        return back()->with('success', 'Pedido cancelado por el administrador.');
+    private function estimatedDelivery(Order $order): ?string
+    {
+        return $order->created_at
+            ? $order->created_at->copy()->addDays(5)->format('d/m/Y')
+            : null;
     }
 }
-
-
-
-
-
-
-
-

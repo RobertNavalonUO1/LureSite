@@ -1,4 +1,4 @@
-// ProductPageLayout combinado con funcionalidad de reviews, tabs y productos relacionados
+﻿// ProductPageLayout combinado con funcionalidad de reviews, tabs y productos relacionados
 import React, { useState, useEffect } from 'react';
 import { Inertia } from '@inertiajs/inertia';
 import { usePage } from '@inertiajs/react';
@@ -99,7 +99,7 @@ const ProductPageLayout = ({ product, relatedProducts = [] }) => {
         <div className="hidden lg:flex w-full flex-col gap-4 lg:gap-8 lg:sticky lg:top-24">
           <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 lg:flex-col lg:snap-none lg:overflow-visible">
             <a
-              href="/promocion/3"
+              href="/superdeal"
               className="group relative block min-w-[200px] overflow-hidden rounded-3xl bg-slate-100 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl lg:min-w-0 lg:w-full"
             >
               <img
@@ -111,13 +111,13 @@ const ProductPageLayout = ({ product, relatedProducts = [] }) => {
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent transition-opacity duration-300 group-hover:from-slate-900/60" />
               <div className="absolute bottom-6 left-1/2 w-[80%] -translate-x-1/2 text-center">
                 <span className="inline-flex items-center justify-center rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-slate-900 shadow-lg transition-colors duration-200 group-hover:bg-amber-300">
-                  Descubrir
+                  Ver super deal
                 </span>
               </div>
             </a>
           </div>
           <div className="hidden border-t border-slate-200 pt-4 text-xs text-slate-500 lg:block">
-            Descubre promociones y lanzamientos seleccionados para ti.
+            Acceso rápido a campañas activas y productos destacados que siguen operativos en catálogo.
           </div>
         </div>
       </div>
@@ -131,7 +131,7 @@ const ProductPageLayout = ({ product, relatedProducts = [] }) => {
 
         <div className="mt-10">
           <h2 className="text-lg font-bold mb-2">Búsquedas frecuentes</h2>
-          <SearchTags tags={['Monitores ultraanchos', 'Ofertas pantallas', 'Accesorios gamer']} />
+          <SearchTags tags={['Novedades', 'Ofertas del día', 'Envío rápido']} />
         </div>
       </div>
 

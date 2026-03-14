@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Support\CatalogDataLocalizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -12,6 +13,7 @@ class SearchController extends Controller
 {
     public function search(Request $request)
     {
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
         $filters = $request->validate([
             'query'        => ['nullable', 'string', 'min:2'],
             'category'     => ['nullable', 'integer', 'exists:categories,id'],
@@ -64,24 +66,11 @@ class SearchController extends Controller
 
         $perPage = $filters['per_page'] ?? 12;
 
-        $products = $builder->paginate($perPage)->withQueryString()->through(function ($product) {
-            return [
-                'id'             => $product->id,
-                'name'           => $product->name,
-                'price'          => $product->price,
+        $products = $builder->paginate($perPage)->withQueryString()->through(function ($product) use ($catalogLocalizer) {
+            return $catalogLocalizer->productPayload($product, [
                 'discount'       => $product->discount,
-                'stock'          => $product->stock,
-                'image_url'      => $product->image_url,
-                'image_url_full' => $product->image_url_full,
-                'is_adult'       => $product->is_adult,
-                'link'           => $product->link,
                 'average_rating' => round($product->average_rating ?? 0, 1),
                 'reviews_count'  => $product->reviews()->count(),
-                'category'       => $product->category ? [
-                    'id'   => $product->category->id,
-                    'name' => $product->category->name,
-                    'slug' => $product->category->slug,
-                ] : null,
                 'tags'           => [
                     'featured'     => $product->is_featured,
                     'superdeal'    => $product->is_superdeal,
@@ -92,7 +81,7 @@ class SearchController extends Controller
                 'details'        => $product->details ? [
                     'specifications' => $product->details->specifications,
                 ] : null,
-            ];
+            ]);
         });
 
         $recommended = collect();
@@ -103,18 +92,13 @@ class SearchController extends Controller
                 ->latest()
                 ->take(6)
                 ->get()
-                ->map(fn ($product) => [
-                    'id'        => $product->id,
-                    'name'      => $product->name,
-                    'price'     => $product->price,
-                    'image_url' => $product->image_url,
-                ]);
+                ->map(fn ($product) => $catalogLocalizer->productPayload($product));
         }
 
         return Inertia::render('Search/Results', [
             'products'       => $products,
             'filters'        => $filters,
-            'categories'     => Category::select('id', 'name')->orderBy('name')->get(),
+            'categories'     => Category::select('id', 'name', 'slug')->orderBy('name')->get()->map(fn ($category) => $catalogLocalizer->categoryPayload($category)),
             'recommended'    => $recommended,
             'hasActiveQuery' => (bool) ($filters['query'] ?? null),
         ]);
@@ -122,6 +106,7 @@ class SearchController extends Controller
 
     public function suggest(Request $request)
     {
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
         $payload = $request->validate([
             'query' => ['required', 'string', 'min:2'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:10'],
@@ -149,7 +134,7 @@ class SearchController extends Controller
             ->orderByDesc('created_at')
             ->limit($limit)
             ->get()
-            ->map(function (Product $product) use ($term) {
+            ->map(function (Product $product) use ($catalogLocalizer, $term) {
                 $displayName = Str::limit($product->name, 80);
 
                 return [
@@ -157,7 +142,7 @@ class SearchController extends Controller
                     'name'      => $displayName,
                     'price'     => $product->price,
                     'image'     => $product->image_url_full ?? $product->image_url,
-                    'category'  => $product->category?->name,
+                    'category'  => $product->category ? $catalogLocalizer->localizeCategoryName($product->category->name, $product->category->slug) : null,
                     'url'       => route('product.details', $product->id),
                     'match'     => [
                         'query' => $term,

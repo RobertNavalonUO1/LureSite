@@ -1,4 +1,4 @@
-import { useForm, usePage } from "@inertiajs/react";
+﻿import { useForm, usePage } from "@inertiajs/react";
 import { useState } from "react";
 
 export default function AddProduct() {
@@ -17,17 +17,17 @@ export default function AddProduct() {
 
     const [successMessage, setSuccessMessage] = useState("");
 
-    // ✅ Cuando se selecciona un producto temporal, llena el formulario con sus valores
+    // Cuando se selecciona un producto temporal, llena el formulario con sus valores
     const handleSelectProduct = (product) => {
         setData({
             name: product.title,
-            description: product.title, // ✅ La descripción también será el título
+            description: product.title,
             price: product.price,
             image_url: product.image_url,
-            stock: "", // ✅ El usuario lo ingresará manualmente
-            category_id: categories.length > 0 ? categories[0].id : "", // ✅ Primera categoría por defecto
-            is_adult: false, // ✅ Por defecto en false
-            link: product.image_url, // ✅ El link será el mismo que la imagen
+            stock: "",
+            category_id: categories.length > 0 ? categories[0].id : "",
+            is_adult: false,
+            link: product.image_url,
         });
     };
 

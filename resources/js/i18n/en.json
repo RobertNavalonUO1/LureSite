@@ -1,14 +1,56 @@
-{
+﻿{
   "common": {
     "language": "Language",
     "change_language": "Change language",
     "open_menu": "Open menu",
-    "search_placeholder": "Search..."
+    "search_placeholder": "Search...",
+    "and": "and",
+    "home": "Home",
+    "contact": "Contact",
+    "greeting": "Hi, {name}",
+    "yes": "Yes",
+    "no": "No",
+    "close_notification": "Close notification",
+    "processing": "Processing..."
   },
   "auth": {
     "login": "Sign in",
     "register": "Create account",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "remember": "Remember me",
+    "forgot_password": "Forgot your password?",
+    "login_title": "Sign in",
+    "login_heading": "Sign in to your account",
+    "login_submit": "Sign in",
+    "or_continue_with": "or continue with",
+    "no_account": "Don't have an account?",
+    "sign_up": "Sign up",
+    "register_title": "Register",
+    "register_heading": "Create your account",
+    "full_name": "Full name",
+    "password_confirm": "Confirm password",
+    "already_have_account": "Already have an account?",
+    "register_submit": "Create account",
+    "or_register_with": "or sign up with",
+    "register_terms_prefix": "By signing up, you agree to our",
+    "terms_of_service": "Terms of service",
+    "privacy_policy": "Privacy policy",
+    "forgot_title": "Forgot password",
+    "forgot_desc": "Enter your email and we'll send you a link to reset your password.",
+    "send_link": "Send link",
+    "confirm_password_title": "Confirm password",
+    "confirm_password_desc": "This is a secure area of the application. Please confirm your password before continuing.",
+    "confirm": "Confirm",
+    "reset_password_title": "Reset password",
+    "reset_password_submit": "Reset password",
+    "verify_email_title": "Verify email",
+    "verify_email_desc": "Thanks for signing up. Please check your email and click the verification link. If you didn't receive it, you can request another.",
+    "verify_email_sent": "A new verification link has been sent to your email.",
+    "resend_verification": "Resend verification email",
+    "social_google": "Google",
+    "social_facebook": "Facebook"
   },
   "nav": {
     "deals_today": "Today's deals",
@@ -17,6 +59,35 @@
     "new_arrivals": "New arrivals",
     "seasonal": "Seasonal",
     "see_all": "See all"
+  },
+  "header": {
+    "promo": {
+      "label": "Active catalog:",
+      "highlight": "verified payments",
+      "suffix": "and campaigns with live stock"
+    },
+    "support": {
+      "primary": "Help center",
+      "secondary": "Contact support"
+    },
+    "navigation": {
+      "primary_aria": "Primary navigation",
+      "home": "Home",
+      "about": "About",
+      "contact": "Contact",
+      "help": "Help"
+    },
+    "search_placeholder": "Search products, categories or brands",
+    "search_submit": "Search",
+    "cart": {
+      "view": "View cart"
+    },
+    "user": {
+      "profile": "Profile",
+      "guest": "guest",
+      "go_to_panel": "Go to user dashboard",
+      "avatar_alt": "User avatar"
+    }
   },
   "home": {
     "welcome_guest": "Welcome to Limoneo",
@@ -44,7 +115,184 @@
     "aside_go": "Go",
     "aside_see": "View",
     "aside_tip_label": "Tip",
-    "aside_tip_text": "Use \"Fast shipping\" to filter."
+    "aside_tip_text": "Use \"Fast shipping\" to filter.",
+    "quick_link_subtitle": {
+      "deals_today": "Active discounts",
+      "super_deal": "Best value",
+      "fast_shipping": "48h on select items",
+      "new_arrivals": "Just arrived"
+    }
+  },
+  "catalog": {
+    "filter": {
+      "panel_title": "Filters",
+      "compact_label": "Quick view",
+      "result_count_one": "{count} result",
+      "result_count_other": "{count} results",
+      "active_count_one": "{count} active filter",
+      "active_count_other": "{count} active filters",
+      "status_free": "Open browse",
+      "status_active_one": "{count} active",
+      "status_active_other": "{count} active",
+      "unrestricted": "No restrictions",
+      "no_active_filters": "No active filters",
+      "custom_sort": "Custom order",
+      "enter": "Enter",
+      "open_filters": "Open filters",
+      "close_filters": "Close",
+      "back_to_summary": "Back to filter summary",
+      "badge": "Filter mode",
+      "caption": "Sticky control column",
+      "description": "Refine the catalog while you browse the page.",
+      "search_label": "Search",
+      "category_label": "Category",
+      "sort_label": "Sort by",
+      "price_label": "Price",
+      "min_placeholder": "Minimum",
+      "max_placeholder": "Maximum",
+      "quick_filters_label": "Popular shortcuts",
+      "active_filters_label": "Active filters",
+      "summary_label": "Current view",
+      "clear": "Clear",
+      "sort_featured": "Featured",
+      "sort_newest": "Newest",
+      "sort_lowest_price": "Lowest price",
+      "sort_highest_price": "Highest price",
+      "sort_relevance": "Relevance",
+      "sort_rating": "Top rated",
+      "sort_price_asc": "Price: low to high",
+      "sort_price_desc": "Price: high to low",
+      "sort_recent": "Newest first",
+      "search_placeholder": "Search by product, brand or category",
+      "search_within_category": "Search within this category",
+      "all_categories": "All categories"
+    },
+    "flags": {
+      "is_featured": "Featured",
+      "is_superdeal": "Superdeal",
+      "is_fast_shipping": "Fast shipping",
+      "is_new_arrival": "New",
+      "is_seasonal": "Seasonal"
+    },
+    "results": {
+      "title": "Product results",
+      "title_with_query": "Results for “{query}”",
+      "subtitle": "Adjust filters, sort by price or rating, and find the right product faster.",
+      "recommended_title": "You may also like",
+      "count_found": "{count} products found",
+      "count_empty": "No matches right now.",
+      "tip": "Tip: try more specific keywords or adjust the filters.",
+      "empty_title": "We couldn't find a match",
+      "empty_body": "Check the spelling, try a related category, or clear some filters."
+    },
+    "product_card": {
+      "fallback_title": "Product",
+      "fallback_category": "Marketplace",
+      "shipping_fast": "Delivery in 48h",
+      "shipping_standard": "Standard shipping",
+      "add_favorite": "Save to favorites",
+      "remove_favorite": "Remove from favorites",
+      "badge_new": "New",
+      "badge_fast_shipping": "Fast delivery",
+      "view_details_aria": "View details for {title}",
+      "rating_aria": "Rating {rating} out of 5",
+      "description_fallback": "Reviewed listing with active pricing, visible stock, and direct access to full details.",
+      "sold_out": "Sold out",
+      "add_to_cart": "Add to cart",
+      "view_details": "View details",
+      "stock_available": "In stock",
+      "last_units": "Last units",
+      "out_of_stock": "Out of stock"
+    }
+  },
+  "shop": {
+    "cart": {
+      "title": "Shopping cart",
+      "price": "Price",
+      "quantity": "Quantity",
+      "remove": "Remove",
+      "empty": "Your cart is empty",
+      "total": "Total",
+      "checkout": "Go to checkout",
+      "summary_badge": "Quick summary",
+      "items_count": "{count} items ready for checkout",
+      "subtotal": "Subtotal",
+      "unit_suffix": "each",
+      "secure_checkout": "Secure checkout",
+      "continue_shopping": "Continue shopping",
+      "empty_title": "Your cart is waiting",
+      "empty_body": "Add products to review quantities, totals, and move to checkout from here.",
+      "remove_item": "Remove {name} from cart",
+      "increment_item": "Increase quantity of {name}",
+      "decrement_item": "Decrease quantity of {name}"
+    },
+    "category": {
+      "categories_title": "Categories",
+      "help_title": "Need help?",
+      "help_body": "Live chat, free returns and real-time order tracking.",
+      "help_cta": "Talk to support",
+      "description": "Discover the full catalog of selected products for this category.",
+      "empty": "There are no products in this category.",
+      "featured_title": "Featured right now",
+      "view_all_deals": "View all deals",
+      "recommendations_title": "Keep exploring suggested items",
+      "add_to_cart_error": "Error adding the product to the cart"
+    },
+    "checkout": {
+      "kicker": "Checkout process",
+      "title": "Checkout",
+      "subtitle": "Review your order, confirm your details, and choose the best shipping option before completing payment.",
+      "summary_title": "Order summary",
+      "summary_subtitle": "Includes your items, contact details, address, and shipping benefits.",
+      "items_title": "Items ({count})",
+      "items_empty": "Your cart is empty. Add products to continue.",
+      "product_placeholder": "Product",
+      "variant": "Variant",
+      "item_unit_price": "{count} x {price} each",
+      "decrement_aria": "Decrease quantity of {name}",
+      "increment_aria": "Increase quantity of {name}",
+      "remove": "Remove",
+      "user_title": "User details",
+      "user_guest_warning": "You must sign in to complete checkout.",
+      "user_name": "Name",
+      "user_email": "Email",
+      "user_phone": "Phone",
+      "user_phone_missing": "Unavailable",
+      "address_title": "Shipping address",
+      "address_guest_hint": "Sign in or create an account to manage your addresses.",
+      "address_selected": "Selected",
+      "address_none": "None",
+      "address_edit_selected": "Edit selected address",
+      "address_add_new": "Add new address",
+      "address_empty": "You don't have any saved addresses.",
+      "address_add": "Add address",
+      "benefits_title": "Your purchase benefits",
+      "benefit_1": "Reliable delivery with tracking on all available options.",
+      "benefit_2": "Secure payments with fraud protection and advanced encryption.",
+      "benefit_3": "24/7 support to answer questions and handle issues.",
+      "benefit_4": "Multiple payment methods, including Stripe and PayPal.",
+      "subtotal": "Subtotal",
+      "coupon_applied": "Coupon applied",
+      "remove_coupon": "Remove",
+      "shipping": "Shipping",
+      "shipping_select": "Select a method",
+      "estimated_total": "Estimated total",
+      "tax_note": "Includes applicable taxes. Final charges will reflect the selected shipping method.",
+      "coupon_title": "Have a coupon?",
+      "coupon_placeholder": "Enter code",
+      "coupon_applying": "Applying…",
+      "coupon_apply": "Apply",
+      "shipping_method": "Shipping method",
+      "redirecting_stripe": "Redirecting to Stripe…",
+      "pay_with_card": "Pay with card (Stripe)",
+      "redirecting_paypal": "Redirecting to PayPal…",
+      "pay_with_paypal": "Pay with PayPal",
+      "payment_disabled_hint": "You need a valid address to continue to payment.",
+      "security_title": "Security & privacy",
+      "security_1": "✓ Encrypted data and two-step verification.",
+      "security_2": "✓ Buyer protection and guaranteed refunds.",
+      "security_3": "✓ Operations audited by third-party providers."
+    }
   },
   "banners": {
     "recommended": "Recommended",
@@ -52,6 +300,1261 @@
     "paused": "Paused",
     "auto": "Auto",
     "view_banner": "View banner: {title}",
-    "go_to_banner": "Go to banner {index}"
+    "go_to_banner": "Go to banner {index}",
+    "featured_description": "A highlighted visual selection to discover new arrivals without losing context on the page.",
+    "fallbacks": {
+      "seasonal_accessories": {
+        "title": "Seasonal offer: earth-tone accessories",
+        "cta": "View seasonal"
+      },
+      "gourmet_baskets": {
+        "title": "Curated gourmet baskets and gifts",
+        "cta": "View new arrivals"
+      },
+      "aromas_home": {
+        "title": "Home scents and details that transform",
+        "cta": "View deals"
+      },
+      "fast_shipping": {
+        "title": "Fast shipping: receive in 48h",
+        "cta": "Fast shipping"
+      },
+      "superdeal": {
+        "title": "Featured SuperDeal of the week",
+        "cta": "View SuperDeal"
+      },
+      "categories": {
+        "title": "Explore by category and find your style",
+        "cta": "Search deals"
+      },
+      "market_picks": {
+        "title": "Marketplace picks of the day",
+        "cta": "Today picks"
+      },
+      "launches": {
+        "title": "New launches and trends",
+        "cta": "Discover"
+      }
+    }
+  },
+  "orders": {
+    "status": {
+      "pendiente_pago": "Pending payment",
+      "pagado": "Paid",
+      "pendiente_envio": "Pending shipment",
+      "enviado": "Shipped",
+      "entregado": "Delivered",
+      "confirmado": "Confirmed",
+      "cancelacion_pendiente": "Cancellation in progress",
+      "cancelado": "Cancelled",
+      "fallido": "Failed",
+      "devolucion_solicitada": "Return requested",
+      "devolucion_aprobada": "Return approved",
+      "devolucion_rechazada": "Return rejected",
+      "reembolsado": "Refunded"
+    },
+    "cancel_warning": "Are you sure you want to cancel this order?",
+    "common": {
+      "back": "Back",
+      "order_number": "Order #{id}",
+      "date": "Date",
+      "no_date": "No date",
+      "current_status": "Current status",
+      "quantity": "Quantity: {count}",
+      "total": "Total",
+      "address": "Address",
+      "address_missing": "Address unavailable",
+      "status": "Status",
+      "estimated_delivery": "Estimated delivery",
+      "pending": "Pending",
+      "products": "Products",
+      "view_detail": "View detail",
+      "view_detail_full": "View order details →",
+      "view_details": "View details"
+    },
+    "actions": {
+      "request_cancel": "Request cancellation",
+      "request_refund": "Request refund",
+      "cancel_order": "Cancel order",
+      "confirm_reception": "Confirm reception"
+    },
+    "index": {
+      "title": "My orders",
+      "more_items": "+{count} more",
+      "empty": "You don't have any orders."
+    },
+    "show": {
+      "back": "Back to orders",
+      "items_title": "Items",
+      "status_desc": {
+        "pendiente_pago": "We're waiting for payment to process your order.",
+        "pagado": "Payment confirmed. We're preparing your order.",
+        "pendiente_envio": "Your order is ready and will ship soon.",
+        "enviado": "Your order is on the way.",
+        "entregado": "The order was marked as delivered.",
+        "confirmado": "You confirmed you received the order.",
+        "cancelacion_pendiente": "Your cancellation request is under review.",
+        "cancelado": "The order was cancelled.",
+        "reembolsado": "The refund was processed successfully.",
+        "fallido": "There was an issue with the order or payment.",
+        "devolucion_solicitada": "You requested a return. We'll notify you once there's a decision.",
+        "devolucion_aprobada": "The return was approved.",
+        "devolucion_rechazada": "The return was rejected."
+      }
+    },
+    "product": {
+      "category_missing": "No category",
+      "in_stock": "In stock ({count})",
+      "out_of_stock": "Out of stock",
+      "sku_sold": "SKU: {sku} · Sold: {count}",
+      "view_product": "View product"
+    },
+    "paid": {
+      "title": "Paid orders",
+      "empty": "There are no paid orders.",
+      "refund_unavailable_title": "Refund is only available after the return has been approved.",
+      "refund_processed": "Refund processed",
+      "note_cancellation_review": "Your cancellation request is under review. You'll receive confirmation within 24–48 hours.",
+      "note_return_approved": "The return was approved. You can now request a refund.",
+      "note_refunded": "The refund was processed successfully. It may take some time to appear depending on your payment method.",
+      "note_cancellation_in_process": "While the request is reviewed, the order may still appear as active."
+    },
+    "tracking": {
+      "title": "Shipment tracking",
+      "back_dashboard": "Back",
+      "empty": "You don't have any shipped orders.",
+      "progress": {
+        "payment_received": "Payment received",
+        "preparing": "Preparing",
+        "shipped": "Shipped",
+        "delivered": "Delivered"
+      },
+      "highlight": {
+        "cancelacion_pendiente": "Your cancellation request is under review. We'll get back to you within 24–48 hours."
+      },
+      "note": {
+        "pagado": "Payment confirmed. Preparing the order.",
+        "pendiente_envio": "Packing and preparing shipment.",
+        "enviado": "The order left the warehouse and is on the way.",
+        "entregado": "The carrier marked the order as delivered.",
+        "confirmado": "Reception confirmed. Thank you!",
+        "devolucion_aprobada": "Return approved. You can request a refund.",
+        "reembolsado": "Refund processed."
+      },
+      "item_line": "{name} x{count} - {price}"
+    },
+    "shipped": {
+      "title": "Shipped orders",
+      "back_dashboard": "Back",
+      "empty": "There are no shipped orders.",
+      "status_desc": {
+        "enviado": "Your order is on the way.",
+        "entregado": "The order was marked as delivered.",
+        "confirmado": "Reception confirmed."
+      }
+    },
+    "cancelled_refunded": {
+      "title": "Cancelled / refunded orders",
+      "empty": "There are no cancelled or refunded orders.",
+      "note_cancellation_review": "Your cancellation request is under review. You'll receive confirmation within 24–48 hours.",
+      "note_return_approved": "The return was approved. If you haven't yet, request your refund from the paid orders section.",
+      "note_refunded": "The refund was processed successfully. It may take a few minutes to appear depending on your payment method."
+    },
+    "cancel_confirm": {
+      "title": "Confirm cancellation",
+      "back_to_orders": "Back to my orders",
+      "notice": "By confirming the cancellation, we will start the review process. We'll send you a decision within an estimated 24–48 hours. In the meantime, the order may still appear as active.",
+      "order_summary": "Order summary #{id}",
+      "reason_optional": "Reason (optional)",
+      "reason_placeholder": "Tell us the reason to help us improve your experience",
+      "review_order": "Review order",
+      "submit": "Confirm cancellation"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "avatar_change_title": "Click to change your avatar",
+    "avatar_alt": "User avatar",
+    "welcome_back": "Welcome back",
+    "greeting": "Hi, {name}",
+    "intro": "Manage your orders, payments and support from your main dashboard.",
+    "total_orders": "{count} total orders",
+    "cart_items": "{count} items in cart",
+    "admin_access": "Admin access",
+    "next_delivery": "Order #{id} {status}",
+    "no_active_shipments": "No active shipments right now.",
+    "stats_total_orders": "Total orders",
+    "stats_cancelled_hint": "{count} cancelled",
+    "stats_on_the_way": "On the way",
+    "stats_on_the_way_hint": "Includes shipped and delivered",
+    "stats_active_cart": "Active cart",
+    "stats_estimated_hint": "{amount} estimated",
+    "stats_pending": "Pending",
+    "stats_pending_hint": "Orders to complete",
+    "quick_actions_title": "Quick actions",
+    "quick_actions_subtitle": "Everything you need in a couple of clicks.",
+    "qa_orders_history_label": "Order history",
+    "qa_orders_history_desc": "See all your orders in one place.",
+    "qa_shipping_tracking_label": "Shipment tracking",
+    "qa_shipping_tracking_desc": "Check shipped orders and those arriving soon.",
+    "qa_paid_label": "Payments",
+    "qa_paid_desc": "View your confirmed and recent payments.",
+    "qa_cancellations_label": "Cancellations & refunds",
+    "qa_cancellations_desc": "Review cancelled or refunded orders.",
+    "qa_checkout_label": "Go to checkout",
+    "qa_checkout_desc": "Finish your purchase with current items.",
+    "qa_preferences_label": "Account preferences",
+    "qa_preferences_desc": "Update personal info and addresses.",
+    "qa_discover_label": "Discover products",
+    "qa_discover_desc": "Explore the catalog with new searches.",
+    "qa_help_center_label": "Help center",
+    "qa_help_center_desc": "Contact support to resolve questions.",
+    "qa_admin_panel_label": "Admin panel",
+    "qa_admin_panel_desc": "Manage orders, products and users.",
+    "qa_add_product_label": "Add product",
+    "qa_add_product_desc": "Publish new products in the store.",
+    "recent_orders_title": "Your recent orders",
+    "recent_orders_subtitle": "Review status and details of your latest activity.",
+    "no_orders_message": "You don't have any orders yet.",
+    "no_orders_action": "Start shopping",
+    "cart_title": "Shopping cart",
+    "cart_subtitle": "Review a summary before finishing.",
+    "cart_count": "{count} items",
+    "cart_ready": "Ready to complete your purchase.",
+    "cart_empty": "Your cart is empty.",
+    "go_checkout": "Go to checkout",
+    "quantity": "Quantity: {count}",
+    "estimated_total": "Estimated total",
+    "empty_cart_message": "Add products to see them here.",
+    "empty_cart_action": "Browse catalog",
+    "help_title": "Need help?",
+    "help_subtitle": "Our team is ready to help.",
+    "help_body": "Get help with orders, shipping or returns from our support team.",
+    "priority_support": "Priority support",
+    "priority_support_desc": "Response within 24 business hours.",
+    "contact_support": "Contact support",
+    "go_now": "Go now >",
+    "more_items": "+{count} more",
+    "order_total_label": "Total",
+    "view_details": "View details"
+  },
+  "profile": {
+    "title": "Profile",
+    "information_title": "Profile information",
+    "information_desc": "Update your profile information and email address.",
+    "name_label": "Name",
+    "email_label": "Email",
+    "email_unverified": "Your email address is unverified.",
+    "resend_verification": "Click here to re-send the verification email.",
+    "verification_sent": "A new verification link has been sent to your email.",
+    "password_title": "Update password",
+    "password_desc": "Ensure your account uses a long, random password to stay secure.",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "confirm_password": "Confirm password",
+    "save": "Save",
+    "saved": "Saved.",
+    "delete_title": "Delete account",
+    "delete_desc": "Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.",
+    "delete_account": "Delete account",
+    "delete_confirm_title": "Are you sure you want to delete your account?",
+    "delete_confirm_desc": "Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.",
+    "cancel": "Cancel",
+    "edit_heading": "Edit profile",
+    "avatar_alt": "Avatar",
+    "change_avatar": "Change avatar",
+    "field_name": "Name",
+    "field_lastname": "Last name",
+    "field_email": "Email",
+    "phone": "Phone",
+    "phone_placeholder": "Mobile number",
+    "payment_method_label": "Preferred payment method",
+    "payment_method_stripe": "Card (Stripe)",
+    "payment_method_paypal": "PayPal",
+    "save_changes": "Save changes",
+    "addresses_title": "My addresses",
+    "new_address": "New address",
+    "profile_updated": "Profile updated successfully.",
+    "address_updated": "Address updated.",
+    "address_min_one": "You must have at least one address.",
+    "address_delete_confirm": "Are you sure you want to delete this address?",
+    "add_address_title": "Add address",
+    "address_field_street": "Street",
+    "address_field_city": "City",
+    "address_field_province": "State/Province",
+    "address_field_zip_code": "ZIP/Postal code",
+    "address_field_country": "Country",
+    "modern": {
+      "hero_badge": "Premium profile",
+      "hero_title": "Manage your account and addresses",
+      "hero_subtitle": "Update your details with immediate feedback and keep your addresses checkout-ready without leaving the view.",
+      "flash_completed_title": "Action completed",
+      "flash_failed_title": "Something went wrong",
+      "avatar_updated_title": "Avatar updated",
+      "avatar_updated_message": "Your avatar is already updated and available on your account.",
+      "profile_updated_title": "Profile updated",
+      "account_deleted_title": "Account deleted",
+      "stats": {
+        "addresses_saved": "Saved addresses",
+        "default_address": "Default address",
+        "email_status": "Email status",
+        "active": "Active",
+        "pending": "Pending",
+        "verified": "Verified"
+      },
+      "sections": {
+        "personal_title": "Personal details",
+        "personal_description": "Manage identity, email, phone, and default address with inline validation and consistent feedback.",
+        "security_title": "Security",
+        "security_description": "Update your password and control sensitive actions with accessible confirmations.",
+        "addresses_title": "Address book",
+        "addresses_description": "Full CRUD with no page reload, default-address handling, and confirmation before deletion."
+      },
+      "address_delete_title": "Delete address",
+      "address_delete_description": "{street}, {city} will be removed. This action cannot be undone.",
+      "address_delete_confirm": "Delete address",
+      "user_avatar_alt": "User avatar"
+    },
+    "address_book": {
+      "empty_title": "You have not saved any addresses yet.",
+      "empty_body": "Create the first one to speed up future purchases and keep checkout consistent.",
+      "add_first": "Add address",
+      "list_kicker": "Saved addresses",
+      "list_body": "Edit, switch the default address, or delete without reloading the page.",
+      "new_address": "New address",
+      "default_badge": "Default",
+      "edit": "Edit",
+      "set_default": "Set as default",
+      "updating": "Updating...",
+      "delete": "Delete",
+      "saved_title": "Address saved",
+      "updated_title": "Address updated",
+      "deleted_title": "Address deleted",
+      "default_title": "Default address",
+      "error_title": "Action could not be completed",
+      "save_failed": "The address could not be saved.",
+      "update_failed": "The address could not be updated.",
+      "delete_failed": "The address could not be deleted.",
+      "default_failed": "The default address could not be updated."
+    },
+    "form": {
+      "validation_summary": "Review the highlighted fields before saving your changes.",
+      "phone_hint": "Suggested format: +34 600 123 123",
+      "default_address_label": "Default address",
+      "default_address_hint": "It will be used by default at checkout unless you choose another one.",
+      "select_address": "Select an address",
+      "payment_methods_title": "Available payment methods",
+      "payment_methods_body": "Payment preference is chosen during checkout. Here we only show the active methods for your account.",
+      "email_unverified_notice": "Your email is not verified yet.",
+      "save_notice": "Changes are saved with server validation while preserving Inertia navigation.",
+      "saving": "Saving...",
+      "available_methods_label": "Active methods for your account"
+    },
+    "address_form": {
+      "create_title": "New address",
+      "edit_title": "Edit address",
+      "create_description": "Save an address ready for checkout on future orders.",
+      "edit_description": "Update delivery information without leaving your profile.",
+      "error_generic": "The address could not be saved.",
+      "make_default_title": "Use as default address",
+      "make_default_body": "It will be preselected automatically during checkout.",
+      "save_create": "Save address",
+      "save_edit": "Save changes",
+      "saving": "Saving...",
+      "default_country": "Spain"
+    },
+    "delete_panel": {
+      "sensitive_kicker": "Sensitive zone",
+      "body": "This action removes access and data associated with your account. It requires your current password for confirmation.",
+      "confirm_button": "Delete permanently",
+      "password_placeholder": "Current password",
+      "delete_success": "Your account has been deleted successfully."
+    },
+    "validation": {
+      "name_required": "Name is required.",
+      "email_required": "Email is required.",
+      "email_invalid": "Enter a valid email address.",
+      "phone_invalid": "Enter a valid phone number.",
+      "street_required": "Street is required.",
+      "city_required": "City is required.",
+      "province_required": "Province is required.",
+      "zip_code_required": "Postal code is required.",
+      "country_required": "Country is required."
+    },
+    "avatar_modal": {
+      "title": "Avatar creator",
+      "subtitle": "Customize a quick avatar preview and save it directly to your account.",
+      "presets_title": "Default avatars",
+      "presets_subtitle": "Choose one of the 15 base avatars if you do not want to upload or generate a new image.",
+      "preset_select": "Select default avatar {index}",
+      "shirt": "Shirt",
+      "pants": "Pants",
+      "hair": "Hair",
+      "gender": "Gender",
+      "gender_male": "Male",
+      "gender_female": "Female",
+      "body_type": "Body type",
+      "body_short": "Short",
+      "body_average": "Average",
+      "body_tall": "Tall",
+      "reset": "Reset avatar",
+      "save": "Save avatar",
+      "saving": "Saving avatar...",
+      "preset_saving": "Applying avatar...",
+      "resetting": "Resetting avatar...",
+      "canvas_unavailable": "The avatar preview is not available right now.",
+      "save_failed": "The avatar could not be saved.",
+      "preset_failed": "The default avatar could not be applied.",
+      "reset_failed": "The avatar could not be reset."
+    }
+  },
+  "static": {
+    "about": {
+      "head_title": "About | Limoneo",
+      "user_avatar_alt": "User avatar",
+      "title": "About Limoneo",
+      "intro_1": "Limoneo is a platform dedicated to offering you the best products on the market, with an intuitive, fast, and secure user experience.",
+      "intro_2": "Our goal is to make your shopping process easier by providing transparency, trust, and personalized support.",
+      "why_title": "Why choose us?",
+      "why": {
+        "items": {
+          "clear_nav": {
+            "label": "Clear navigation:",
+            "body": "Accessible menus and filters to easily find what you're looking for."
+          },
+          "simple_checkout": {
+            "label": "Simple checkout:",
+            "body": "Optimized cart and checkout to reduce steps and errors."
+          },
+          "security_privacy": {
+            "label": "Security & privacy:",
+            "body": "Your data is protected and never shared with third parties."
+          },
+          "fast_support": {
+            "label": "Fast support:",
+            "body": "Customer support available to answer your questions."
+          },
+          "deals_news": {
+            "label": "Deals & new arrivals:",
+            "body": "Access to exclusive promotions and newly arrived products."
+          }
+        }
+      },
+      "ux_note": {
+        "title": "UX note:",
+        "body_1": "This page was designed following usability and accessibility principles: color contrast, readable typography, clear structure, and consistent navigation.",
+        "body_2": "Our goal is for any user, regardless of digital experience, to shop comfortably and safely."
+      },
+      "thanks": "Thanks for trusting Limoneo. Your satisfaction is our priority!",
+      "experience_kicker": "Experience",
+      "final_note": "A clearer purchase flow, faster support, and a catalog designed to explore without friction."
+    },
+    "contact": {
+      "head_title": "Contact",
+      "title": "Contact",
+      "subtitle": "Have questions or suggestions? We're here to help!",
+      "name_label": "Name",
+      "message_label": "Message",
+      "submit": "Send",
+      "support_kicker": "Support",
+      "support_body": "Have questions or suggestions? We are here to help with orders, incidents, and buying recommendations.",
+      "response_label": "Response",
+      "response_title": "We reply as soon as possible",
+      "response_body": "Questions about orders, returns, payments, and general support in one channel.",
+      "channel_label": "Channel",
+      "channel_title": "Direct form",
+      "channel_body": "Leave us the context and we will reply with the precise information needed to resolve it.",
+      "form_title": "Write to us",
+      "form_body": "Tell us what you need and we will reply by email.",
+      "email_label": "Email",
+      "footer_help": "We will reply to the email provided with the next step or resolution.",
+      "submit_loading": "Sending..."
+    },
+    "faq": {
+      "head_title": "Help & FAQ | Limoneo",
+      "title": "Help & Frequently Asked Questions",
+      "items": {
+        "create_account": {
+          "question": "How can I create an account?",
+          "answer": "Click \"Sign in\" and then select \"Create account\". Fill out the form with your details and follow the instructions."
+        },
+        "payment_methods": {
+          "question": "What payment methods are accepted?",
+          "answer": "We accept credit cards, debit cards, and secure electronic payments."
+        },
+        "order_tracking": {
+          "question": "How do I track my order?",
+          "answer": "Go to your user dashboard and select \"My orders\" to see the status and details of your purchases."
+        },
+        "returns": {
+          "question": "Can I return a product?",
+          "answer": "Yes, you can request a return within 14 days of receiving the product, as long as it is in its original condition."
+        },
+        "support_contact": {
+          "question": "How do I contact support?",
+          "answer": "You can write to us from the contact page or email support@limoneo.com."
+        }
+      },
+      "no_answer_prefix": "Can't find your answer?",
+      "no_answer_link": "Contact us here",
+      "no_answer_suffix": "."
+    },
+    "privacy": {
+      "head_title": "Privacy policy | Limoneo",
+      "title": "Privacy policy",
+      "intro": "At Limoneo, your privacy matters. This policy explains how we collect, use, and protect your personal information.",
+      "sections": {
+        "collected": {
+          "title": "1. Information we collect",
+          "body": "We collect data you provide when you register, make purchases, or contact support, such as name, email, address, and payment details."
+        },
+        "usage": {
+          "title": "2. How we use information",
+          "body": "We use your data to process orders, improve your experience, send relevant notifications, and comply with legal obligations."
+        },
+        "protection": {
+          "title": "3. Data protection",
+          "body": "We implement security measures to protect your information against unauthorized access, alteration, or disclosure."
+        },
+        "sharing": {
+          "title": "4. Sharing information",
+          "body": "We do not share your personal data with third parties, except to process payments, shipping, or when required by law."
+        },
+        "cookies": {
+          "title": "5. Cookies",
+          "body": "We use cookies to improve navigation and personalize your experience. You can manage your preferences at any time."
+        },
+        "rights": {
+          "title": "6. Your rights",
+          "body_prefix": "You can access, update, or delete your personal data by contacting us through the",
+          "body_link": "Contact",
+          "body_suffix": " page."
+        },
+        "changes": {
+          "title": "7. Policy changes",
+          "body": "We reserve the right to update this policy. We'll notify you of important changes via the website or email."
+        }
+      }
+    },
+    "terms": {
+      "head_title": "Terms of service | Limoneo",
+      "title": "Terms of service",
+      "intro": "Welcome to Limoneo. By accessing and using our website, you agree to comply with the following terms and conditions. If you disagree with any part, please do not use our services.",
+      "sections": {
+        "use_site": {
+          "title": "1. Website use",
+          "body": "You agree to use this site only for lawful and personal purposes. Fraudulent activities, copying content, or interfering with the site's operation is not allowed."
+        },
+        "purchases_payments": {
+          "title": "2. Purchases and payments",
+          "body": "All prices are shown in local currency and include applicable taxes. We reserve the right to change prices and products without notice. Payments are processed securely through authorized providers."
+        },
+        "shipping_returns": {
+          "title": "3. Shipping and returns",
+          "body": "Delivery times are estimates and may vary. You can request a return within 14 days of receiving a product, as long as it is in its original condition."
+        },
+        "ip": {
+          "title": "4. Intellectual property",
+          "body": "All content on this site, including text, images, and logos, is owned by Limoneo or its providers and is protected by copyright."
+        },
+        "modifications": {
+          "title": "5. Updates",
+          "body": "We reserve the right to update these terms at any time. We recommend reviewing them periodically."
+        },
+        "contact": {
+          "title": "6. Contact",
+          "body_prefix": "If you have any questions, you can contact us through the",
+          "body_link": "Contact",
+          "body_suffix": " page."
+        }
+      }
+    }
+  },
+  "search": {
+    "flags": {
+      "is_featured": "Featured",
+      "is_superdeal": "Superdeal",
+      "is_fast_shipping": "Fast shipping",
+      "is_new_arrival": "New",
+      "is_seasonal": "Seasonal"
+    },
+    "results": {
+      "head_title": "Search results",
+      "title": "Product results",
+      "title_with_query": "Results for “{query}”",
+      "subtitle": "Adjust filters, sort by price or rating, and find the ideal product.",
+      "filters": {
+        "title": "Filters",
+        "clear_all": "Clear all",
+        "category": "Category",
+        "category_all": "All",
+        "min": "Min",
+        "max": "Max",
+        "sort_by": "Sort by",
+        "quick_tags": "Quick tags"
+      },
+      "sort": {
+        "relevance": "Relevance",
+        "rating": "Top rated",
+        "price_asc": "Price: low to high",
+        "price_desc": "Price: high to low",
+        "recent": "Most recent"
+      },
+      "recommended": {
+        "title": "You might like"
+      },
+      "summary": {
+        "found": "{count} products found",
+        "none": "No matches for now.",
+        "tip": "Tip: try more specific keywords or adjust the filters."
+      },
+      "empty": {
+        "title": "No matches found",
+        "body": "Check spelling, try a related category, or clear some filters."
+      }
+    }
+  },
+  "tools": {
+    "link_aggregator": {
+      "script_modes": {
+        "listado": "Extract listing/slider cards",
+        "detalle": "Add images to an existing product (detail)"
+      },
+      "status": {
+        "running": "Running",
+        "success": "Completed",
+        "error": "Script error",
+        "network_error": "Network error",
+        "idle": "Not executed"
+      },
+      "units": {
+        "ms": "{value} ms",
+        "seconds": "{value} s"
+      },
+      "command": {
+        "default": "python scripts/<script_name>.py --input input.html"
+      },
+      "errors": {
+        "auth_required": "You need to sign in to view scripts.",
+        "admin_only": "You don't have permission to view scripts (admin only).",
+        "scripts_server": "Could not load scripts (server error).",
+        "scripts_empty": "No available scripts were returned by the API.",
+        "scripts_load": "Could not load available scripts."
+      },
+      "page": {
+        "title": "Link aggregator",
+        "subtitle": "Control and document extractions by running authorized scripts from a single view.",
+        "steps": [
+          "1. Select a script and review its quick guide.",
+          "2. Paste product or page HTML to analyze.",
+          "3. Run, review the summary, and share results."
+        ]
+      },
+      "guides": {
+        "default": {
+          "title": "Quick guide",
+          "description": "Select a script, paste product HTML, and run to get processed links.",
+          "steps": [
+            "Review the selected script description to understand its purpose.",
+            "Validate that the HTML fragment contains the information you need to analyze.",
+            "Press Run script and review the summary and generated output."
+          ],
+          "expected": "Output will show detected links or steps completed by the script.",
+          "notes": "If you need additional parameters, add them in the HTML or contact the script owner."
+        },
+        "verify_env": {
+          "title": "Environment diagnostics",
+          "description": "Confirm Python dependencies and paths are configured correctly before extracting links.",
+          "steps": [
+            "Run this script without additional HTML to validate the environment.",
+            "Check that each verification reports OK status.",
+            "If a problem is detected, fix the indicated dependency before continuing with other scripts."
+          ],
+          "expected": "Output should list each dependency as OK or provide the required fix details.",
+          "notes": "Repeat diagnostics whenever you update libraries or change Python versions."
+        },
+        "dynamic": {
+          "title": "Quick guide for {name}",
+          "description": "Use this script to automate a specific flow. Check internal docs if additional setup is required.",
+          "steps": [
+            "Confirm input data before running.",
+            "Verify output and save evidence if required.",
+            "If you get errors, review the summary or run diagnostics."
+          ],
+          "expected": "The script should show a summary of collected links or executed actions.",
+          "notes": "If you don't recognize the script name, validate with the process owner before running it."
+        }
+      },
+      "config": {
+        "title": "Configure execution",
+        "subtitle": "Choose the script and confirm the input contains all required data.",
+        "script_label": "Available script",
+        "no_scripts": "No scripts available"
+      },
+      "input": {
+        "title": "Product HTML",
+        "subtitle": "Paste the exact block you want to process. Analysis runs on the server.",
+        "placeholder": "<div class=\"product-card\">...</div>",
+        "tip": "Tip: keep unique attributes (classes, data-* or ids) so the script can identify the right elements."
+      },
+      "run": {
+        "title": "Run script",
+        "subtitle": "You'll get a summary with execution status, elapsed time, and full output.",
+        "running": "Running...",
+        "cta": "Run script"
+      },
+      "guide": {
+        "suggested_steps": "Suggested steps",
+        "what_to_expect": "What to expect",
+        "notes": "Notes",
+        "command_example": "Command example"
+      },
+      "diagnostic": {
+        "title": "Environment diagnostics",
+        "retry": "Retry",
+        "running": "Running diagnostics...",
+        "completed": "Diagnostics completed.",
+        "failed": "Environment diagnostics failed.",
+        "network_error": "Diagnostic network error: {message}",
+        "note": "Diagnostics run with verify_env.py and validate dependencies before processing other scripts."
+      },
+      "summary": {
+        "title": "Execution summary",
+        "script": "Script",
+        "start": "Start",
+        "end": "End",
+        "duration": "Duration",
+        "input_chars": "Input characters",
+        "result": "Summary",
+        "empty": "No executions recorded yet."
+      },
+      "history": {
+        "title": "Recent history",
+        "empty": "Run a script to start building history.",
+        "no_output": "No output recorded"
+      },
+      "execution": {
+        "success_message": "Execution completed without errors.",
+        "no_output": "No output generated.",
+        "run_error": "Error while running script.",
+        "server_connection_error": "Error connecting to server: {message}"
+      },
+      "output": {
+        "title": "Script output",
+        "last_update": "Last update",
+        "empty": "Run a script to view detailed output."
+      },
+      "import": {
+        "unable": "Could not import.",
+        "error": "Error: {message}",
+        "completed": "Import completed: {count} products.",
+        "network_error": "Network error: {message}",
+        "detected_prefix": "JSON output detected with",
+        "detected_suffix": "products.",
+        "loading": "Importing...",
+        "cta": "Import to temporary"
+      },
+      "tech_notes": {
+        "title": "Quick technical notes",
+        "validate_title": "Validate input:",
+        "validate_body": "avoid incomplete tags or embedded scripts that can break the parser.",
+        "diagnostic_title": "Diagnostics:",
+        "diagnostic_body": "if a script fails, check verify_env.py first to ensure dependencies are still available.",
+        "evidence_title": "Evidence:",
+        "evidence_body": "keep textual output or export it if you need to share with other teams."
+      }
+    }
+  },
+  "special": {
+    "deals_today": {
+      "head_title": "Featured deals today",
+      "search_placeholder": "Search deals",
+      "sponsored": "Sponsored",
+      "banner_alt": "Featured promotion",
+      "footer_note": "Prices change constantly. Save your favorites and come back soon to keep saving.",
+      "actions": {
+        "reload": "Reload",
+        "reload_offers": "Reload deals",
+        "top": "Top"
+      },
+      "filters": {
+        "all": "All",
+        "clear_aria": "Clear filters"
+      },
+      "hero": {
+        "kicker": "Today only",
+        "title": "Deals you can't miss",
+        "subtitle": "We select the best prices of the day so you can save without giving up your essentials.",
+        "updated_hourly": "Updated hourly"
+      },
+      "insights": {
+        "best_discount": "Best discount",
+        "avg_saving": "Average saving",
+        "active_offers": "Active deals",
+        "no_data": "No data",
+        "waiting": "Waiting for new deals",
+        "avg_caption": "Calculated from active deals",
+        "team_selected": "Selected by the team"
+      },
+      "states": {
+        "error_title": "Oops, something went wrong",
+        "retry": "Try again",
+        "empty_title": "Come back later",
+        "empty_body": "There are no active deals right now, but we publish updates daily.",
+        "no_match_title": "No matches",
+        "no_match_body": "Try another search or lower the discount filter."
+      },
+      "errors": {
+        "fetch_failed": "We couldn't retrieve the deals.",
+        "load_failed": "We couldn't load today's deals. Try again in a few seconds."
+      },
+      "card": {
+        "featured_fallback": "Featured deal",
+        "category_fallback": "Special deal",
+        "badge_today": "Today deal",
+        "description_fallback": "Exclusive limited-time discount.",
+        "buy_now": "Buy now",
+        "limited_stock": "Limited stock"
+      }
+    },
+    "fast_shipping": {
+      "head_title": "Fast shipping products",
+      "search_placeholder": "Search by product or category",
+      "sponsored": "Sponsored",
+      "banner_alt": "Fast shipping promotion",
+      "delivery_24h": "Delivery in 24 h",
+      "delivery_48h": "Delivery in 48 h",
+      "filters": {
+        "all_categories": "All categories"
+      },
+      "hero": {
+        "kicker": "Guaranteed delivery",
+        "title": "Buy today and receive within 48 hours",
+        "subtitle": "Selected products with priority shipping, real-time tracking, and a flexible returns policy."
+      },
+      "insights": {
+        "total_products": "Available products",
+        "discounted": "With exclusive discount",
+        "ultra_fast": "Delivery under 24 h"
+      },
+      "states": {
+        "no_match_title": "No matches",
+        "no_match_body": "Adjust search or select another category to see more fast-shipping products."
+      },
+      "card": {
+        "product_fallback": "Product",
+        "category_fallback": "Fast shipping",
+        "badge": "Fast shipping",
+        "description_fallback": "Get this product in record time with no surprise extra charges.",
+        "tracking_included": "Tracking included",
+        "view_details": "View details",
+        "quick_view": "Quick view"
+      },
+      "modal": {
+        "close": "Close",
+        "saving": "-{discount}% savings",
+        "description_fallback": "Assured shipping with fast delivery and tracking from warehouse dispatch.",
+        "delivery_guarantee": "Delivery guarantee",
+        "add_to_cart": "Add to cart"
+      }
+    },
+    "new_arrivals": {
+      "head_title": "New arrivals | Limoneo",
+      "search_placeholder": "Search by name or category",
+      "banner_alt": "Featured new arrivals",
+      "footer_note": "Want to stay up to date? Subscribe to our newsletter and get updates before everyone else.",
+      "actions": {
+        "reload": "Reload new arrivals"
+      },
+      "filters": {
+        "all_categories": "All categories"
+      },
+      "sort": {
+        "featured": "Featured",
+        "newest": "Newest",
+        "lowest_price": "Lowest price",
+        "highest_discount": "Highest discount"
+      },
+      "hero": {
+        "kicker": "New additions",
+        "title": "Discover the latest in tech, fashion, and lifestyle",
+        "subtitle": "Each week we select products with limited stock, exclusive discounts, and immediate availability.",
+        "weekly_update": "Weekly update"
+      },
+      "insights": {
+        "new_products": "New products",
+        "detected_week": "Detected this week",
+        "discounted": "With exclusive discount",
+        "over_original": "Over original price",
+        "limited_stock": "Limited stock",
+        "last_units": "Last units"
+      },
+      "states": {
+        "error_title": "Oops, something went wrong",
+        "retry": "Try again",
+        "no_match_title": "No matches",
+        "no_match_body": "Adjust filters or search to discover more available new arrivals."
+      },
+      "errors": {
+        "fetch_failed": "We couldn't retrieve new arrivals.",
+        "load_failed": "We couldn't load new arrivals right now. Try again in a few seconds."
+      },
+      "toast": {
+        "added": "\"{name}\" was added to cart."
+      },
+      "tip": {
+        "title": "Tip",
+        "body": "Add favorites to cart to get alerts when stock is running low."
+      },
+      "card": {
+        "new_product_fallback": "New product",
+        "badge": "New",
+        "collection_fallback": "Collection",
+        "description_fallback": "Limited edition with exclusive availability this season.",
+        "view_detail": "View detail",
+        "add": "Add"
+      }
+    },
+    "seasonal": {
+      "head_title": "Seasonal products",
+      "search_placeholder": "Search by name or category",
+      "sponsored": "Sponsored",
+      "banner_alt": "Seasonal promotion",
+      "footer_note": "Items change with the season. Save this page to your favorites to discover new arrivals each week.",
+      "filters": {
+        "all_categories": "All categories"
+      },
+      "sort": {
+        "featured": "Featured",
+        "lowest_price": "Lowest price",
+        "highest_discount": "Highest discount"
+      },
+      "hero": {
+        "kicker": "Trending season",
+        "title": "Fresh collections to renew your spaces",
+        "subtitle": "Discover limited releases, trending colors, and items available only during this season."
+      },
+      "insights": {
+        "active_products": "Active products",
+        "discounted": "Discounted offers",
+        "new_arrivals": "New additions"
+      },
+      "states": {
+        "error_title": "Oops, something went wrong",
+        "retry": "Try again",
+        "no_match_title": "No matches",
+        "no_match_body": "Adjust filters or search to discover more seasonal products."
+      },
+      "errors": {
+        "fetch_failed": "We couldn't retrieve seasonal products.",
+        "load_failed": "We couldn't load seasonal products right now."
+      },
+      "toast": {
+        "error": "Error loading products. Please try again in a few seconds."
+      },
+      "card": {
+        "product_fallback": "Seasonal product",
+        "category_fallback": "Seasonal collection",
+        "season_fallback": "Current season",
+        "description_fallback": "Season-selected new arrivals to refresh your home and style.",
+        "view_product": "View product",
+        "limited_stock": "Limited stock"
+      }
+    },
+    "super_deal": {
+      "head_title": "Super deals",
+      "search_placeholder": "Search super deals",
+      "sponsored": "Sponsored",
+      "banner_alt": "Super deal promotion",
+      "actions": {
+        "reload": "Reload",
+        "reload_superdeals": "Reload super deals",
+        "buy_now": "Buy now",
+        "top": "Top"
+      },
+      "filters": {
+        "all": "All",
+        "clear_aria": "Clear filters"
+      },
+      "hero": {
+        "kicker": "Super deals",
+        "title": "Unrepeatable discounts on premium products",
+        "subtitle": "Each super deal is selected by our team to offer the best market price with full warranty.",
+        "daily_update": "New deals every day"
+      },
+      "insights": {
+        "active_deals": "Active deals",
+        "daily_updated": "Updated daily",
+        "discounted": "Discounted",
+        "priority_shipping": "Includes priority shipping",
+        "avg_saving": "Average saving",
+        "no_data": "No data",
+        "over_original": "Over original price"
+      },
+      "states": {
+        "error_title": "Oops, something went wrong",
+        "retry": "Try again",
+        "no_match_title": "No matches",
+        "no_match_body": "Try another search or lower the discount filter.",
+        "empty_title": "Super deals unavailable",
+        "empty_body": "We're preparing new deals. Come back soon to discover unrepeatable prices."
+      },
+      "errors": {
+        "fetch_failed": "We couldn't retrieve super deals.",
+        "load_failed": "We couldn't load super deals. Try again in a few seconds."
+      },
+      "featured": {
+        "title_fallback": "Featured super deal",
+        "badge": "Super deal of the day",
+        "description_fallback": "Take this limited-time opportunity with fast shipping, extended warranty, and priority support.",
+        "saving": "-{discount}% savings",
+        "expires_soon": "Offer expires soon",
+        "remaining": "Remaining",
+        "few": "Few",
+        "units": "{count} units"
+      },
+      "card": {
+        "title_fallback": "Super deal",
+        "badge": "Super deal",
+        "category_fallback": "Exclusive offer",
+        "description_fallback": "Exclusive discount for a limited time only.",
+        "view_offer": "View offer",
+        "limited_time": "Limited time"
+      }
+    }
+  },
+  "legacy": {
+    "home_page": {
+      "title": "Welcome to the store"
+    },
+    "welcome": {
+      "head_title": "Welcome",
+      "nav": {
+        "dashboard": "Dashboard",
+        "login": "Log in",
+        "register": "Register"
+      },
+      "docs": {
+        "image_alt": "Laravel documentation screenshot",
+        "title": "Documentation",
+        "body": "Laravel has wonderful documentation covering every aspect of the framework. Whether you are a newcomer or have prior experience with Laravel, we recommend reading the documentation from beginning to end."
+      },
+      "laracasts": {
+        "title": "Laracasts",
+        "body": "Laracasts offers thousands of video tutorials on Laravel, PHP, and JavaScript development. Check them out and massively level up your development skills in the process."
+      },
+      "news": {
+        "title": "Laravel News",
+        "body": "Laravel News is a community-driven portal and newsletter aggregating the latest and most important news in the Laravel ecosystem, including new package releases and tutorials."
+      },
+      "ecosystem": {
+        "title": "Vibrant ecosystem",
+        "part_1": "Laravel's robust library of first-party tools and libraries, such as ",
+        "part_2": ", ",
+        "part_3": ", and ",
+        "part_4": " help you take your projects to the next level. Pair them with powerful open source libraries like ",
+        "part_5": ", and more."
+      },
+      "footer": {
+        "version": "Laravel v{laravelVersion} (PHP v{phpVersion})"
+      }
+    }
+  },
+  "landing": {
+    "universe": {
+      "head_title": "Coming soon"
+    }
+  },
+  "admin": {
+    "products": {
+      "title": "Product management",
+      "columns": {
+        "name": "Name",
+        "category": "Category",
+        "price": "Price",
+        "stock": "Stock",
+        "actions": "Actions"
+      },
+      "actions": {
+        "delete": "Delete"
+      }
+    },
+    "users": {
+      "title": "User management",
+      "columns": {
+        "name": "Name",
+        "admin": "Admin",
+        "actions": "Actions"
+      },
+      "actions": {
+        "remove_admin": "Remove admin",
+        "make_admin": "Make admin"
+      }
+    },
+    "settings": {
+      "title": "Global settings",
+      "new_field": "New field",
+      "placeholders": {
+        "key": "Key",
+        "value": "Value"
+      },
+      "save": "Save changes"
+    },
+    "reviews": {
+      "title": "Review management",
+      "columns": {
+        "product": "Product",
+        "user": "User",
+        "rating": "Rating",
+        "comment": "Comment",
+        "actions": "Actions"
+      },
+      "actions": {
+        "delete": "Delete"
+      }
+    },
+    "stats": {
+      "title": "Statistics",
+      "cards": {
+        "orders": "Orders",
+        "sales": "Sales",
+        "users": "Users",
+        "products": "Products",
+        "reviews": "Reviews"
+      },
+      "top_products_title": "Top products by reviews",
+      "top_products_item": "{name} ({count} reviews)",
+      "recent_orders_title": "Latest orders",
+      "recent_order_item": "#{id} - {user} - {total} - {status}",
+      "user_fallback": "No user"
+    },
+    "dashboard": {
+      "header": {
+        "kicker": "Control panel",
+        "title": "Welcome back",
+        "subtitle": "Monitor business health, make decisions, and act quickly.",
+        "last_updated": "Last update",
+        "settings": "Settings"
+      },
+      "summary": {
+        "total_orders": "Total orders",
+        "pending_count": "{count} pending",
+        "no_pending": "No pending",
+        "active_users": "Active users",
+        "new_this_month": "{count} new this month",
+        "stable_growth": "Stable growth",
+        "published_products": "Published products",
+        "review_catalog": "Review catalog",
+        "open_tickets": "Open tickets",
+        "prioritize_support": "Prioritize support",
+        "all_good": "Everything in order",
+        "view_details": "View details"
+      },
+      "performance": {
+        "title": "Commercial performance",
+        "last_30_days": "Last 30 days",
+        "monthly_revenue": "Monthly revenue",
+        "vs_previous_month": "Compared to previous month",
+        "avg_order_value": "Average order value",
+        "avg_per_order": "Average per order",
+        "conversion": "Conversion",
+        "site_rate": "Site-wide rate",
+        "chart_placeholder": "Integrate a weekly revenue chart here to complete the visualization."
+      },
+      "recent_orders": {
+        "title": "Recent orders",
+        "view_all": "View all",
+        "empty": "No recent orders. Encourage your team to create promotions or launch campaigns.",
+        "columns": {
+          "order": "Order",
+          "customer": "Customer",
+          "status": "Status",
+          "total": "Total"
+        },
+        "no_customer": "No customer",
+        "no_status": "No status"
+      },
+      "quick_actions": {
+        "title": "Quick actions",
+        "subtitle": "Frequent shortcuts to speed up operations.",
+        "create_product": "Create product",
+        "generate_coupon": "Generate coupon",
+        "view_inventory": "View inventory"
+      },
+      "featured_products": {
+        "title": "Featured products",
+        "empty": "Add your best-performing products to track them from here.",
+        "units": "{count} units",
+        "sales": "{total} in sales"
+      },
+      "alerts": {
+        "title": "Alerts",
+        "empty": "Everything is in order. No pending alerts.",
+        "fallback_title": "Alert"
+      },
+      "timeline": {
+        "title": "Team activity",
+        "no_activity_title": "No recent activity",
+        "no_activity_description": "Team and system movements will appear here."
+      }
+    }
+  },
+  "marketing": {
+    "autumn": {
+      "kicker": "Featured selection",
+      "heading_default": "Explore the latest curated collections and standout finds",
+      "heading_with_campaign": "Explore what is new in {campaign}",
+      "subtitle": "Find quick ideas to refresh your spaces, your style, and your favorite moments.",
+      "cards": {
+        "coffee": {
+          "eyebrow": "Coffee and tea moment",
+          "title": "Artisanal mugs with infusions",
+          "description": "A collection of ceramic cups and spiced blends ready to gift.",
+          "cta": "Discover mugs"
+        },
+        "bakery": {
+          "eyebrow": "Gourmet bakery",
+          "title": "Fresh seasonal pastry picks",
+          "description": "Sweet packs and special details for gatherings and gifting.",
+          "cta": "Explore pastry"
+        },
+        "wellness": {
+          "eyebrow": "Aromatic wellness",
+          "title": "Diffusers and essential oils",
+          "description": "Forest, vanilla, and citrus notes for a warm atmosphere.",
+          "cta": "View aromas"
+        }
+      }
+    }
+  },
+  "promo": {
+    "label": "Featured promotion",
+    "dismiss_today": "Do not show today",
+    "close": "Close promotion",
+    "global": {
+      "autumn_flash": {
+        "title": "Featured flash sale",
+        "message": "Take advantage of limited-time discounts across a curated catalog selection.",
+        "cta": "View flash sale"
+      },
+      "bundle_warm": {
+        "title": "Cozy home bundle",
+        "message": "Combine home products and accessories with optimized shipping in one purchase.",
+        "cta": "Build my bundle"
+      }
+    },
+    "category": {
+      "category_extra": {
+        "title": "10% extra in your category",
+        "message": "Use coupon CATEGORIA10 at checkout on featured products.",
+        "cta": "Apply coupon"
+      },
+      "free_shipping": {
+        "title": "Free express shipping",
+        "message": "48h delivery available on items labeled for fast shipping.",
+        "cta": "Find fast shipping"
+      }
+    }
   }
 }
+

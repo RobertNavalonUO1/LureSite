@@ -1,27 +1,11 @@
-// resources/js/Pages/DealsToday.jsx
+﻿// resources/js/Pages/DealsToday.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { usePage, Head } from "@inertiajs/react";
 import Header from "@/Components/navigation/Header.jsx";
 import TopNavMenu from "@/Components/navigation/TopNavMenu.jsx";
 import SidebarBanners from "@/Components/marketing/SidebarBanners.jsx";
 import { ArrowUp, RefreshCcw, Search, X } from "lucide-react";
-
-const currencyFormatter = new Intl.NumberFormat("es-ES", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 2,
-});
-
-const normalizePrice = (value) => {
-  if (value === null || value === undefined || value === "") return 0;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  const sanitized = String(value).trim().replace(/[^\d,.-]/g, "");
-  const normalized = sanitized.replace(/,/g, ".");
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const formatCurrency = (value) => currencyFormatter.format(normalizePrice(value));
+import { formatCurrency, normalizePrice } from "@/utils/pricing";
 
 const getDiscountPercentage = (currentPrice, previousPrice) => {
   const current = normalizePrice(currentPrice);
@@ -76,7 +60,7 @@ const DealCard = ({ offer }) => {
         )}
       </div>
       <p className="mb-6 line-clamp-3 text-sm text-slate-600">
-        {offer.short_description || "Descuento exclusivo por tiempo limitado."}
+        {offer.short_description || "Oferta activa del dia con precio revisado y stock confirmado en tienda."}
       </p>
       <div className="mt-auto flex items-center justify-between gap-3">
         <a
@@ -198,7 +182,7 @@ export default function DealsToday() {
 
       <div
         className="sticky z-30 border-b border-orange-100 bg-white/85 shadow-sm backdrop-blur"
-        style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px))' }}
+        style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px) - var(--header-compact-offset-active, 0px))' }}
       >
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -297,7 +281,7 @@ export default function DealsToday() {
                 <p className="text-sm font-semibold uppercase tracking-[0.3em]">Solo por hoy</p>
                 <h1 className="mt-2 text-3xl font-black sm:text-4xl">Las ofertas que no te puedes perder</h1>
                 <p className="mt-4 max-w-2xl text-base sm:text-lg text-white/85">
-                  Seleccionamos los mejores precios del dia para que ahorres sin renunciar a tus imprescindibles.
+                  Mostramos las referencias con mejor ajuste entre descuento, disponibilidad y rotacion comercial del dia.
                 </p>
                 <div className="mt-6 flex flex-wrap items-center gap-4">
                   <button
@@ -389,7 +373,7 @@ export default function DealsToday() {
             </div>
 
             <p className="text-center text-sm text-slate-500">
-              Los precios cambian constantemente. Guarda tus favoritos y vuelve pronto para seguir ahorrando.
+              El listado se recalcula con el catalogo activo, por eso una oferta puede salir o agotarse dentro del mismo dia.
             </p>
           </section>
 

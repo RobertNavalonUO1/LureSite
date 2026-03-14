@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\ProfileAvatar;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -24,6 +25,13 @@ class HandleInertiaRequests extends Middleware
                     'id' => $request->user()->id,
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
+                    'avatar' => ProfileAvatar::resolve(
+                        $request->user()->avatar,
+                        $request->user()->id,
+                        $request->user()->email,
+                        $request->user()->photo_url
+                    ),
+                    'photo_url' => $request->user()->photo_url,
                     'default_address_id' => $request->user()->default_address_id,
                     'is_admin' => (bool) $request->user()->is_admin,
                 ] : null,

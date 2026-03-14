@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/react';
 import { Inertia } from '@inertiajs/inertia';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, LogOut, User, ShoppingBag } from 'lucide-react';
+import ProfileAvatar from '@/Components/avatar/ProfileAvatar.jsx';
 
 const UserDropdown = ({ user }) => {
   const [open, setOpen] = useState(false);
@@ -34,8 +35,8 @@ const UserDropdown = ({ user }) => {
         <span className="text-white font-medium hidden sm:inline group-hover:underline transition">
           Hola, {user.name.split(' ')[0]}
         </span>
-        <img
-          src={user.avatar || '/default-avatar.png'}
+        <ProfileAvatar
+          user={user}
           alt="Avatar"
           className="w-9 h-9 rounded-full border-2 border-white object-cover group-hover:ring-2 group-hover:ring-white transition"
         />

@@ -1,11 +1,13 @@
 // resources/js/Components/ProductCatalog.jsx
 import React from 'react';
-import { Inertia } from '@inertiajs/inertia';
+import { addCartItem } from '@/utils/cartClient';
 
 const ProductCatalog = ({ products, cartCount }) => {
 
   const handleAddToCart = (productId) => {
-    Inertia.post(`/cart/${productId}/add`);
+    addCartItem(productId).catch((error) => {
+      console.error('No se pudo agregar al carrito', error);
+    });
   };
 
   return (

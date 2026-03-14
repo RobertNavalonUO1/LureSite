@@ -1,4 +1,4 @@
-import { useForm, usePage, Link, router } from "@inertiajs/react";
+﻿import { useForm, usePage, Link, router } from "@inertiajs/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Upload, Loader2, Link as LinkIcon, PenLine, Images } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -950,7 +950,7 @@ export default function MigrateProducts() {
                                             />
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                            Imagenes
+                                            Imágenes
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                                             Nombre
@@ -1028,7 +1028,7 @@ export default function MigrateProducts() {
                             exit={{ scale: 0.9, opacity: 0 }}
                         >
                             <h3 className="mb-4 text-lg font-semibold text-gray-800">
-                                {completed ? (error ? "Error en la migracion" : "Migracion completada") : "Migrando productos..."}
+                                {completed ? (error ? "Error en la migración" : "Migración completada") : "Migrando productos..."}
                             </h3>
 
                             {error && (

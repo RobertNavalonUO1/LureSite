@@ -1,75 +1,62 @@
 import React from 'react';
-import { Head, usePage } from '@inertiajs/react';
-import TopNavMenu from '@/Components/navigation/TopNavMenu.jsx';
-import CartDropdown from '@/Components/cart/CartDropdown.jsx';
+import { Head } from '@inertiajs/react';
+import Footer from '@/Components/navigation/Footer.jsx';
+import StorefrontLayout from '@/Layouts/StorefrontLayout.jsx';
+import { useI18n } from '@/i18n';
 
 const About = () => {
-  const { auth } = usePage().props;
-  const user = auth?.user;
+  const { t } = useI18n();
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-800">
-      <Head title="Acerca de | Limoneo" />
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800">
+      <Head title={t('static.about.head_title')} />
 
-      {/* Header principal */}
-      <header className="bg-indigo-600 text-white py-4 px-6 shadow-md z-30">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <h1 className="text-2xl font-bold tracking-tight">Limoneo</h1>
-          <nav className="flex flex-wrap items-center gap-3 text-sm">
-            <a href="/" className="hover:underline">Inicio</a>
-            <a href="/contact" className="hover:underline">Contacto</a>
-            <CartDropdown />
-            {user && (
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:inline">Hola, {user.name}</span>
-                <a href="/dashboard">
-                  <img
-                    src={user.avatar || user.photo_url || '/default-avatar.png'}
-                    alt="Avatar del usuario"
-                    className="w-9 h-9 rounded-full border border-white object-cover shadow"
-                  />
-                </a>
-              </div>
-            )}
-          </nav>
-        </div>
-      </header>
+      <StorefrontLayout showTopNav />
 
-      <TopNavMenu />
-
-      {/* Contenido principal */}
-      <main className="flex-grow flex flex-col items-center justify-center p-6">
-        <div className="max-w-2xl w-full bg-white rounded-xl shadow-lg p-8 text-center">
-          <h2 className="text-4xl font-extrabold text-indigo-700 mb-4 drop-shadow">Acerca de Limoneo</h2>
-          <p className="text-lg text-gray-700 mb-6">
-            Limoneo es una plataforma dedicada a ofrecerte los mejores productos del mercado, con una experiencia de usuario intuitiva, rápida y segura.
-            Nuestro objetivo es facilitar tu proceso de compra, brindando transparencia, confianza y una atención personalizada.
-          </p>
-
-          <section className="my-6 text-left">
-            <h3 className="text-2xl font-bold text-indigo-600 mb-2">¿Por qué elegirnos?</h3>
-            <ul className="list-disc list-inside text-gray-700 space-y-2">
-              <li><span className="font-semibold">Navegación clara:</span> Menús y filtros accesibles para encontrar lo que buscas fácilmente.</li>
-              <li><span className="font-semibold">Proceso de compra simple:</span> Carrito y checkout optimizados para minimizar pasos y errores.</li>
-              <li><span className="font-semibold">Seguridad y privacidad:</span> Tus datos están protegidos y nunca se comparten con terceros.</li>
-              <li><span className="font-semibold">Soporte rápido:</span> Atención al cliente disponible para resolver tus dudas.</li>
-              <li><span className="font-semibold">Ofertas y novedades:</span> Acceso a promociones exclusivas y productos recién llegados.</li>
-            </ul>
-          </section>
-
-          <section className="my-6 text-left bg-indigo-50 border-l-4 border-indigo-400 p-4 rounded">
-            <h4 className="font-bold text-indigo-700 mb-1">Nota UX:</h4>
-            <p className="text-indigo-800 text-sm">
-              Esta página ha sido diseñada siguiendo principios de usabilidad y accesibilidad: contraste de colores, tipografía legible, estructura clara y navegación consistente.
-              Nuestro objetivo es que cualquier usuario, sin importar su experiencia digital, pueda comprar de forma cómoda y segura.
+      <main className="flex-grow px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-[32px] border border-slate-200/80 bg-white/95 shadow-[0_25px_70px_-35px_rgba(15,23,42,0.35)]">
+          <div className="border-b border-slate-200 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-900 px-6 py-10 text-white sm:px-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-200/90">Limoneo</p>
+            <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">{t('static.about.title')}</h1>
+            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base">
+              {t('static.about.intro_1')} {t('static.about.intro_2')}
             </p>
-          </section>
+          </div>
 
-          <p className="text-gray-500 text-sm mt-8">
-            Gracias por confiar en Limoneo. ¡Tu satisfacción es nuestra prioridad!
-          </p>
+          <div className="space-y-8 px-6 py-8 sm:px-10 sm:py-10">
+            <section className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)] lg:items-start">
+              <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-6 text-left shadow-sm">
+                <h2 className="text-2xl font-bold text-slate-900">{t('static.about.why_title')}</h2>
+                <ul className="mt-4 space-y-3 text-sm leading-relaxed text-slate-600 sm:text-base">
+                  <li><span className="font-semibold text-slate-900">{t('static.about.why.items.clear_nav.label')}</span> {t('static.about.why.items.clear_nav.body')}</li>
+                  <li><span className="font-semibold text-slate-900">{t('static.about.why.items.simple_checkout.label')}</span> {t('static.about.why.items.simple_checkout.body')}</li>
+                  <li><span className="font-semibold text-slate-900">{t('static.about.why.items.security_privacy.label')}</span> {t('static.about.why.items.security_privacy.body')}</li>
+                  <li><span className="font-semibold text-slate-900">{t('static.about.why.items.fast_support.label')}</span> {t('static.about.why.items.fast_support.body')}</li>
+                  <li><span className="font-semibold text-slate-900">{t('static.about.why.items.deals_news.label')}</span> {t('static.about.why.items.deals_news.body')}</li>
+                </ul>
+              </div>
+
+              <section className="rounded-[28px] border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-slate-50 p-6 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">{t('static.about.experience_kicker')}</p>
+                <h3 className="mt-3 text-xl font-bold text-slate-900">{t('static.about.ux_note.title')}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                  {t('static.about.ux_note.body_1')} {t('static.about.ux_note.body_2')}
+                </p>
+                <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left shadow-sm">
+                  <p className="text-sm font-semibold text-slate-900">{t('static.about.thanks')}</p>
+                  <p className="mt-2 text-sm text-slate-500">{t('static.about.final_note')}</p>
+                </div>
+              </section>
+            </section>
+
+            <div className="rounded-[28px] border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-500 shadow-sm sm:px-6">
+              {t('static.about.thanks')}
+            </div>
+          </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 };

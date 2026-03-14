@@ -1,4 +1,4 @@
-// resources/js/Pages/SeasonalProducts.jsx
+﻿// resources/js/Pages/SeasonalProducts.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Inertia } from "@inertiajs/inertia";
 import { usePage, Head } from "@inertiajs/react";
@@ -11,23 +11,7 @@ import ForgotPassword from "@/Components/auth/ForgotPassword.jsx";
 import CookieConsentModal from "@/Components/cookies/CookieConsentModal.jsx";
 import CustomizeCookiesModal from "@/Components/cookies/CustomizeCookiesModal.jsx";
 import UI_CONFIG from "@/config/ui.config";
-
-const currencyFormatter = new Intl.NumberFormat("es-ES", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 2,
-});
-
-const normalizePrice = (value) => {
-  if (value === null || value === undefined || value === "") return 0;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  const sanitized = String(value).trim().replace(/[^\d,.-]/g, "");
-  const normalized = sanitized.replace(/,/g, ".");
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const formatCurrency = (value) => currencyFormatter.format(normalizePrice(value));
+import { formatCurrency, normalizePrice } from "@/utils/pricing";
 
 const getDiscountPercentage = (currentPrice, previousPrice) => {
   const current = normalizePrice(currentPrice);
@@ -88,7 +72,7 @@ const SeasonalCard = ({ product }) => {
       </div>
       <p className="mb-6 line-clamp-3 text-sm text-slate-600">
         {product.description ||
-          "Novedades seleccionadas segun la temporada para que renueves tu hogar y estilo."}
+          "Seleccion vigente para la temporada, con disponibilidad actualizada y rotacion comercial activa."}
       </p>
       <div className="mt-auto flex items-center justify-between gap-3">
         <a
@@ -261,7 +245,7 @@ const SeasonalProducts = () => {
 
       <div
         className="sticky z-30 border-b border-lime-200 bg-white/85 shadow-sm backdrop-blur"
-        style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px))' }}
+        style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px) - var(--header-compact-offset-active, 0px))' }}
       >
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -275,7 +259,7 @@ const SeasonalProducts = () => {
                     : "bg-lime-50 text-lime-700 hover:bg-lime-100"
                 }`}
               >
-                Todas las categorias
+                Todas las categorías
               </button>
               {categories.map((category) => (
                 <button
@@ -300,7 +284,7 @@ const SeasonalProducts = () => {
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   className="w-full rounded-full border border-lime-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-lime-300 focus:outline-none focus:ring-2 focus:ring-lime-200"
-                  placeholder="Buscar por nombre o categoria"
+                  placeholder="Buscar por nombre o categoría"
                 />
               </div>
               <select
@@ -326,10 +310,10 @@ const SeasonalProducts = () => {
                   Temporada en tendencia
                 </p>
                 <h1 className="mt-2 text-3xl font-black sm:text-4xl">
-                  Colecciones frescas para renovar tus espacios
+                  Productos de temporada con disponibilidad y precio en operacion
                 </h1>
                 <p className="mt-4 max-w-2xl text-base sm:text-lg text-white/85">
-                  Descubre lanzamientos limitados, colores en tendencia y articulos que solo estaran disponibles durante esta temporada.
+                  Agrupamos las referencias estacionales que siguen activas en catalogo para que encuentres colecciones oportunas sin navegar todo el inventario.
                 </p>
                 <div className="mt-6 grid gap-6 sm:grid-cols-3">
                   <div>
@@ -405,7 +389,7 @@ const SeasonalProducts = () => {
             </div>
 
             <p className="text-center text-sm text-slate-500">
-              Los articulos cambian segun la temporada. Guarda esta pagina en tus favoritos para descubrir novedades cada semana.
+              La seleccion cambia cuando rota la temporada o cuando una referencia deja de tener stock operativo.
             </p>
           </section>
 

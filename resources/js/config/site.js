@@ -10,20 +10,21 @@ const site = {
     logoAlt: 'Limoneo',
   },
   promo: {
-    label: 'Oferta del día:',
-    highlight: 'envíos gratis',
-    suffix: 'en compras mayores a $50',
+    labelKey: 'header.promo.label',
+    highlightKey: 'header.promo.highlight',
+    suffixKey: 'header.promo.suffix',
   },
   support: {
-    phoneDisplay: '+52 1 800 000 0000',
-    phoneTel: '+521800000000',
-    email: 'contacto@limoneo.com',
+    primaryLabelKey: 'header.support.primary',
+    primaryHref: '/faq',
+    secondaryLabelKey: 'header.support.secondary',
+    secondaryHref: '/contact',
   },
   navigation: [
-    { label: 'Inicio', href: '/' },
-    { label: 'Acerca', href: '/about' },
-    { label: 'Contacto', href: '/contact' },
-    { label: 'Ayuda', href: '/faq' },
+    { labelKey: 'header.navigation.home', href: '/' },
+    { labelKey: 'header.navigation.about', href: '/about' },
+    { labelKey: 'header.navigation.contact', href: '/contact' },
+    { labelKey: 'header.navigation.help', href: '/faq' },
   ],
 };
 

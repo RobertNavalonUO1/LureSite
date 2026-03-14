@@ -10,6 +10,8 @@ use Inertia\Response;
 use Illuminate\Support\Facades\Log;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
+use App\Support\CatalogDataLocalizer;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -167,73 +169,173 @@ class ProductController extends Controller
 
     public function dealsToday()
     {
-        // Ejemplo: productos con descuento o destacados
-        $deals = \App\Models\Product::where('is_featured', true)
-            ->orWhere('discount', '>', 0)
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
+
+        $products = Product::with('category')
+            ->where(function ($query) {
+                $query->where('is_featured', true)
+                    ->orWhere('discount', '>', 0);
+            })
             ->orderByDesc('discount')
-            ->take(10)
-            ->get(['id', 'name as title', 'description', 'image_url as image', 'discount', 'slug']);
+            ->latest()
+            ->take(24)
+            ->get();
 
-        // Puedes mapear el formato aquí si lo necesitas
-        $deals = $deals->map(function($deal) {
-            return [
-                'id' => $deal->id,
-                'title' => $deal->title,
-                'description' => $deal->description,
-                'image' => $deal->image,
-                'link' => route('product.details', $deal->id),
-                'discount' => $deal->discount ? $deal->discount . '% OFF' : 'Oferta',
-            ];
-        });
+        return response()->json(
+            $products->map(fn (Product $product) => $this->specialProductPayload(
+                $product,
+                $catalogLocalizer,
+                'Oferta del dia',
+                'Seleccion del dia con precio rebajado y disponibilidad confirmada en el catalogo.'
+            ))
+        );
+    }
 
-        return response()->json($deals);
+    public function newArrivals()
+    {
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
+
+        $products = Product::with('category')
+            ->newArrival()
+            ->latest()
+            ->take(24)
+            ->get();
+
+        return response()->json(
+            $products->map(fn (Product $product) => $this->specialProductPayload(
+                $product,
+                $catalogLocalizer,
+                'Nuevo',
+                'Recien incorporado al catalogo con stock operativo y ficha completa.'
+            ))
+        );
+    }
+
+    public function seasonalProducts()
+    {
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
+
+        $products = Product::with('category')
+            ->seasonal()
+            ->latest()
+            ->take(24)
+            ->get();
+
+        return response()->json(
+            $products->map(fn (Product $product) => $this->specialProductPayload(
+                $product,
+                $catalogLocalizer,
+                'Temporada actual',
+                'Producto activo en la seleccion de temporada con salida vigente en tienda.'
+            ))
+        );
     }
 
     public function superdeals()
     {
-        // Asegúrate de traer todos los campos necesarios para el frontend
-        $products = \App\Models\Product::where('is_superdeal', true)
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
+
+        $products = Product::with('category')
+            ->superdeal()
             ->orderByDesc('discount')
+            ->latest()
             ->get()
-            ->map(function($p) {
-                return [
-                    'id' => $p->id,
-                    'title' => $p->name,
-                    'name' => $p->name,
-                    'description' => $p->description,
-                    'image' => $p->image_url,
-                    'image_url' => $p->image_url,
-                    'price' => $p->price,
-                    'old_price' => $p->discount > 0 ? round($p->price / (1 - $p->discount / 100), 2) : null,
-                    'discount' => $p->discount,
-                    'link' => route('product.details', $p->id),
-                    'stock' => $p->stock,
-                    'category_id' => $p->category_id,
-                ];
-            });
+            ->map(fn (Product $product) => $this->specialProductPayload(
+                $product,
+                $catalogLocalizer,
+                'Super deal',
+                'Oferta priorizada por margen de ahorro real y disponibilidad inmediata.'
+            ));
 
         return response()->json($products);
     }
 
     public function fastShipping()
     {
-        $products = \App\Models\Product::where('is_fast_shipping', true)
-            ->orderByDesc('created_at')
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
+
+        $products = Product::with('category')
+            ->fastShipping()
+            ->latest()
             ->get()
-            ->map(function($p) {
-                return [
-                    'id' => $p->id,
-                    'name' => $p->name,
-                    'description' => $p->description,
-                    'image_url' => $p->image_url,
-                    'price' => $p->price,
-                    'discount' => $p->discount,
-                    'stock' => $p->stock,
-                    'category_id' => $p->category_id,
-                    'image_url_full' => $p->image_url_full,
-                ];
-            });
+            ->map(fn (Product $product) => $this->specialProductPayload(
+                $product,
+                $catalogLocalizer,
+                'Envio rapido',
+                'Preparado para salida agil con seguimiento y confirmacion de stock.'
+            ));
 
         return response()->json($products);
+    }
+
+    public function fastShippingPage(): Response
+    {
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
+
+        $products = Product::with('category')
+            ->fastShipping()
+            ->latest()
+            ->get()
+            ->map(fn (Product $product) => $this->specialProductPayload(
+                $product,
+                $catalogLocalizer,
+                'Envio rapido',
+                'Preparado para salida agil con seguimiento y confirmacion de stock.'
+            ));
+
+        return Inertia::render('Special/FastShipping', [
+            'products' => $products,
+        ]);
+    }
+
+    private function specialProductPayload(
+        Product $product,
+        CatalogDataLocalizer $catalogLocalizer,
+        string $badge,
+        string $fallbackDescription
+    ): array {
+        $originalPrice = $this->deriveOriginalPrice($product);
+        $description = $this->resolveShortDescription($product, $fallbackDescription);
+
+        return $catalogLocalizer->productPayload($product, [
+            'title' => $product->name,
+            'description' => $description,
+            'short_description' => $description,
+            'image' => $product->image_url,
+            'image_url' => $product->image_url,
+            'old_price' => $originalPrice,
+            'original_price' => $originalPrice,
+            'discount' => (int) ($product->discount ?? 0),
+            'link' => route('product.details', $product->id),
+            'badge' => $badge,
+            'is_new' => (bool) $product->is_new_arrival,
+            'fast_shipping' => (bool) $product->is_fast_shipping,
+            'season' => $product->is_seasonal ? 'Temporada actual' : null,
+            'delivery_estimate' => $product->is_fast_shipping ? 'Entrega estimada en 24-48 h' : null,
+        ]);
+    }
+
+    private function deriveOriginalPrice(Product $product): ?float
+    {
+        if (isset($product->original_price) && is_numeric($product->original_price)) {
+            return (float) $product->original_price;
+        }
+
+        if ((int) $product->discount <= 0 || (float) $product->price <= 0) {
+            return null;
+        }
+
+        return round((float) $product->price / (1 - ((int) $product->discount / 100)), 2);
+    }
+
+    private function resolveShortDescription(Product $product, string $fallback): string
+    {
+        $description = trim((string) $product->description);
+
+        if ($description === '') {
+            return $fallback;
+        }
+
+        return Str::limit(preg_replace('/\s+/', ' ', strip_tags($description)), 140, '...');
     }
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useMemo } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import {
   Flame,
@@ -48,11 +48,10 @@ const BASE_NAV_ITEMS = [
   },
 ];
 
-const TopNavMenu = () => {
+const TopNavMenu = ({ isCompact = false }) => {
   const { url, props } = usePage();
   const { t } = useI18n();
   const metrics = props?.navMetrics || {};
-  const navRef = useRef(null);
 
   const navItems = useMemo(
     () =>
@@ -65,37 +64,20 @@ const TopNavMenu = () => {
     [metrics, t]
   );
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (!root) return;
-
-    const updateHeight = () => {
-      const height = navRef.current?.offsetHeight ?? 0;
-      root.style.setProperty('--topnav-sticky-height', `${height}px`);
-    };
-
-    updateHeight();
-
-    const observer = new ResizeObserver(updateHeight);
-    if (navRef.current) observer.observe(navRef.current);
-    window.addEventListener('resize', updateHeight);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', updateHeight);
-    };
-  }, []);
-
   return (
     <nav
-      ref={navRef}
-      className="sticky z-40 border-b border-slate-200 bg-white/90 backdrop-blur"
-      style={{ top: 'var(--header-sticky-height, 0px)' }}
+      className="sticky z-[60] h-[var(--topnav-sticky-height)] border-b border-slate-200 bg-white/95 backdrop-blur"
+      style={{ top: 'calc(var(--header-sticky-height, 0px) - var(--header-compact-offset-active, 0px))' }}
     >
-      <div className="relative mx-auto flex max-w-full items-center gap-3 px-2 sm:px-4">
+      <div className="relative mx-auto flex h-full max-w-full items-center gap-3 px-2 sm:px-4">
         <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white" />
         <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white" />
-        <ul className="flex w-full gap-2 overflow-x-auto py-3 text-lg font-bold text-slate-700 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-200">
+        <ul
+          className={[
+            'flex h-full w-full items-center gap-2 overflow-x-auto py-0 font-bold text-slate-700 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-200',
+            isCompact ? 'text-xs sm:text-sm' : 'text-lg',
+          ].join(' ')}
+        >
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive =
@@ -105,22 +87,24 @@ const TopNavMenu = () => {
                 <Link
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
-                  className={`group relative flex flex-col items-start justify-center rounded-2xl border px-5 py-3 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 sm:flex-row sm:items-center sm:gap-2 ${
+                  className={`group relative flex items-center justify-center rounded-2xl border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+                    isCompact ? 'gap-2 whitespace-nowrap px-3 py-2' : 'flex-col items-start px-5 py-3 sm:flex-row sm:items-center sm:gap-2'
+                  } ${
                     isActive
                       ? "border-indigo-200 bg-indigo-50 text-indigo-600 shadow-sm"
                       : "border-transparent bg-white hover:border-indigo-100 hover:bg-slate-50"
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Icon className={`h-5 w-5 ${item.accent}`} aria-hidden="true" />
+                    <Icon className={`${isCompact ? 'h-4 w-4' : 'h-5 w-5'} ${item.accent}`} aria-hidden="true" />
                     <span>{item.label}</span>
                   </span>
-                  {item.subtitle && !isActive && (
+                  {item.subtitle && !isActive && !isCompact && (
                     <span className="text-sm font-medium text-slate-400 sm:hidden">
                       {item.subtitle}
                     </span>
                   )}
-                  {item.badge !== null && (
+                  {item.badge !== null && !isCompact && (
                     <span
                       className={`mt-1 inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold sm:mt-0 ${
                         isActive
@@ -140,10 +124,12 @@ const TopNavMenu = () => {
         <div className="hidden flex-shrink-0 lg:block">
           <Link
             href="/search"
-            className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-5 py-3 text-base font-bold uppercase tracking-wide text-indigo-600 transition hover:bg-indigo-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            className={`inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-600 transition hover:bg-indigo-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+              isCompact ? 'whitespace-nowrap px-3 py-2 text-sm font-semibold tracking-normal' : 'px-5 py-3 text-base font-bold uppercase tracking-wide'
+            }`}
           >
-            <Compass className="h-5 w-5" />
-            {t('nav.see_all')}
+            <Compass className={isCompact ? 'h-4 w-4' : 'h-5 w-5'} />
+            <span>{t('nav.see_all')}</span>
           </Link>
         </div>
       </div>

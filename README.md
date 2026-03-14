@@ -1,6 +1,6 @@
 # Limoneo (Laravel + Inertia + React)
 
-Última actualización: 2026-03-03 07:15
+Última actualización: 2026-03-14
 
 Aplicación web tipo e-commerce construida con **Laravel 11** + **Inertia.js** + **React** (Vite). El backend sirve páginas Inertia y APIs JSON, y el frontend vive en `resources/js`.
 
@@ -8,9 +8,11 @@ Documentación adicional:
 
 - Guía extendida de producción y alojamiento: [docs/PRODUCTION.md](docs/PRODUCTION.md)
 - Guía para alternar entornos (dev/staging/prod): [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md)
+- Dataset QA masivo para pruebas manuales y smoke tests: [docs/QA_DATASET.md](docs/QA_DATASET.md)
 - Checklist corto de pendientes: [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)
 - Guía de arranque (próximo bloque con otro agente): [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)
 - Landing temporal “universo + limón” (modo mantenimiento): [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)
+- i18n frontend (diccionarios + hook): [resources/js/i18n/README.md](resources/js/i18n/README.md)
 
 ## Estado actual (infra / producción)
 
@@ -50,6 +52,17 @@ Runbook detallado: [docs/PRODUCTION.md](docs/PRODUCTION.md).
 
 Nota Windows/PowerShell: `curl` suele ser un alias de `Invoke-WebRequest`. Si necesitas sintaxis estilo Linux (`-I`, `-H`), usa `curl.exe`.
 
+## QA local rapido
+
+Para poblar una base local con datos de prueba amplios y consistentes para storefront, perfil, admin, pedidos, devoluciones y herramientas internas:
+
+- Refrescar toda la base con dataset QA: `composer qa:refresh`
+- Reinyectar dataset QA sobre una base ya migrada: `composer seed:qa`
+- Verificar el seeder QA: `composer test:qa-dataset`
+- Ejecutar la suite focalizada principal: `composer test:critical`
+
+Credenciales QA documentadas y coberturas del dataset: ver [docs/QA_DATASET.md](docs/QA_DATASET.md).
+
 Este README está escrito pensando en un handoff real: explica **cómo funciona** el proyecto, **cómo ejecutarlo** (desarrollo vs producción) y **dónde está cada cosa importante**.
 
 > Nota sobre “explicar cada archivo”
@@ -68,10 +81,15 @@ Este README está escrito pensando en un handoff real: explica **cómo funciona*
 
 ## Estado actual (app)
 
-- Responsive móvil: aplicada una primera tanda de ajustes (checkout/carrito/grids/sticky stack).
+- Responsive móvil: aplicada una primera tanda de ajustes en checkout, carrito, grids y sticky stack storefront.
 - Landing-only en producción: `LANDING_ONLY=true` sirve solo la landing (ver [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)).
+- Seguridad de rutas y ownership: se cerró una pasada de endurecimiento en `routes/web.php`, checkout, pedidos, perfil/direcciones y administración.
+- Admin/postventa: las mutaciones destructivas usan ya semántica REST (`DELETE`/`PATCH`), se retiró el componente admin huérfano que seguía hablando con el contrato antiguo y el reembolso admin ya intenta ejecutarse contra Stripe o PayPal antes de marcar el pedido como `reembolsado`.
+- Trazabilidad de refund: `orders` conserva referencia de pago, referencia de refund, fecha efectiva y último error de proveedor si falla el reembolso.
+- Operativa de refund: ya existe una primera capa de idempotencia, validación de modo PayPal y logging de intentos/resultado para soporte.
+- Cobertura focalizada: la suite de regresión del bloque crítico está verde con `24 tests` y `104 assertions`.
 - Importación de productos: pipeline temporal (`temporary_products`) + migración a `products` y scripts Python (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)).
-- Pendiente: textos con acentos/encoding (mojibake) en algunos ficheros; se corrige estandarizando UTF-8 y reescribiendo literales.
+- Pendiente principal: rematar los restos admin menos relevantes, decidir si exponer más visibilidad operativa del refund y después retomar la deuda técnica de importación Python.
 
 Flujo típico de una página Inertia:
 
@@ -101,6 +119,8 @@ Flujo típico de una página Inertia:
         - `GET /auth/{provider}/callback`
     - **Locale**: `POST /locale` (cookie + sesión).
     - **Carrito/checkout**: `/cart/*`, `/checkout/*`.
+    - **Pedidos autenticados**: ownership reforzado en `/orders/{order}` y workflow de devolución separado del reembolso final.
+    - **Admin**: mutaciones destructivas y de estado normalizadas a `DELETE` / `PATCH`, incluyendo devolución aprobada, rechazada y reembolso administrativo.
     - **Inertia share**: comparte carrito, total, csrf, etc.
 
 ### Shared props (Inertia)
@@ -122,36 +142,64 @@ El resolver está en [resources/js/app.jsx](resources/js/app.jsx).
 
 ### Navegación / Header / Sticky stack
 
+- Layout compartido de storefront: [resources/js/Layouts/StorefrontLayout.jsx](resources/js/Layouts/StorefrontLayout.jsx)
+    - Calcula una sola vez el estado compacto con `useScrollCompact()`.
+    - Entrega `isCompact` a `Header` y `TopNavMenu` para que ambos usen la misma referencia visual.
+
 - Header principal: [resources/js/Components/navigation/Header.jsx](resources/js/Components/navigation/Header.jsx)
-    - Es `sticky top-0` y tiene **modo compacto** al scrollear.
-    - Usa histéresis (umbral de entrada/salida) para evitar “parpadeo” cuando cambia la altura.
-    - Publica el estado global `data-header-compact` en `<html>` y emite el evento `header:compact`.
-    - Mide su altura con `ResizeObserver` y escribe `--header-sticky-height` para que otros sticky se apilen sin solaparse.
+    - Es `sticky top-0` con jerarquía `z-50`, por encima del resto del contenido.
+    - Cuando cambia entre modo expandido y compacto, actualiza `--header-sticky-height` con la altura real activa (`expanded` o `compact`).
+    - Mantiene `--header-compact-offset-active` en `0px`, de modo que el resto del stack sticky no reste una altura fantasma.
 
 - Menú superior de secciones: [resources/js/Components/navigation/TopNavMenu.jsx](resources/js/Components/navigation/TopNavMenu.jsx)
-    - También es sticky y se coloca **debajo** del header usando `top: var(--header-sticky-height)`.
-    - Mide su altura y escribe `--topnav-sticky-height`.
+    - También es sticky y se ancla justo debajo del header con `top: calc(var(--header-sticky-height, 0px) - var(--header-compact-offset-active, 0px))`.
+    - Usa `z-40`, por debajo del header pero por encima de raíles y asides de catálogo.
 
-- Hook de estado compacto: [resources/js/Components/navigation/header/useHeaderCompact.js](resources/js/Components/navigation/header/useHeaderCompact.js)
-    - Lee `document.documentElement.dataset.headerCompact` y escucha `header:compact`.
+- Hook de compactación: [resources/js/hooks/useScrollCompact.js](resources/js/hooks/useScrollCompact.js)
+    - Sustituye al esquema anterior basado en dataset/eventos globales.
+    - El estado compacto ya no se publica en `<html>` ni depende de listeners personalizados.
 
 **Concepto “sticky stack”**
 
-Cuando una página necesita otra barra sticky (categorías/filtros), se posiciona con:
+La jerarquía correcta ahora es:
 
-`top: calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px))`
+1. Header
+2. Top nav
+3. Railes de categorías, filtros sticky y asides
 
-Así no tapa contenido y funciona incluso si el header cambia de alto.
+En catálogo se usan tokens explícitos en `resources/js/config/catalogLayout.js`:
+
+- `CATALOG_STICKY_TOP`: para sidebars o railes sticky bajo header + topnav.
+- `CATALOG_STICKY_TOP_WITH_RAIL`: para bloques sticky que además deben respetar la altura reservada del rail de categorías de Home.
+- Regla de composición: el filtro es el único sticky dominante del aside; banners y promos quedan en flujo normal para no competir por el mismo anclaje.
+
+Nota operativa: evitar `z-index` propios en el aside derecho de Home salvo necesidad real, porque rompen la jerarquía anterior.
 
 ### Home (Shop)
 
 - Página: [resources/js/Pages/Shop/Home.jsx](resources/js/Pages/Shop/Home.jsx)
     - Recibe `categories`, `products`, `campaign`, `auth` desde backend.
     - Filtros en cliente: búsqueda, categoría, precio min/max, orden.
+    - Patrón visual de filtros del catálogo:
+        - Desktop: `CatalogFilterPanel` persistente y sticky.
+        - Mobile: el mismo `CatalogFilterPanel` en modo inline expandible, sin overlays ni drawers.
+        - En Home el sticky del filtro respeta `CategoryIconBar` mediante `CATALOG_STICKY_TOP_WITH_RAIL`.
     - **Swap de categorías según header**:
         - Normal: grid grande con `CategoryCards`.
         - Compacto: barra minimal con `CategoryIconBar`.
-    - Aside enriquecido con banners y módulos rápidos.
+    - Aside enriquecido con banners y módulos rápidos, pero sin stickies promocionales compitiendo con el filtro.
+
+### Sistema de filtros de catálogo
+
+- Componente compartido: `resources/js/Components/catalog/CatalogFilterPanel.jsx`
+    - Centraliza estructura, lenguaje visual y modo `aside`/`inline`.
+    - Recibe setters/control state desde cada página para no acoplar lógica de negocio.
+- Chips/resumen activos: `resources/js/Components/catalog/ActiveFilters.jsx`
+    - Soporta búsqueda, categoría, precio y etiquetas adicionales.
+- Páginas unificadas:
+    - `resources/js/Pages/Shop/Home.jsx`
+    - `resources/js/Pages/Search/Results.jsx`
+    - `resources/js/Pages/Shop/CategoryPage.jsx`
 
 - Barra de categorías compacta: [resources/js/Components/catalog/CategoryIconBar.jsx](resources/js/Components/catalog/CategoryIconBar.jsx)
     - Iconos por heurística del nombre (mapa local) + dropdowns “todas”/“más”.

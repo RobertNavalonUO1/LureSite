@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { usePage } from '@inertiajs/react';
 import Header from '@/Components/navigation/Header.jsx';
 import Footer from '@/Components/navigation/Footer.jsx';
@@ -15,10 +15,20 @@ const STATUS_INFO = {
     color: 'bg-amber-100 text-amber-800 border-amber-300',
     icon: <Clock className="w-5 h-5 text-amber-600" />,
   },
+  devolucion_solicitada: {
+    label: 'Devolucion solicitada',
+    color: 'bg-orange-100 text-orange-800 border-orange-300',
+    icon: <RotateCcw className="w-5 h-5 text-orange-600" />,
+  },
   devolucion_aprobada: {
     label: 'Devolucion aprobada',
     color: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     icon: <RotateCcw className="w-5 h-5 text-emerald-600" />,
+  },
+  devolucion_rechazada: {
+    label: 'Devolucion rechazada',
+    color: 'bg-rose-100 text-rose-800 border-rose-300',
+    icon: <XCircle className="w-5 h-5 text-rose-600" />,
   },
   reembolsado: {
     label: 'Reembolsado',
@@ -89,10 +99,19 @@ const CancelledRefundedOrders = () => {
                       Tu solicitud de cancelacion esta en revision. Recibiras confirmacion en 24-48 horas.
                     </p>
                   )}
+                  {order.status === 'devolucion_solicitada' && (
+                    <p className="mt-2 text-sm text-orange-700">
+                      La devolución fue solicitada y está en revisión. Te notificaremos cuando haya una resolución.
+                    </p>
+                  )}
                   {order.status === 'devolucion_aprobada' && (
                     <p className="mt-2 text-sm text-emerald-700">
-                      La devolucion fue aprobada. Si aun no lo has hecho, solicita tu reembolso desde la seccion de
-                      pedidos pagados.
+                      La devolución fue aprobada. El equipo administrativo procesará el reembolso.
+                    </p>
+                  )}
+                  {order.status === 'devolucion_rechazada' && (
+                    <p className="mt-2 text-sm text-rose-700">
+                      La devolución fue rechazada. Si necesitas aclaraciones, ponte en contacto con soporte.
                     </p>
                   )}
                   {order.status === 'reembolsado' && (

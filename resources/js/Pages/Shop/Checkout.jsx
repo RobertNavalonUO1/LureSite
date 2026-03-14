@@ -1,12 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Inertia } from '@inertiajs/inertia';
 import Header from '@/Components/navigation/Header.jsx';
 import Footer from '@/Components/navigation/Footer.jsx';
 import AddressModal from '@/Components/checkout/AddressModal.jsx';
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const formatAddress = (addr) => `${addr.street}, ${addr.city}, ${addr.province}, ${addr.zip_code}, ${addr.country}`;
 
@@ -129,7 +127,6 @@ const Checkout = () => {
     setPaymentLoading('stripe');
 
     try {
-      const stripe = await stripePromise;
       const response = await fetch(route('checkout.stripe'), {
         method: 'POST',
         headers: {
@@ -141,6 +138,11 @@ const Checkout = () => {
 
       const data = await response.json();
       if (data.sessionId) {
+        const stripe = await loadStripe(data.stripePublicKey || import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+        if (!stripe) {
+          throw new Error('No se pudo inicializar Stripe.');
+        }
+
         const result = await stripe.redirectToCheckout({ sessionId: data.sessionId });
         if (result.error) {
           console.error(result.error.message);
@@ -386,7 +388,7 @@ const Checkout = () => {
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="mt-0.5 text-indigo-600">✓</span>
-                      <span>Soporte 24/7 para resolver dudas y gestionar incidencias.</span>
+                      <span>Soporte centralizado desde cuenta y formulario de contacto para incidencias de pedido, pago o devolución.</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="mt-0.5 text-indigo-600">✓</span>
@@ -399,7 +401,7 @@ const Checkout = () => {
           </section>
 
           <aside className="lg:col-span-1">
-            <div className="space-y-6 lg:sticky lg:top-[calc(var(--header-sticky-height,0px)+var(--topnav-sticky-height,0px)+1.5rem)]">
+            <div className="space-y-6 lg:sticky lg:top-[calc(var(--header-sticky-height,0px)+var(--topnav-sticky-height,0px)-var(--header-compact-offset-active,0px)+1.5rem)]">
               <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-6 space-y-6">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm text-slate-600">
@@ -521,7 +523,7 @@ const Checkout = () => {
                   <p className="font-semibold text-slate-700">Seguridad y privacidad</p>
                   <ul className="space-y-1">
                     <li>✓ Datos cifrados y verificación en dos pasos.</li>
-                    <li>✓ Protección al comprador y reembolsos garantizados.</li>
+                    <li>✓ Revisión administrativa de incidencias y trazabilidad del reembolso cuando aplica.</li>
                     <li>✓ Operaciones auditadas por proveedores externos.</li>
                   </ul>
                 </div>

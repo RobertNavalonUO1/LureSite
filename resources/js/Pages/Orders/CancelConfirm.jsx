@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import Header from '@/Components/navigation/Header.jsx';
 import Footer from '@/Components/navigation/Footer.jsx';
 import { Link, usePage } from '@inertiajs/react';

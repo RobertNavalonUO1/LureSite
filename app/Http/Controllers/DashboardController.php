@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\ProfileAvatar;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
@@ -61,7 +62,8 @@ class DashboardController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'avatar' => $user->avatar ?? '/default-avatar.png',
+                    'avatar' => ProfileAvatar::resolve($user->avatar, $user->id, $user->email, $user->photo_url),
+                    'photo_url' => $user->photo_url,
                     'is_admin' => $user->is_admin ? true : false,
                 ],
             ],

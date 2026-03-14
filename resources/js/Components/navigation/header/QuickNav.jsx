@@ -1,6 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import { Link, usePage } from '@inertiajs/react';
+import { useI18n } from '@/i18n';
 
 function IconHome(props) {
   return (
@@ -85,6 +86,7 @@ const ICON_BY_HREF = {
  */
 export default function QuickNav({ isCompact = false, items }) {
   const { url } = usePage();
+  const { t } = useI18n();
 
   const containerClass = clsx(
     'hidden lg:flex items-center transition-all duration-300 ease-out',
@@ -102,7 +104,7 @@ export default function QuickNav({ isCompact = false, items }) {
   const textLinkClass = clsx(linkBase, 'px-2 py-2 font-semibold text-lg');
 
   return (
-    <nav className={containerClass} aria-label="Navegación principal">
+    <nav className={containerClass} aria-label={t('header.navigation.primary_aria')}>
       {items.map((item) => {
         const Icon = ICON_BY_HREF[item.href];
         const isActive = item.href === '/' ? url === '/' : url?.startsWith(item.href);

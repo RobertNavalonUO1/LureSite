@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from '@inertiajs/react';
 
 const formatNumber = (value) =>
@@ -47,6 +47,7 @@ export default function Dashboard({
   activity = [],
   lastUpdated = null,
   currency = 'USD',
+  refundMetrics = { requested: 0, approved: 0, failed: 0, refunded: 0 },
 }) {
   const formattedDate = lastUpdated
     ? new Date(lastUpdated).toLocaleDateString('es-ES', {
@@ -100,10 +101,37 @@ export default function Dashboard({
       href: '/admin/products',
     },
     {
-      label: 'Tickets abiertos',
+      label: 'Postventa activa',
       value: formatNumber(supportTickets),
-      helper: supportTickets ? 'Priorizar soporte' : 'Todo en orden',
+      helper: refundMetrics.failed
+        ? `${formatNumber(refundMetrics.failed)} reembolsos con error`
+        : supportTickets
+          ? 'Revisar devoluciones y reembolsos'
+          : 'Sin incidencias abiertas',
       href: '/admin/logs',
+    },
+  ];
+
+  const refundHighlights = [
+    {
+      title: 'Solicitudes de devolución',
+      value: formatNumber(refundMetrics.requested),
+      helper: 'Pendientes de revisión administrativa',
+    },
+    {
+      title: 'Devoluciones aprobadas',
+      value: formatNumber(refundMetrics.approved),
+      helper: 'Listas para intentar reembolso',
+    },
+    {
+      title: 'Reembolsos con error',
+      value: formatNumber(refundMetrics.failed),
+      helper: 'Necesitan reintento o revisión de configuración',
+    },
+    {
+      title: 'Pedidos reembolsados',
+      value: formatNumber(refundMetrics.refunded),
+      helper: 'Confirmados contra proveedor de pago',
     },
   ];
 
@@ -234,8 +262,21 @@ export default function Dashboard({
                   </div>
                 ))}
               </div>
-              <div className="mt-8 rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400">
-                Integra aquí un gráfico con los ingresos de la semana para completar la visualización.
+              <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {refundHighlights.map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-xl border border-slate-100 bg-slate-50/80 p-4"
+                  >
+                    <span className="text-xs uppercase tracking-wide text-slate-500">
+                      {item.title}
+                    </span>
+                    <p className="mt-2 text-2xl font-semibold text-slate-900">
+                      {item.value}
+                    </p>
+                    <span className="text-xs text-slate-400">{item.helper}</span>
+                  </div>
+                ))}
               </div>
             </div>
 

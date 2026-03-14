@@ -1,24 +1,21 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useI18n } from '@/i18n';
 
 const STORAGE_KEY = 'limoneo.promoPopups.dismissedAt';
 const DISMISS_DURATION_HOURS = 6;
 
-const PROMOTIONS = {
+const PROMOTION_CONFIG = {
   global: [
     {
       id: 'autumn-flash',
-      title: 'Venta flash de otoño',
-      message: 'Aprovecha 25% de descuento en la colección de decoración cálida hasta medianoche.',
-      cta: 'Ver venta flash',
+      translationKey: 'promo.global.autumn_flash',
       href: '/ofertas/otono',
       accentClass: 'bg-amber-500',
       ringClass: 'focus:ring-amber-200',
     },
     {
       id: 'bundle-warm',
-      title: 'Pack hogar acogedor',
-      message: 'Combina mantas, velas y luces con envío gratis a partir de 49 EUR.',
-      cta: 'Armar mi pack',
+      translationKey: 'promo.global.bundle_warm',
       href: '/packs/otono',
       accentClass: 'bg-rose-500',
       ringClass: 'focus:ring-rose-200',
@@ -27,18 +24,14 @@ const PROMOTIONS = {
   category: [
     {
       id: 'category-extra',
-      title: '10% extra en tu categoría',
-      message: 'Usa el cupón CATEGORIA10 al finalizar la compra y obténlo en los productos destacados.',
-      cta: 'Aplicar cupon',
+      translationKey: 'promo.category.category_extra',
       href: '#destacados',
       accentClass: 'bg-indigo-500',
       ringClass: 'focus:ring-indigo-200',
     },
     {
       id: 'free-shipping',
-      title: 'Envío exprés sin costo',
-      message: 'Entrega en 48h disponible en artículos con etiqueta de envío rápido.',
-      cta: 'Buscar envío rápido',
+      translationKey: 'promo.category.free_shipping',
       href: '/envio-rapido',
       accentClass: 'bg-emerald-500',
       ringClass: 'focus:ring-emerald-200',
@@ -47,7 +40,18 @@ const PROMOTIONS = {
 };
 
 const PromoPopups = ({ context = 'global' }) => {
-  const promotions = useMemo(() => PROMOTIONS[context] || PROMOTIONS.global, [context]);
+  const { t } = useI18n();
+  const promotions = useMemo(() => {
+    const list = PROMOTION_CONFIG[context] || PROMOTION_CONFIG.global;
+
+    return list.map((promotion) => ({
+      ...promotion,
+      title: t(`${promotion.translationKey}.title`),
+      message: t(`${promotion.translationKey}.message`),
+      cta: t(`${promotion.translationKey}.cta`),
+    }));
+  }, [context, t]);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
@@ -59,26 +63,27 @@ const PromoPopups = ({ context = 'global' }) => {
     const dismissedAt = Number(localStorage.getItem(STORAGE_KEY));
     const elapsed = Date.now() - dismissedAt;
     const shouldSkip = dismissedAt && elapsed < DISMISS_DURATION_HOURS * 60 * 60 * 1000;
+
     if (shouldSkip) return undefined;
 
-    const showTimer = setTimeout(() => {
+    const showTimer = window.setTimeout(() => {
       setShouldRender(true);
       setIsVisible(true);
     }, 1600);
 
-    return () => clearTimeout(showTimer);
+    return () => window.clearTimeout(showTimer);
   }, [context]);
 
   useEffect(() => {
     if (!isVisible) return undefined;
 
-    autoHideRef.current = setTimeout(() => {
+    autoHideRef.current = window.setTimeout(() => {
       handleAdvance();
     }, 12000);
 
     return () => {
       if (autoHideRef.current) {
-        clearTimeout(autoHideRef.current);
+        window.clearTimeout(autoHideRef.current);
         autoHideRef.current = null;
       }
     };
@@ -91,29 +96,34 @@ const PromoPopups = ({ context = 'global' }) => {
 
   const handleAdvance = () => {
     if (autoHideRef.current) {
-      clearTimeout(autoHideRef.current);
+      window.clearTimeout(autoHideRef.current);
       autoHideRef.current = null;
     }
+
     setIsVisible(false);
-    setTimeout(() => {
+
+    window.setTimeout(() => {
       const nextIndex = currentIndex + 1;
       if (nextIndex < promotions.length) {
         setCurrentIndex(nextIndex);
         setIsVisible(true);
-      } else {
-        setShouldRender(false);
-        storeDismissal();
+        return;
       }
+
+      setShouldRender(false);
+      storeDismissal();
     }, 280);
   };
 
   const handleDismissToday = () => {
     if (autoHideRef.current) {
-      clearTimeout(autoHideRef.current);
+      window.clearTimeout(autoHideRef.current);
       autoHideRef.current = null;
     }
+
     setIsVisible(false);
-    setTimeout(() => {
+
+    window.setTimeout(() => {
       setShouldRender(false);
       storeDismissal();
     }, 240);
@@ -142,7 +152,7 @@ const PromoPopups = ({ context = 'global' }) => {
 
           <div className="flex-1">
             <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-              Promocion destacada
+              {t('promo.label')}
             </p>
             <h3 className="text-lg font-bold text-slate-900">{promo.title}</h3>
             <p className="mt-2 text-sm text-slate-600">{promo.message}</p>
@@ -153,14 +163,14 @@ const PromoPopups = ({ context = 'global' }) => {
                 className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 ${promo.accentClass} ${promo.ringClass}`}
               >
                 {promo.cta}
-                <span aria-hidden="true">→</span>
+                <span aria-hidden="true">-&gt;</span>
               </a>
               <button
                 type="button"
                 onClick={handleDismissToday}
                 className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200"
               >
-                No mostrar hoy
+                {t('promo.dismiss_today')}
               </button>
             </div>
           </div>
@@ -168,10 +178,10 @@ const PromoPopups = ({ context = 'global' }) => {
           <button
             type="button"
             onClick={handleAdvance}
-            className="ml-2 text-slate-400 transition hover:text-slate-600 focus:outline-none"
-            aria-label="Cerrar promocion"
+            className="ml-2 rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-200"
+            aria-label={t('promo.close')}
           >
-            ×
+            x
           </button>
         </div>
       </div>

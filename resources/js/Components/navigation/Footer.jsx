@@ -1,6 +1,4 @@
-// src/components/Footer.jsx
 import React from 'react';
-import { Facebook, Twitter, Instagram } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -26,7 +24,7 @@ const Footer = () => {
             <h1 className="text-2xl font-extrabold tracking-tight">Limoneo</h1>
           </div>
           <p className="text-sm text-gray-400 leading-relaxed">
-            Impulsamos tu experiencia de compra online. Productos globales, soporte local, confianza total.
+            Limoneo reúne catálogo navegable, campañas visibles, pagos verificados y soporte orientado a pedidos reales en una misma experiencia.
           </p>
         </div>
 
@@ -35,7 +33,7 @@ const Footer = () => {
           <h2 className="text-lg font-semibold mb-4">Explorar</h2>
           <ul className="space-y-2 text-sm text-gray-300">
             <li><a href="/" className="hover:text-white transition">Inicio</a></li>
-            <li><a href="/products" className="hover:text-white transition">Productos</a></li>
+            <li><a href="/search" className="hover:text-white transition">Catálogo</a></li>
             <li><a href="/about" className="hover:text-white transition">Acerca de</a></li>
             <li><a href="/contact" className="hover:text-white transition">Contacto</a></li>
           </ul>
@@ -51,27 +49,22 @@ const Footer = () => {
           </ul>
         </div>
 
-        {/* Redes sociales + contacto */}
+        {/* Accesos de ayuda */}
         <div>
-          <h2 className="text-lg font-semibold mb-4">Síguenos</h2>
-          <div className="flex space-x-4 mb-6">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook"
-              className="bg-white/10 p-2 rounded-full hover:bg-blue-600 transition">
-              <Facebook className="w-5 h-5 text-white" />
-            </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter"
-              className="bg-white/10 p-2 rounded-full hover:bg-sky-500 transition">
-              <Twitter className="w-5 h-5 text-white" />
-            </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram"
-              className="bg-white/10 p-2 rounded-full hover:bg-pink-500 transition">
-              <Instagram className="w-5 h-5 text-white" />
-            </a>
+          <h2 className="text-lg font-semibold mb-4">Ayuda</h2>
+          <div className="space-y-3 text-sm text-gray-300">
+            <p>
+              Si necesitas revisar un pedido, una devolución o una incidencia de pago, utiliza los canales internos del sitio para que el equipo tenga contexto desde el inicio.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <a href="/faq" className="inline-flex rounded-full bg-white/10 px-4 py-2 font-semibold text-white transition hover:bg-white/20">
+                Centro de ayuda
+              </a>
+              <a href="/contact" className="inline-flex rounded-full border border-white/15 px-4 py-2 font-semibold text-white transition hover:bg-white/10">
+                Contacto
+              </a>
+            </div>
           </div>
-
-          <h3 className="text-sm text-gray-400">Contáctanos</h3>
-          <p className="text-sm text-gray-300">info@limoneo.com</p>
-          <p className="text-sm text-gray-300">+34 123 456 789</p>
         </div>
       </div>
 

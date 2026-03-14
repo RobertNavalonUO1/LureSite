@@ -8,9 +8,12 @@ use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use PayPalCheckoutSdk\Core\LiveEnvironment;
 use PayPalCheckoutSdk\Core\PayPalHttpClient;
 use PayPalCheckoutSdk\Core\SandboxEnvironment;
+use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;
 use PayPalCheckoutSdk\Orders\OrdersCreateRequest;
 use Stripe\Checkout\Session;
 use Stripe\Stripe;
@@ -72,25 +75,6 @@ class CheckoutController extends Controller
             ],
             'addresses' => $addresses,
             'defaultAddressId' => $user?->default_address_id,
-        ]);
-    }
-
-    public function storeGuestAddress(Request $request)
-    {
-        $validated = $request->validate([
-            'street' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'province' => 'required|string|max:255',
-            'zip_code' => 'required|string|max:255',
-            'country' => 'required|string|max:255',
-        ]);
-
-        session()->put('guest_address', (object) $validated);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Dirección guardada correctamente',
-            'address' => $validated,
         ]);
     }
 
@@ -172,17 +156,16 @@ class CheckoutController extends Controller
     {
         try {
             $validated = $request->validate([
-                'address_id' => 'nullable|exists:addresses,id',
+                'address_id' => [
+                    'required',
+                    Rule::exists('addresses', 'id')->where(
+                        fn ($query) => $query->where('user_id', $request->user()->id)
+                    ),
+                ],
             ]);
 
-            $user = Auth::user();
-            $address = $user
-                ? $user->addresses->firstWhere('id', $validated['address_id'])
-                : session()->get('guest_address');
-
-            if (!$address) {
-                throw new \Exception('No se encontró la dirección de envío.');
-            }
+            $user = $request->user()->loadMissing('addresses');
+            $address = $this->resolveUserAddress($user, (int) $validated['address_id']);
 
             $cart = array_values(session()->get('cart', []));
             if (empty($cart)) {
@@ -194,7 +177,7 @@ class CheckoutController extends Controller
                 return response()->json(['error' => 'El total del pedido debe ser mayor a cero.'], 400);
             }
 
-            Stripe::setApiKey(env('STRIPE_SECRET'));
+            Stripe::setApiKey(config('services.stripe.secret'));
 
             $descriptionParts = [
                 sprintf('%d artículo(s)', count($cart)),
@@ -221,12 +204,12 @@ class CheckoutController extends Controller
                 'payment_method_types' => ['card'],
                 'line_items' => $lineItems,
                 'mode' => 'payment',
-                'success_url' => route('checkout.success', [], true),
+                'success_url' => route('checkout.success', [], true) . '?provider=stripe&session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('checkout.cancel', [], true),
-                'customer_email' => $user?->email ?? 'invitado@correo.com',
+                'customer_email' => $user->email,
                 'metadata' => [
-                    'user_id' => $user?->id ?? null,
-                    'address_id' => $address->id ?? null,
+                    'user_id' => $user->id,
+                    'address_id' => $address['id'],
                     'coupon_code' => $totals['coupon_code'] ?? '',
                     'shipping_method' => $totals['shipping_method'],
                     'shipping_cost' => $totals['shipping_cost'],
@@ -239,7 +222,7 @@ class CheckoutController extends Controller
 
             return response()->json([
                 'sessionId' => $session->id,
-                'stripePublicKey' => env('STRIPE_KEY'),
+                'stripePublicKey' => config('services.stripe.key'),
             ]);
         } catch (\Exception $e) {
             Log::error('Error en Stripe Checkout: ' . $e->getMessage());
@@ -251,17 +234,16 @@ class CheckoutController extends Controller
     {
         try {
             $validated = $request->validate([
-                'address_id' => 'nullable|exists:addresses,id',
+                'address_id' => [
+                    'required',
+                    Rule::exists('addresses', 'id')->where(
+                        fn ($query) => $query->where('user_id', $request->user()->id)
+                    ),
+                ],
             ]);
 
-            $user = Auth::user();
-            $address = $user
-                ? $user->addresses->firstWhere('id', $validated['address_id'])
-                : session()->get('guest_address');
-
-            if (!$address) {
-                throw new \Exception('No se encontró la dirección de envío.');
-            }
+            $user = $request->user()->loadMissing('addresses');
+            $address = $this->resolveUserAddress($user, (int) $validated['address_id']);
 
             $cart = array_values(session()->get('cart', []));
             if (empty($cart)) {
@@ -273,10 +255,7 @@ class CheckoutController extends Controller
                 return response()->json(['error' => 'El total del pedido debe ser mayor a cero.'], 400);
             }
 
-            $client = new PayPalHttpClient(new SandboxEnvironment(
-                env('PAYPAL_CLIENT_ID'),
-                env('PAYPAL_CLIENT_SECRET')
-            ));
+            $client = $this->paypalClient();
 
             $orderReq = new OrdersCreateRequest();
             $orderReq->prefer('return=representation');
@@ -298,6 +277,10 @@ class CheckoutController extends Controller
                         ],
                     ],
                 ]],
+                'application_context' => [
+                    'return_url' => route('checkout.success', [], true) . '?provider=paypal',
+                    'cancel_url' => route('checkout.cancel', [], true),
+                ],
             ];
 
             $response = $client->execute($orderReq);
@@ -320,11 +303,14 @@ class CheckoutController extends Controller
     public function success()
     {
         $cart = array_values(session()->get('cart', []));
-        $address = session()->get('selected_address') ?? session()->get('guest_address');
-        $stripeSessionId = session()->get('stripe_session_id');
-        $paypalOrderId = session()->get('paypal_order_id');
+        $address = session()->get('selected_address');
+        $storedStripeSessionId = session()->get('stripe_session_id');
+        $storedPaypalOrderId = session()->get('paypal_order_id');
+        $provider = request()->query('provider');
+        $stripeSessionId = request()->query('session_id');
+        $paypalOrderId = request()->query('token');
 
-        if (empty($cart) || !$address || (!$stripeSessionId && !$paypalOrderId)) {
+        if (empty($cart) || !$address || (!$storedStripeSessionId && !$storedPaypalOrderId)) {
             return redirect()->route('dashboard')->with('error', 'Faltan datos para completar la compra.');
         }
 
@@ -332,15 +318,41 @@ class CheckoutController extends Controller
         $totals = $this->calculateTotals($cart);
 
         try {
+            if ($provider === 'stripe') {
+                if (!$stripeSessionId || $stripeSessionId !== $storedStripeSessionId) {
+                    throw new \RuntimeException('La sesión de Stripe no coincide con la compra iniciada.');
+                }
+
+                $session = $this->verifiedStripeSession($stripeSessionId);
+                if (($session->metadata->user_id ?? null) && (int) $session->metadata->user_id !== (int) $user?->id) {
+                    throw new \RuntimeException('La sesión de pago no pertenece al usuario autenticado.');
+                }
+            } elseif ($provider === 'paypal') {
+                $paypalOrderId = $paypalOrderId ?: $storedPaypalOrderId;
+                if (!$paypalOrderId || $paypalOrderId !== $storedPaypalOrderId) {
+                    throw new \RuntimeException('La orden de PayPal no coincide con la compra iniciada.');
+                }
+
+                $capture = $this->capturePaypalOrder($paypalOrderId);
+                if (($capture->status ?? null) !== 'COMPLETED') {
+                    throw new \RuntimeException('El pago con PayPal no se completó correctamente.');
+                }
+            } else {
+                throw new \RuntimeException('Proveedor de pago no soportado para confirmar la compra.');
+            }
+
             $order = new Order();
             $order->user_id = $user?->id;
-            $order->name = $user?->name ?? 'Invitado';
-            $order->email = $user?->email ?? 'invitado@correo.com';
-            $order->address = sprintf('%s, %s, %s, %s, %s', $address->street, $address->city, $address->province, $address->zip_code, $address->country);
-            $order->payment_method = $stripeSessionId ? 'Stripe' : 'PayPal';
+            $order->name = trim(implode(' ', array_filter([$user?->name, $user?->lastname])));
+            $order->email = $user?->email;
+            $order->address = $this->formatAddress($address);
+            $order->payment_method = $provider;
             $order->total = $totals['total'];
-            $order->transaction_id = $stripeSessionId ?? $paypalOrderId;
-            $order->status = 'confirmado';
+            $order->transaction_id = $provider === 'stripe' ? $stripeSessionId : $paypalOrderId;
+            $order->payment_reference_id = $provider === 'stripe'
+                ? $this->resolveStripePaymentIntentId($session ?? null)
+                : $this->resolvePaypalCaptureId($capture ?? null);
+            $order->status = 'pagado';
             $order->save();
 
             foreach ($cart as $item) {
@@ -364,7 +376,6 @@ class CheckoutController extends Controller
             session()->forget([
                 'cart',
                 'selected_address',
-                'guest_address',
                 'stripe_session_id',
                 'paypal_order_id',
                 'checkout.shipping_method',
@@ -547,6 +558,97 @@ class CheckoutController extends Controller
             'checkout.discount_type',
             'checkout.discount_value',
         ]);
+    }
+
+    private function resolveUserAddress($user, int $addressId): array
+    {
+        $address = $user->addresses->firstWhere('id', $addressId);
+
+        if (!$address) {
+            throw new \RuntimeException('No se encontró la dirección de envío.');
+        }
+
+        return [
+            'id' => $address->id,
+            'street' => $address->street,
+            'city' => $address->city,
+            'province' => $address->province,
+            'zip_code' => $address->zip_code,
+            'country' => $address->country,
+        ];
+    }
+
+    private function formatAddress(array $address): string
+    {
+        return implode(', ', [
+            $address['street'],
+            $address['city'],
+            $address['province'],
+            $address['zip_code'],
+            $address['country'],
+        ]);
+    }
+
+    private function verifiedStripeSession(string $sessionId): Session
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        $session = Session::retrieve($sessionId);
+        if (($session->payment_status ?? null) !== 'paid') {
+            throw new \RuntimeException('Stripe no confirmó el pago de esta sesión.');
+        }
+
+        return $session;
+    }
+
+    private function capturePaypalOrder(string $orderId)
+    {
+        $request = new OrdersCaptureRequest($orderId);
+        $request->prefer('return=representation');
+
+        $response = $this->paypalClient()->execute($request);
+
+        return $response->result;
+    }
+
+    private function paypalClient(): PayPalHttpClient
+    {
+        $clientId = config('services.paypal.client_id');
+        $clientSecret = config('services.paypal.client_secret');
+
+        $environment = config('services.paypal.mode') === 'live'
+            ? new LiveEnvironment($clientId, $clientSecret)
+            : new SandboxEnvironment($clientId, $clientSecret);
+
+        return new PayPalHttpClient($environment);
+    }
+
+    private function resolveStripePaymentIntentId(?Session $session): ?string
+    {
+        if (!$session) {
+            return null;
+        }
+
+        return is_string($session->payment_intent ?? null)
+            ? $session->payment_intent
+            : ($session->payment_intent->id ?? null);
+    }
+
+    private function resolvePaypalCaptureId($capture): ?string
+    {
+        $purchaseUnits = $capture->purchase_units ?? [];
+
+        foreach ($purchaseUnits as $purchaseUnit) {
+            $captures = $purchaseUnit->payments->captures ?? [];
+
+            foreach ($captures as $paymentCapture) {
+                if (!empty($paymentCapture->id)) {
+                    return $paymentCapture->id;
+                }
+            }
+        }
+
+        return null;
     }
 }
 

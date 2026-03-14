@@ -1,5 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
+import ProfileAvatar from '@/Components/avatar/ProfileAvatar.jsx';
+import { useI18n } from '@/i18n';
 
 /**
  * @typedef {{
@@ -21,6 +23,7 @@ import clsx from 'clsx';
  */
 export default function UserPanel({ isCompact = false, user, onGoDashboard, onLogout }) {
   const firstName = user?.name ? user.name.split(' ')[0] : '';
+  const { t } = useI18n();
 
   const wrapperClass = clsx(
     'flex items-center gap-3 rounded-full border border-slate-200 bg-white/80 shadow-md transition cursor-pointer',
@@ -51,7 +54,7 @@ export default function UserPanel({ isCompact = false, user, onGoDashboard, onLo
       className={wrapperClass}
       role="link"
       tabIndex={0}
-      aria-label="Ir al panel de usuario"
+      aria-label={t('header.user.go_to_panel')}
       onClick={onGoDashboard}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
@@ -60,18 +63,18 @@ export default function UserPanel({ isCompact = false, user, onGoDashboard, onLo
         }
       }}
     >
-      <img
-        src={user.avatar || user.photo_url || '/default-avatar.png'}
-        alt="Avatar del usuario"
+      <ProfileAvatar
+        user={user}
+        alt={t('header.user.avatar_alt')}
         className={avatarClass}
       />
 
       {isCompact ? (
-        <span className="hidden sm:inline text-sm font-semibold text-slate-700">Perfil</span>
+        <span className="hidden sm:inline text-sm font-semibold text-slate-700">{t('header.user.profile')}</span>
       ) : (
         <div className="hidden sm:flex flex-col leading-tight">
           <span className={clsx(isCompact ? 'text-sm' : 'text-lg', 'font-semibold text-slate-700')}>
-            Hola, {firstName || 'invitado'}
+            {t('common.greeting', { name: firstName || t('header.user.guest') })}
           </span>
           {user.email && <span className="text-xs text-slate-500">{user.email}</span>}
         </div>
@@ -80,8 +83,8 @@ export default function UserPanel({ isCompact = false, user, onGoDashboard, onLo
       {isCompact ? (
         <button
           type="button"
-          aria-label="Salir"
-          title="Salir"
+          aria-label={t('auth.logout')}
+          title={t('auth.logout')}
           onClick={(e) => {
             e.stopPropagation();
             onLogout();
@@ -113,7 +116,7 @@ export default function UserPanel({ isCompact = false, user, onGoDashboard, onLo
           }}
           className={logoutClass}
         >
-          Salir
+          {t('auth.logout')}
         </button>
       )}
     </div>

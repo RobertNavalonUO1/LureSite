@@ -2,85 +2,63 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAddressRequest;
+use App\Http\Requests\UpdateAddressRequest;
 use App\Models\Address;
+use App\Services\ProfileService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AddressController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
+    public function __construct(
+        protected ProfileService $profileService
+    ) {
     }
 
-    public function store(Request $request)
+    public function store(StoreAddressRequest $request): JsonResponse
     {
-        $user = $request->user();
-        $data = $this->validatedData($request);
+        $address = $this->profileService->createAddress($request->user(), $request->validated());
+        $user = $request->user()->fresh();
 
-        $address = $user->addresses()->create($data);
-
-        if ($request->boolean('make_default')) {
-            $user->default_address_id = $address->id;
-            $user->save();
-        }
-
-        return back()->with('success', 'Dirección guardada correctamente.');
+        return response()->json([
+            'message' => __('profile.address.saved'),
+            'address' => $this->profileService->serializeAddress($address, $user),
+            'default_address_id' => $user->default_address_id,
+        ], 201);
     }
 
-    public function update(Request $request, Address $address)
+    public function update(UpdateAddressRequest $request, Address $address): JsonResponse
     {
-        $this->authorizeAddress($request, $address);
+        $address = $this->profileService->updateAddress($request->user(), $address, $request->validated());
+        $user = $request->user()->fresh();
 
-        $data = $this->validatedData($request);
-        $address->update($data);
-
-        if ($request->boolean('make_default')) {
-            $request->user()->forceFill(['default_address_id' => $address->id])->save();
-        }
-
-        return back()->with('success', 'Dirección actualizada.');
+        return response()->json([
+            'message' => __('profile.address.updated'),
+            'address' => $this->profileService->serializeAddress($address, $user),
+            'default_address_id' => $user->default_address_id,
+        ]);
     }
 
-    public function makeDefault(Request $request, Address $address)
+    public function makeDefault(Request $request, Address $address): JsonResponse
     {
-        $this->authorizeAddress($request, $address);
+        $this->profileService->setDefaultAddress($request->user(), $address);
+        $user = $request->user()->fresh();
 
-        $request->user()->forceFill(['default_address_id' => $address->id])->save();
-
-        return back()->with('success', 'Dirección establecida como predeterminada.');
+        return response()->json([
+            'message' => __('profile.address.default_updated'),
+            'default_address_id' => $user->default_address_id,
+            'address' => $this->profileService->serializeAddress($address, $user),
+        ]);
     }
 
-    public function destroy(Request $request, Address $address)
+    public function destroy(Request $request, Address $address): JsonResponse
     {
-        $this->authorizeAddress($request, $address);
+        $defaultAddressId = $this->profileService->deleteAddress($request->user(), $address);
 
-        $user = $request->user();
-        $wasDefault = $user->default_address_id === $address->id;
-
-        $address->delete();
-
-        if ($wasDefault) {
-            $nextDefault = $user->addresses()->orderByDesc('id')->value('id');
-            $user->forceFill(['default_address_id' => $nextDefault])->save();
-        }
-
-        return back()->with('success', 'Dirección eliminada correctamente.');
-    }
-
-    protected function authorizeAddress(Request $request, Address $address): void
-    {
-        abort_unless($address->user_id === $request->user()->id, 403);
-    }
-
-    protected function validatedData(Request $request): array
-    {
-        return $request->validate([
-            'street' => ['required', 'string', 'max:255'],
-            'city' => ['required', 'string', 'max:255'],
-            'province' => ['required', 'string', 'max:255'],
-            'zip_code' => ['required', 'string', 'max:30'],
-            'country' => ['required', 'string', 'max:255'],
-            'make_default' => ['sometimes', 'boolean'],
+        return response()->json([
+            'message' => __('profile.address.deleted'),
+            'default_address_id' => $defaultAddressId,
         ]);
     }
 }

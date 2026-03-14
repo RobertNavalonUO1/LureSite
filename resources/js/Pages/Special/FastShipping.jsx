@@ -1,26 +1,10 @@
-// resources/js/Pages/FastShipping.jsx
+﻿// resources/js/Pages/FastShipping.jsx
 import React, { useMemo, useState } from "react";
 import { usePage, Head } from "@inertiajs/react";
 import Header from "@/Components/navigation/Header.jsx";
 import TopNavMenu from "@/Components/navigation/TopNavMenu.jsx";
 import SidebarBanners from "@/Components/marketing/SidebarBanners.jsx";
-
-const currencyFormatter = new Intl.NumberFormat("es-ES", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 2,
-});
-
-const normalizePrice = (value) => {
-  if (value === null || value === undefined || value === "") return 0;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  const sanitized = String(value).trim().replace(/[^\d,.-]/g, "");
-  const normalized = sanitized.replace(/,/g, ".");
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const formatCurrency = (value) => currencyFormatter.format(normalizePrice(value));
+import { formatCurrency, normalizePrice } from "@/utils/pricing";
 
 const deriveOriginalPrice = (product) => {
   if (product.original_price) return normalizePrice(product.original_price);
@@ -90,7 +74,7 @@ const ProductCard = ({ product, onQuickView }) => {
         )}
       </div>
       <p className="mb-4 line-clamp-3 text-sm text-slate-600">
-        {product.description || "Recibe este producto en un tiempo record sin recargos sorpresa."}
+        {product.description || "Producto con salida agil desde almacen y seguimiento disponible tras la compra."}
       </p>
       <div className="mb-4 flex items-center gap-2 text-xs font-semibold text-blue-600">
         <span className="rounded-full bg-blue-100 px-3 py-1">{deliveryLabel(product)}</span>
@@ -164,7 +148,7 @@ const QuickViewModal = ({ product, onClose }) => {
             </div>
             <p className="mt-4 text-sm text-slate-600">
               {product.description ||
-                "Envío asegurado con entrega ágil y seguimiento desde la salida del almacén."}
+                "Salida prioritaria desde almacen con seguimiento y ventana de entrega estimada visible."}
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-semibold text-blue-600">
               <span className="rounded-full bg-blue-100 px-3 py-1">{deliveryLabel(product)}</span>
@@ -246,7 +230,7 @@ export default function FastShipping() {
 
       <div
         className="sticky z-30 border-b border-blue-100 bg-white/85 shadow-sm backdrop-blur"
-        style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px))' }}
+        style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px) - var(--header-compact-offset-active, 0px))' }}
       >
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -304,7 +288,7 @@ export default function FastShipping() {
                 </h1>
                 <p className="mt-4 max-w-2xl text-base sm:text-lg text-white/85">
                   Productos seleccionados con envío prioritario, seguimiento en tiempo real y
-                  política de devoluciones flexible.
+                  compromiso de salida agil sobre referencias con stock ya confirmado.
                 </p>
                 <div className="mt-6 grid gap-6 sm:grid-cols-3">
                   <div>

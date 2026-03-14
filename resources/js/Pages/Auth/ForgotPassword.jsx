@@ -1,10 +1,12 @@
-import InputError from '@/Components/ui/InputError.jsx';
+﻿import InputError from '@/Components/ui/InputError.jsx';
 import PrimaryButton from '@/Components/ui/PrimaryButton.jsx';
 import TextInput from '@/Components/ui/TextInput.jsx';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
+import { useI18n } from '@/i18n';
 
 export default function ForgotPassword() {
+    const { t } = useI18n();
     const { status } = usePage().props;
     const { data, setData, post, processing, errors } = useForm({
         email: '',
@@ -17,10 +19,10 @@ export default function ForgotPassword() {
 
     return (
         <GuestLayout>
-            <Head title="Recuperar contraseña" />
+            <Head title={t('auth.forgot_title')} />
 
             <div className="mb-4 text-sm text-gray-600">
-                Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
+                {t('auth.forgot_desc')}
             </div>
 
             {errors.email && <InputError message={errors.email} className="mt-2" />}
@@ -44,7 +46,7 @@ export default function ForgotPassword() {
 
                 <div className="mt-4 flex items-center justify-end">
                     <PrimaryButton className="ms-4" disabled={processing}>
-                        Enviar enlace
+                        {t('auth.send_link')}
                     </PrimaryButton>
                 </div>
             </form>

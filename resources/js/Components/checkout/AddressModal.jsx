@@ -1,5 +1,4 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
-import { Inertia } from '@inertiajs/inertia';
 
 const validateAddress = (values) => {
   const errs = {};
@@ -74,20 +73,33 @@ export default function AddressModal({ closeModal, onAddressSaved, mode = 'creat
     if (Object.keys(clientErrors).length > 0) return;
 
     setSubmitting(true);
-    const url = isEdit ? `/addresses/${initialValues.id}` : '/addresses/store';
-    const method = isEdit ? 'put' : 'post';
+    const url = isEdit ? `/addresses/${initialValues.id}` : '/addresses';
+    const method = isEdit ? 'PATCH' : 'POST';
 
-    Inertia[method](url, form, {
-      onSuccess: () => {
-        onAddressSaved?.();
+    fetch(url, {
+      method,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(form),
+    })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          setErrors(payload.errors || {});
+          throw new Error(payload.message || 'No se pudo guardar la dirección.');
+        }
+
+        onAddressSaved?.(payload);
         closeModal();
-      },
-      onError: (serverErrors) => {
-        setErrors(serverErrors || {});
-      },
-      onFinish: () => setSubmitting(false),
-      preserveScroll: true,
-    });
+      })
+      .catch(() => {})
+      .finally(() => setSubmitting(false));
   };
 
   return (

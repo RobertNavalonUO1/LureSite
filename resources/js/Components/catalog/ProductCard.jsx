@@ -1,23 +1,8 @@
-﻿import React, { useMemo } from "react";
+import React, { useMemo } from "react";
 import { Inertia } from "@inertiajs/inertia";
 import { Heart } from "lucide-react";
-
-const currencyFormatter = new Intl.NumberFormat("es-ES", {
-  style: "currency",
-  currency: "EUR",
-  maximumFractionDigits: 2,
-});
-
-const normalizePrice = (value) => {
-  if (value === null || value === undefined || value === "") return 0;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  const sanitized = String(value).trim().replace(/[^\d,.-]/g, "");
-  const normalized = sanitized.replace(/,/g, ".");
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
-const formatCurrency = (value) => currencyFormatter.format(normalizePrice(value));
+import { useI18n } from "@/i18n";
+import { formatCurrency, normalizePrice } from "@/utils/pricing";
 
 const derivePreviousPrice = (product) => {
   if (product.old_price) return normalizePrice(product.old_price);
@@ -39,9 +24,11 @@ const calculateDiscount = (currentPrice, previousPrice) => {
 };
 
 const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => {
-  const title = product.name || product.title || "Producto";
+  const { t } = useI18n();
+
+  const title = product.name || product.title || t("catalog.product_card.fallback_title");
   const thumbnail = product.image_url || product.image || "/images/logo.png";
-  const categoryName = product.category?.name || product.category || "Marketplace";
+  const categoryName = product.category?.name || product.category || t("catalog.product_card.fallback_category");
 
   const previousPrice = derivePreviousPrice(product);
   const discount = calculateDiscount(product.price, previousPrice);
@@ -52,20 +39,25 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
   const shippingLabel =
     product.shipping_label ||
     product.delivery_estimate ||
-    (product.fast_shipping ? "Envío en 48h" : "Envío estándar");
+    (product.fast_shipping
+      ? t("catalog.product_card.shipping_fast")
+      : t("catalog.product_card.shipping_standard"));
 
   const stockStatus =
     product.stock > 10
-      ? "Stock disponible"
+      ? t("catalog.product_card.stock_available")
       : product.stock > 0
-      ? "Últimas unidades"
-      : "Sin stock";
+        ? t("catalog.product_card.last_units")
+        : t("catalog.product_card.out_of_stock");
+
+  const badgeLabel = product.badge || (product.is_new ? t("catalog.product_card.badge_new") : t("catalog.product_card.badge_fast_shipping"));
 
   const goToProduct = () => {
     if (product.slug) {
       Inertia.visit(`/product/${product.slug}`);
       return;
     }
+
     Inertia.visit(`/product/${product.id}`);
   };
 
@@ -93,7 +85,7 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
           type="button"
           onClick={() => onToggleFavorite(product.id)}
           className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-slate-600 shadow-lg transition hover:scale-110 hover:text-rose-500"
-          aria-label={isFavorite ? "Quitar de favoritos" : "Guardar en favoritos"}
+          aria-label={isFavorite ? t("catalog.product_card.remove_favorite") : t("catalog.product_card.add_favorite")}
         >
           <Heart
             className={`h-5 w-5 ${isFavorite ? "fill-rose-500 text-rose-500" : ""}`}
@@ -104,7 +96,7 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
 
         {(product.badge || product.is_new || product.fast_shipping) && (
           <span className="absolute left-4 top-4 z-20 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow">
-            {product.badge || (product.is_new ? "Nuevo" : "Entrega rápida")}
+            {badgeLabel}
           </span>
         )}
 
@@ -112,7 +104,7 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
           type="button"
           onClick={goToProduct}
           className="block w-full"
-          aria-label={`Ver detalles de ${title}`}
+          aria-label={t("catalog.product_card.view_details_aria", { title })}
         >
           <div className="relative aspect-[5/4] w-full overflow-hidden bg-gradient-to-br from-slate-100 via-white to-slate-100">
             <img
@@ -128,10 +120,10 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
       <div className="flex flex-grow flex-col gap-3 p-5">
         <div className="space-y-1">
           <p className="text-[10px] uppercase tracking-[0.28em] text-indigo-500">{categoryName}</p>
-          <h3 className="text-base font-semibold text-slate-900 line-clamp-1">{title}</h3>
+          <h3 className="line-clamp-1 text-base font-semibold text-slate-900">{title}</h3>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-500" aria-label={`Valoracion ${ratingValue} de 5`}>
+        <div className="flex items-center gap-2 text-xs text-slate-500" aria-label={t("catalog.product_card.rating_aria", { rating: ratingValue.toFixed(1) })}>
           <div className="flex items-center gap-0.5 text-amber-500">{starIcons}</div>
           <span className="font-semibold text-slate-700">{ratingValue.toFixed(1)}</span>
           <span>({ratingCount})</span>
@@ -140,22 +132,20 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
         <div className="space-y-1">
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-bold text-slate-900">{formatCurrency(product.price)}</span>
-            {previousPrice && (
+            {previousPrice ? (
               <span className="text-xs text-slate-400 line-through">{formatCurrency(previousPrice)}</span>
-            )}
-            {discount !== null && (
+            ) : null}
+            {discount !== null ? (
               <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-600">
                 -{discount}%
               </span>
-            )}
+            ) : null}
           </div>
           <p className="text-xs font-medium text-emerald-600">{shippingLabel}</p>
         </div>
 
         <p className="line-clamp-1 text-xs text-slate-500">
-          {product.short_description ||
-            product.description ||
-            "Consigue este producto con proteccion de comprador y devolucion garantizada."}
+          {product.short_description || product.description || t("catalog.product_card.description_fallback")}
         </p>
 
         <div className="mt-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -169,14 +159,14 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
                 : "bg-slate-900 text-white hover:bg-slate-800"
             }`}
           >
-            {product.stock === 0 ? "Agotado" : "Anadir al carrito"}
+            {product.stock === 0 ? t("catalog.product_card.sold_out") : t("catalog.product_card.add_to_cart")}
           </button>
           <button
             type="button"
             onClick={goToProduct}
             className="flex w-full items-center justify-center rounded-full border border-slate-200 px-5 py-2.5 text-xs font-semibold text-indigo-600 transition hover:border-indigo-200 hover:bg-indigo-50 sm:w-auto"
           >
-            Ver detalles
+            {t("catalog.product_card.view_details")}
           </button>
         </div>
 
