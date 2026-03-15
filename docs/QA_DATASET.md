@@ -189,6 +189,10 @@ Despues de cargar el dataset QA, las rutas mas utiles para smoke testing manual 
 - `/migrate-products`
 - `/link-aggregator`
 
+Si quieres ejecutar el recorrido completo con orden y criterios de aprobacion, usa tambien:
+
+- `docs/QA_MANUAL_CHECKLIST.md`
+
 ## 7. Notas operativas
 
 - Este dataset esta pensado para desarrollo y QA local, no para produccion.

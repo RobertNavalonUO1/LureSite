@@ -29,6 +29,7 @@ Este documento es un **handoff accionable** para implementar el siguiente bloque
   - cupones y banners
   - pedidos en todos los estados operativos, incluyendo fallidos, devoluciones y reembolsados
 - Detalle operativo y credenciales: `docs/QA_DATASET.md`
+- Recorrido manual recomendado para smoke y validacion visual: `docs/QA_MANUAL_CHECKLIST.md`
 
 ### Estado funcional reciente: rutas, pedidos y admin
 

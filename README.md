@@ -9,6 +9,7 @@ Documentación adicional:
 - Guía extendida de producción y alojamiento: [docs/PRODUCTION.md](docs/PRODUCTION.md)
 - Guía para alternar entornos (dev/staging/prod): [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md)
 - Dataset QA masivo para pruebas manuales y smoke tests: [docs/QA_DATASET.md](docs/QA_DATASET.md)
+- Checklist manual para recorrer storefront, cliente y admin sobre el dataset QA: [docs/QA_MANUAL_CHECKLIST.md](docs/QA_MANUAL_CHECKLIST.md)
 - Checklist corto de pendientes: [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)
 - Guía de arranque (próximo bloque con otro agente): [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)
 - Landing temporal “universo + limón” (modo mantenimiento): [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)
@@ -62,6 +63,8 @@ Para poblar una base local con datos de prueba amplios y consistentes para store
 - Ejecutar la suite focalizada principal: `composer test:critical`
 
 Credenciales QA documentadas y coberturas del dataset: ver [docs/QA_DATASET.md](docs/QA_DATASET.md).
+
+Checklist manual recomendada para smoke completo: ver [docs/QA_MANUAL_CHECKLIST.md](docs/QA_MANUAL_CHECKLIST.md).
 
 Este README está escrito pensando en un handoff real: explica **cómo funciona** el proyecto, **cómo ejecutarlo** (desarrollo vs producción) y **dónde está cada cosa importante**.
 
