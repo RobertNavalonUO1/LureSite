@@ -62,6 +62,25 @@ Esto hace que Vite busque `.env.staging*` (solo para variables `VITE_*`). No afe
 	- o `composer test`
 	- suite focalizada principal: `composer test:critical`
 	- verificación del dataset QA: `composer test:qa-dataset`
+	- validación de API móvil: `php artisan test --filter=MobileApiV1Test`
+
+## API móvil y pagos por entorno
+
+- La API móvil canónica vive en `api/mobile/v1`.
+- Las peticiones móviles usan `Authorization: Bearer <sanctum_token>` y locale stateless vía `Accept-Language: es|en|fr`.
+- Comandos útiles de verificación:
+  - `php artisan route:list --path=api/mobile/v1`
+  - `php artisan test --filter=MobileApiV1Test`
+  - `php artisan mobile:checkout-sandbox-smoke`
+- Secretos mínimos a revisar por entorno:
+  - `STRIPE_KEY`
+  - `STRIPE_SECRET`
+  - `PAYPAL_CLIENT_ID`
+  - `PAYPAL_CLIENT_SECRET`
+  - `GOOGLE_CLIENT_ID`
+  - `GOOGLE_CLIENT_SECRET`
+  - `FACEBOOK_CLIENT_ID`
+  - `FACEBOOK_CLIENT_SECRET`
 
 ## Dataset QA local
 

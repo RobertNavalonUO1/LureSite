@@ -1,6 +1,6 @@
 # Limoneo — Próximos pasos
 
-Última actualización: 2026-03-14
+Última actualización: 2026-03-15
 
 Este documento resume el estado operativo actual del proyecto y define los siguientes pasos recomendados. Debe servir como punto de continuidad para cualquier agente o desarrollador que retome el trabajo sin necesidad de depender de la conversación previa.
 
@@ -53,8 +53,14 @@ Durante el último bloque se cerraron dos frentes relevantes del backend funcion
   - seeder `Database\\Seeders\\QaDatasetSeeder`,
   - comandos `composer qa:refresh`, `composer seed:qa`, `composer test:qa-dataset`,
   - volumen suficiente en usuarios, direcciones, catálogo, pedidos por estado, devoluciones, fallos de pago y staging temporal.
+- API móvil canónica y soporte Android:
+  - implementado `api/mobile/v1` para auth, catálogo, carrito, checkout, direcciones y pedidos,
+  - `Accept-Language` stateless mediante `SetApiLocale`,
+  - carrito autenticado compartido entre web y móvil vía `ShoppingCartService` + `cart_items`,
+  - test dedicado `MobileApiV1Test`,
+  - smoke command `mobile:checkout-sandbox-smoke` listo a falta de secretos sandbox/live.
 
-Esto vuelve a mover la prioridad del proyecto: la base crítica de postventa ya está implementada y validada, y el storefront público ha dejado de tener las rutas especiales más rotas. El siguiente bloque debe centrarse en páginas estáticas/legal y copy residual, sin perder de vista refund/admin.
+Esto vuelve a mover la prioridad del proyecto: la base crítica de postventa y la base móvil ya existen. El siguiente bloque debe centrarse en release/deploy limpio, validación real de pagos, copy/i18n residual y la deuda admin/refund que sigue viva.
 
 ---
 
@@ -63,10 +69,12 @@ Esto vuelve a mover la prioridad del proyecto: la base crítica de postventa ya 
 El siguiente tramo debe consolidar lo que ya está implementado en backend antes de abrir otra ola de UI o tooling.
 
 Orden recomendado:
-1. reescribir páginas estáticas/legal y copy público aún genérico,
-2. alinear cualquier pantalla admin o flujo legacy que todavía no use el contrato REST nuevo,
-3. endurecer la operativa del refund real: reintentos, observabilidad y validación por entorno,
-4. después retomar el endurecimiento de importación Python.
+1. cerrar deploy limpio y estrategia de release en producción,
+2. configurar secretos sandbox/live y ejecutar smoke real de checkout móvil,
+3. reescribir copy/i18n residual del storefront,
+4. alinear cualquier pantalla admin o flujo legacy que todavía no use el contrato REST nuevo,
+5. endurecer la operativa del refund real,
+6. después retomar el endurecimiento de importación Python.
 
 Importante:
 - No conviene mezclar pagos/reembolsos con refactor Python en el mismo paso.
@@ -77,16 +85,17 @@ Importante:
 
 ## 3. Trabajo activo
 
-Actualmente hay cuatro líneas vivas, con prioridad distinta.
+Actualmente hay seis líneas vivas, con prioridad distinta.
 
-### 3.1. Fase inmediata — Páginas públicas y copy residual
+### 3.1. Fase inmediata — Release limpio y pagos reales
 
-El primer bloque técnico del storefront público ya quedó cubierto en rutas especiales, payload y moneda visible.
+La prioridad inmediata ya no es diseñar otra API móvil, sino validar la que existe y desplegar sin arrastrar deuda operativa del servidor actual.
 
 Pendiente revisar:
-- banners y fallbacks de marketing todavía demasiado genéricos en algunos bloques secundarios,
-- texto residual de catálogo/storefront que todavía suene a demo o plantilla,
-- posibles incoherencias editoriales en componentes aún no revisados a fondo.
+- estrategia de release porque `/var/www/limoneo/current` no es seguro para `git pull`,
+- secretos reales/sandbox de Stripe y PayPal por entorno,
+- smoke de `php artisan mobile:checkout-sandbox-smoke`,
+- verificación de `api/mobile/v1` y carrito compartido en entorno real.
 
 Ya cerrado en esta línea:
 - `FAQ`, `Terms`, `Privacy` y `Contact` reescritas con contexto operativo real,
@@ -94,7 +103,14 @@ Ya cerrado en esta línea:
 - header/footer actualizados para eliminar promociones, teléfonos, correos y redes de relleno,
 - landing `Universe` con mensaje visible y CTAs coherentes en vez de quedar como una escena sin contexto.
 
-### 3.2. Fase corta — Limpieza de admin legacy y contrato REST
+### 3.2. Fase corta — Copy e i18n residual
+
+Pendiente revisar:
+- banners y fallbacks de marketing todavía demasiado genéricos en algunos bloques secundarios,
+- texto residual de catálogo/storefront que todavía suene a demo o plantilla,
+- incoherencias editoriales o de i18n en componentes revisados de forma parcial.
+
+### 3.3. Fase corta — Limpieza de admin legacy y contrato REST
 
 Todavía pueden quedar pantallas o acciones heredadas que no usan el contrato nuevo de `DELETE` y `PATCH`.
 
@@ -104,7 +120,7 @@ Pendiente revisar:
 - consistencia de mensajes flash y confirmaciones en todas las mutaciones admin,
 - posibles tests faltantes para recursos admin distintos de categorías.
 
-### 3.3. Fase corta — Endurecimiento operativo del refund
+### 3.4. Fase corta — Endurecimiento operativo del refund
 
 La integración real con proveedor ya existe en la app, pero todavía conviene endurecer su operativa.
 
@@ -114,7 +130,7 @@ Pendiente revisar:
 - observabilidad y logs útiles para conciliación,
 - posibilidad de exponer en admin el último error de refund o un estado de reintento.
 
-### 3.4. Fase siguiente — Endurecimiento de herramientas de importación Python
+### 3.5. Fase siguiente — Endurecimiento de herramientas de importación Python
 
 Una vez cerrada la postventa, la mejor deuda técnica siguiente sigue siendo el bloque Python.
 
@@ -128,12 +144,13 @@ Dirección recomendada:
 - archivos temporales por ejecución,
 - contrato de entrada/salida más estable para scripts e importación.
 
-### 3.5. Vigilancia de regresión — Storefront y UTF-8
+### 3.6. Vigilancia de regresión — Storefront, UTF-8 y API móvil
 
 No es el frente principal ahora mismo, pero conviene mantener vigilancia ligera sobre:
 - sticky stack y navegación real del storefront,
 - regresiones de mojibake tras cambios amplios,
-- coherencia visual de estados de pedido en páginas de usuario.
+- coherencia visual de estados de pedido en páginas de usuario,
+- consistencia de `api/mobile/v1` frente al contrato documentado.
 
 ---
 

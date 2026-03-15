@@ -1,6 +1,6 @@
 # Limoneo — bitácora de despliegue (2026-02-21)
 
-Última actualización: 2026-03-03 07:09
+Última actualización: 2026-03-15
 
 Este documento resume **todo lo realizado**, los **comandos principales** usados y los **problemas** encontrados durante el despliegue de Limoneo.
 
@@ -27,6 +27,22 @@ Este documento resume **todo lo realizado**, los **comandos principales** usados
 - Cloudflare HTTPS respondiendo `200`.
 - Laravel conecta a Neon (migraciones completadas).
 - La web responde `HTTP 200`.
+
+## Addendum 2026-03-15 - estado operativo actual
+
+- La rama operativa sigue siendo `mainbck`.
+- El backend incorpora ya `api/mobile/v1`, carrito autenticado persistente y `ShoppingCartService`.
+- El runbook ya no debe asumir `git pull` in-place en producción:
+  - `/var/www/limoneo/current` estaba `ahead 3`
+  - el worktree estaba dirty
+  - había residuos tracked y untracked en `storage/` y otros paths
+- Se preparó smoke command para checkout móvil real:
+  - `php artisan mobile:checkout-sandbox-smoke`
+  - hoy depende de que `STRIPE_*` y/o `PAYPAL_*` existan en el entorno
+
+Implicación operativa:
+
+- Para el siguiente deploy, usar release limpio en directorio nuevo, copiar `.env`, preservar `storage/` y hacer swap controlado.
 
 ## Línea temporal (high level)
 

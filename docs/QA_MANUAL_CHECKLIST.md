@@ -120,6 +120,13 @@ Inicia sesion con `qa.user001@limoneo.test` / `password123`.
    - revisar resumen y CTA de pago.
 4. No completar un pago real en smoke general si el entorno apunta a proveedores reales.
 
+### 5.4 API móvil y carrito compartido
+
+1. Con el mismo usuario autenticado, validar que `/cart` y `GET /api/mobile/v1/cart` reflejan el mismo carrito base.
+2. Si se prueba login móvil con snapshot local, confirmar que la fusión no duplica líneas fuera de stock ni pierde cantidades válidas.
+3. Probar `GET /api/mobile/v1/home` y `GET /api/mobile/v1/orders` con `Accept-Language: es|en|fr` y verificar `Content-Language`.
+4. Si el entorno tiene sandbox configurado, ejecutar `php artisan mobile:checkout-sandbox-smoke` antes o después del smoke manual.
+
 ## 6. Smoke admin
 
 Cerrar sesion e iniciar con `admin@limoneo.com` / `admin123`.
@@ -192,6 +199,7 @@ Abre incidencia inmediata si aparece cualquiera de estos casos:
 - un refund deja el pedido en estado final incoherente,
 - el checkout pierde direccion, cupon o envio al refrescar,
 - el mini-cart/header deja de sincronizar con `/cart`,
+- `/api/mobile/v1/cart` diverge de `/cart` para el mismo usuario autenticado,
 - aparecen textos con mojibake o llaves i18n sin resolver,
 - un bloque que el dataset promete poblar aparece vacio de forma sistematica.
 

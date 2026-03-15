@@ -1,6 +1,6 @@
 # Estrategia de paso a producción y despliegue (Limoneo)
 
-Última actualización: 2026-03-03 07:09
+Última actualización: 2026-03-15
 
 Este documento describe una estrategia completa —práctica y realista— para pasar el proyecto a producción y alojarlo públicamente.
 
@@ -62,6 +62,17 @@ Nota importante (Neon):
 
 - Detalle completo de comandos/problemas/resoluciones: ver [docs/DEPLOYMENT_SESSION_2026-02-21.md](docs/DEPLOYMENT_SESSION_2026-02-21.md).
 
+### Estado operativo adicional (2026-03-15)
+
+- La rama operativa en servidor sigue siendo `mainbck`.
+- El backend ya incluye `api/mobile/v1` y carrito autenticado persistente compartido entre web y Android.
+- Producción actual no está en estado apto para `git pull` in-place:
+  - `/var/www/limoneo/current` está `ahead 3` y con worktree sucio.
+  - la estrategia recomendada pasa a ser **release limpio** en un directorio nuevo y swap controlado.
+- Existe un smoke command para checkout móvil real:
+  - `php artisan mobile:checkout-sandbox-smoke`
+  - requiere `STRIPE_*` y/o `PAYPAL_*` configurados en el entorno objetivo.
+
 ---
 
 ## Lo que falta (siguiente bloque)
@@ -73,6 +84,9 @@ Pendiente (operativo) para dar por “cerrado” el ciclo dev → staging → pr
   - Stripe (test en staging, live en prod)
   - PayPal (sandbox en staging, live en prod)
   - Socialite (OAuth Google/Facebook) en `.env` (`GOOGLE_*`, `FACEBOOK_*`)
+- **Secrets para el smoke móvil de pagos**:
+  - `STRIPE_KEY`, `STRIPE_SECRET`
+  - `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
 - **Decidir colas/scheduler**:
   - Si `QUEUE_CONNECTION=sync` → no necesitas worker.
   - Si `QUEUE_CONNECTION=database|redis` → necesitas `queue:work` como servicio.
@@ -83,10 +97,10 @@ Pendiente (operativo) para dar por “cerrado” el ciclo dev → staging → pr
 
 Está escrito para este repo: **Laravel 11 + Inertia.js + React + Vite**, con:
 
-- Carrito en **session**
+- Carrito invitado en **session** y carrito autenticado persistente en `cart_items`
 - Auth actual con Google/Facebook vía **Socialite** (web + API móvil con Sanctum)
 - Checkout con **Stripe** y **PayPal**
-- Endpoints JSON `/api/*` consumidos desde páginas React
+- Endpoints JSON `/api/*` consumidos desde páginas React y contrato móvil canónico en `/api/mobile/v1/*`
 
 Guía de arranque del siguiente bloque (features): [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md).
 
@@ -107,9 +121,10 @@ Guía de arranque del siguiente bloque (features): [docs/GUIDE_NEXT_AGENT.md](do
   - Gestión de `.env` por entorno (switch rápido): ver [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md).
 2. Definir **secrets**/variables de entorno (Stripe/PayPal/Socialite/DB/etc.).
 3. Montar CI/CD con pasos: **build** → **deploy** → **migrate** → **cache**.
-4. Activar HTTPS, hardening básico y logging seguro.
-5. Ensayar rollback.
-6. Abrir producción y monitorizar.
+4. En producción, evitar `git pull` sobre `/var/www/limoneo/current` si el worktree está dirty; desplegar por release limpio y swap.
+5. Activar HTTPS, hardening básico y logging seguro.
+6. Ensayar rollback.
+7. Abrir producción y monitorizar.
 
 ---
 

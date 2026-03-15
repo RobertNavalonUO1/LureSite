@@ -2,7 +2,7 @@
 
 Este documento es un **handoff accionable** para implementar el siguiente bloque de trabajo sin ambigüedades.
 
-Última actualización: 2026-03-14
+Última actualización: 2026-03-15
 
 ## Decisiones ya tomadas (importante)
 
@@ -45,12 +45,43 @@ Este documento es un **handoff accionable** para implementar el siguiente bloque
 - Suite focalizada validada al cierre del bloque:
   - `24 tests`, `104 assertions`.
 
+### Estado funcional reciente: API móvil v1 y carrito compartido
+
+- Ya existe una API móvil canónica en `api/mobile/v1`:
+  - auth (`register`, `login`, `logout`, `GET/PATCH me`)
+  - home/catálogo/special/search
+  - carrito (`GET/PUT /cart`, `POST/PATCH/DELETE /cart/items`)
+  - checkout (`quote`, `coupon`, `shipping`, `payments/{provider}/session`, `return`, `cancel`)
+  - direcciones
+  - pedidos y acciones por pedido/línea
+- El locale móvil ya no depende de sesión/cookie:
+  - middleware `SetApiLocale`
+  - header `Accept-Language`
+  - respuesta con `Content-Language`
+- El carrito autenticado ya no es solo de sesión:
+  - web y móvil comparten `ShoppingCartService`
+  - persistencia en `cart_items`
+  - login, register y social login fusionan snapshot local con carrito del usuario
+- Cobertura nueva:
+  - `tests/Feature/MobileApiV1Test.php`
+  - resultado local validado: `5 tests`, `50 assertions`
+- Existe smoke command real para checkout móvil sandbox:
+  - `php artisan mobile:checkout-sandbox-smoke`
+  - ahora mismo depende de que el entorno tenga `STRIPE_*` y/o `PAYPAL_*`
+
+### Estado operativo que no debe ignorarse
+
+- El worktree local es amplio: hay trabajo vivo en admin, pedidos por línea, storefront, i18n y docs. No asumir repo limpio.
+- En producción, `/var/www/limoneo/current` estaba `ahead 3` y dirty; no hacer `git pull` directo sin decidir primero estrategia de release/swap.
+
 ### Qué no está completamente cerrado todavía
 
 - El refund administrativo ya intenta ejecutarse contra Stripe/PayPal, guarda trazabilidad mínima (`payment_reference_id`, `refund_reference_id`, `refunded_at`, `refund_error`) y cuenta con una primera capa de idempotencia/logging.
 - Aun así, falta endurecer la parte operativa: reintentos, validación por entorno más exhaustiva, observabilidad y posible UI ampliada para errores de refund.
 - El residuo admin más claro (`AdminOrders.jsx`) ya fue retirado, pero todavía conviene revisar si quedan casos menores o duplicados menos evidentes.
 - Los warnings de PHPUnit por metadata en doc-comments siguen pendientes en tests antiguos.
+- Los secretos sandbox/live de Stripe y PayPal siguen siendo el bloqueo principal para un smoke end-to-end real de checkout móvil.
+- La app Android ya puede tomar como base `docs/MOBILE_API_ANDROID_SPEC.md`; el bloqueo ya no es de contrato sino de ejecución de entorno y validación final.
 
 ### Estado funcional reciente: rutas públicas especiales y coherencia comercial
 
@@ -139,18 +170,19 @@ Gotchas conocidos:
 
 ---
 
-## 1) Fase inmediata recomendada: cerrar contenido público y luego volver a refund/admin
+## 1) Fase inmediata recomendada: estabilizar release y validar pagos reales
 
 ### Objetivo
 
-- Cerrar la deuda más visible del sitio público ahora que las rutas especiales ya están conectadas a datos reales, y después continuar con refund/admin residual.
+- Cerrar el bloque operativo abierto: release limpio, secretos de pago, smoke real de checkout móvil y después volver a refund/admin residual.
 
 ### Qué revisar primero
 
-1. Fallbacks de marketing y copy residual:
-  - revisar `SidebarBanners`, `AutumnShowcase` y otros bloques con contenido de relleno,
-  - sustituir texto decorativo por valor comercial concreto,
-  - barrer componentes del storefront que todavía no se hayan revisado tras esta pasada.
+1. Producción y sandbox:
+  - desplegar por release limpio si `/var/www/limoneo/current` sigue dirty,
+  - fijar secretos `STRIPE_*` y `PAYPAL_*` por entorno,
+  - ejecutar `php artisan mobile:checkout-sandbox-smoke`,
+  - verificar `api/mobile/v1` y carrito compartido en el entorno real.
 2. Residuos legacy admin:
   - buscar pantallas duplicadas o antiguas del admin que no se hayan barrido aún,
   - revisar formularios o acciones que sigan fuera del patrón Inertia ya adoptado,
@@ -160,13 +192,17 @@ Gotchas conocidos:
   - endurecer reintentos y tratamiento de fallos temporales,
   - validar configuración `PAYPAL_MODE` y secretos por entorno,
   - decidir si el admin debe ver el último error de refund.
-4. Cobertura:
+4. Storefront e i18n residual:
+  - revisar `SidebarBanners`, `AutumnShowcase`, `TopBanner` y otros bloques con copy aún irregular,
+  - cerrar pendientes visibles de i18n y mojibake.
+5. Cobertura:
   - ampliar tests si aparece algún recurso admin fuera de la nueva cobertura,
   - convertir a atributos las pruebas antiguas con metadata en doc-comments cuando toque limpieza de warnings.
 
 ### Definition of Done
 
-- Las páginas públicas principales ya no muestran texto claramente de plantilla.
+- Producción puede desplegarse sin depender de `git pull` in-place sobre un worktree sucio.
+- El smoke real de checkout móvil queda ejecutado al menos contra un proveedor sandbox.
 - La app no comunica `reembolsado` sin base operativa clara.
 - No quedan consumidores activos del contrato admin antiguo.
 - La cobertura del bloque sigue verde.

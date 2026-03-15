@@ -1,6 +1,6 @@
 # Limoneo (Laravel + Inertia + React)
 
-Última actualización: 2026-03-14
+Última actualización: 2026-03-15
 
 Aplicación web tipo e-commerce construida con **Laravel 11** + **Inertia.js** + **React** (Vite). El backend sirve páginas Inertia y APIs JSON, y el frontend vive en `resources/js`.
 
@@ -13,6 +13,9 @@ Documentación adicional:
 - Checklist corto de pendientes: [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)
 - Guía de arranque (próximo bloque con otro agente): [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)
 - Landing temporal “universo + limón” (modo mantenimiento): [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)
+- API móvil canónica para Android: [docs/MOBILE_API_ANDROID_SPEC.md](docs/MOBILE_API_ANDROID_SPEC.md)
+- Prompt operativo para generar la app Android: [docs/ANDROID_APP_BASE_PROMPT.md](docs/ANDROID_APP_BASE_PROMPT.md)
+- Guía de contexto para prompts Android: [docs/ANDROID_APP_PROMPT_GUIDE.md](docs/ANDROID_APP_PROMPT_GUIDE.md)
 - i18n frontend (diccionarios + hook): [resources/js/i18n/README.md](resources/js/i18n/README.md)
 
 ## Estado actual (infra / producción)
@@ -61,6 +64,9 @@ Para poblar una base local con datos de prueba amplios y consistentes para store
 - Reinyectar dataset QA sobre una base ya migrada: `composer seed:qa`
 - Verificar el seeder QA: `composer test:qa-dataset`
 - Ejecutar la suite focalizada principal: `composer test:critical`
+- Validar la API móvil: `php artisan test --filter=MobileApiV1Test`
+- Ver rutas móviles: `php artisan route:list --path=api/mobile/v1`
+- Probar checkout móvil sandbox cuando haya secretos: `php artisan mobile:checkout-sandbox-smoke`
 
 Credenciales QA documentadas y coberturas del dataset: ver [docs/QA_DATASET.md](docs/QA_DATASET.md).
 
@@ -77,8 +83,10 @@ Este README está escrito pensando en un handoff real: explica **cómo funciona*
 
 - Backend: Laravel (rutas web + controladores + modelos Eloquent + servicios).
 - Frontend: Inertia + React (páginas y componentes) empaquetado con Vite.
-- Estado de carrito: **session** (server-side), compartido a Inertia.
-- Auth: login web con **Laravel Socialite** (Google/Facebook) + flujo móvil con **Sanctum** (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)).
+- Estado de carrito:
+    - invitado: `session('cart')`
+    - autenticado: persistente en `cart_items`, compartido entre web y `api/mobile/v1` a través de `ShoppingCartService`
+- Auth: login web con **Laravel Socialite** (Google/Facebook) + flujo móvil con **Sanctum** y API canónica `api/mobile/v1` (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)).
 - Pagos: Stripe Checkout + PayPal (SDK).
 - Extra: ejecución de scripts Python desde backend (uso interno/herramientas).
 
@@ -90,6 +98,10 @@ Este README está escrito pensando en un handoff real: explica **cómo funciona*
 - Admin/postventa: las mutaciones destructivas usan ya semántica REST (`DELETE`/`PATCH`), se retiró el componente admin huérfano que seguía hablando con el contrato antiguo y el reembolso admin ya intenta ejecutarse contra Stripe o PayPal antes de marcar el pedido como `reembolsado`.
 - Trazabilidad de refund: `orders` conserva referencia de pago, referencia de refund, fecha efectiva y último error de proveedor si falla el reembolso.
 - Operativa de refund: ya existe una primera capa de idempotencia, validación de modo PayPal y logging de intentos/resultado para soporte.
+- API móvil canónica implementada en `api/mobile/v1` para auth, catálogo, carrito, checkout, direcciones y pedidos, con locale stateless vía `Accept-Language`.
+- Carrito autenticado compartido entre web y móvil; login, registro y social login fusionan el snapshot local del cliente con el carrito persistente del usuario.
+- Validación móvil dedicada disponible en `tests/Feature/MobileApiV1Test.php`.
+- Smoke command de pagos sandbox disponible en `php artisan mobile:checkout-sandbox-smoke` para Stripe/PayPal cuando el entorno tenga secretos configurados.
 - Cobertura focalizada: la suite de regresión del bloque crítico está verde con `24 tests` y `104 assertions`.
 - Importación de productos: pipeline temporal (`temporary_products`) + migración a `products` y scripts Python (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)).
 - Pendiente principal: rematar los restos admin menos relevantes, decidir si exponer más visibilidad operativa del refund y después retomar la deuda técnica de importación Python.
@@ -122,6 +134,8 @@ Flujo típico de una página Inertia:
         - `GET /auth/{provider}/callback`
     - **Locale**: `POST /locale` (cookie + sesión).
     - **Carrito/checkout**: `/cart/*`, `/checkout/*`.
+    - **API móvil canónica**: `/api/mobile/v1/*` con Sanctum y locale stateless por header.
+    - **API móvil legacy**: `/api/mobile/*` se mantiene solo por compatibilidad parcial y no define el contrato nuevo.
     - **Pedidos autenticados**: ownership reforzado en `/orders/{order}` y workflow de devolución separado del reembolso final.
     - **Admin**: mutaciones destructivas y de estado normalizadas a `DELETE` / `PATCH`, incluyendo devolución aprobada, rechazada y reembolso administrativo.
     - **Inertia share**: comparte carrito, total, csrf, etc.
@@ -129,7 +143,7 @@ Flujo típico de una página Inertia:
 ### Shared props (Inertia)
 
 - Middleware Inertia: [app/Http/Middleware/HandleInertiaRequests.php](app/Http/Middleware/HandleInertiaRequests.php)
-    - Inyecta `auth.user` (saneado) + `cartItems`, `cartCount`, `total` + mensajes flash.
+    - Inyecta `auth.user` (saneado) + snapshot de carrito (`cartItems`, `cartCount`, `total`) resuelto por `ShoppingCartService` + mensajes flash.
 
 ## Frontend (Inertia + React)
 
@@ -236,7 +250,8 @@ La mayor parte del enrutado está en [routes/web.php](routes/web.php). Puntos cl
 
 - Páginas Inertia (`Inertia::render(...)`) para Shop/Static/Special.
 - APIs JSON públicas para “deals/superdeals/fast shipping” y sugerencias de búsqueda.
-- Carrito (session) y checkout.
+- API móvil canónica en `routes/api.php` bajo `api/mobile/v1`.
+- Carrito híbrido: session para invitado y persistente para usuario autenticado.
 
 ### Modelos (datos)
 
@@ -248,12 +263,16 @@ La mayor parte del enrutado está en [routes/web.php](routes/web.php). Puntos cl
 - Categoría: [app/Models/Category.php](app/Models/Category.php)
     - `hasMany(Product)`.
 
-### Carrito (session)
+### Carrito (guest + authenticated shared cart)
 
 - Controlador: [app/Http/Controllers/CartController.php](app/Http/Controllers/CartController.php)
-    - Guarda items en `session('cart')`.
-    - Soporta respuestas HTML (redirect) y JSON (`expectsJson`).
-    - Snapshot `cartItems`, `cartCount`, `total`.
+    - Usa `ShoppingCartService` para resolver carrito invitado y autenticado.
+    - Mantiene respuestas HTML (redirect) y JSON (`expectsJson`).
+    - Expone snapshot `cartItems`, `cartCount`, `total`.
+- Servicio: [app/Services/ShoppingCartService.php](app/Services/ShoppingCartService.php)
+    - Lee y escribe `session('cart')` para invitados.
+    - Persiste carrito autenticado en `cart_items` mediante [app/Models/CartItem.php](app/Models/CartItem.php).
+    - Fusiona snapshots locales tras login, registro o social login.
 
 ### Checkout + Pagos (Stripe / PayPal)
 
@@ -292,6 +311,21 @@ Flujo **móvil** (token Sanctum):
 3) Backend valida el token con Socialite (`userFromToken`) y devuelve:
     - `token` (Sanctum)
     - `user`
+    - fusión de carrito opcional si la app envía un snapshot local
+
+### API móvil canónica (`api/mobile/v1`)
+
+- Controladores: `app/Http/Controllers/Api/MobileV1/*`
+- Middleware: `app/Http/Middleware/SetApiLocale.php`
+- Contrato: [docs/MOBILE_API_ANDROID_SPEC.md](docs/MOBILE_API_ANDROID_SPEC.md)
+- Tests: [tests/Feature/MobileApiV1Test.php](tests/Feature/MobileApiV1Test.php)
+- Scope actual:
+    - auth: login, register, logout, `GET/PATCH /me`
+    - catálogo: home, products, product detail, categories, search suggestions, special collections
+    - carrito: `GET/PUT /cart`, `POST/PATCH/DELETE /cart/items`
+    - checkout: quote, coupon, shipping, payment session, return, cancel
+    - direcciones: CRUD + default
+    - pedidos: listado, detalle, cancelación y refund a nivel pedido y línea
 
 Enlaces oficiales para crear credenciales OAuth:
 

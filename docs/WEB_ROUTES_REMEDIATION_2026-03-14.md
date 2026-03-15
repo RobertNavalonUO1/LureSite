@@ -2,6 +2,15 @@
 
 Fecha: 2026-03-14
 
+Addendum 2026-03-15:
+
+- Como continuacion de esta remediacion, el proyecto ya incorpora:
+  - `ShoppingCartService` para unificar carrito web y movil
+  - persistencia de carrito autenticado en `cart_items`
+  - `api/mobile/v1` como contrato movil canonico
+  - `SetApiLocale` para locale stateless por header en API movil
+- Este documento sigue siendo valido para la remediacion de `web.php`, pero ya no describe por si solo el estado completo del repo.
+
 ## Cambios implementados
 
 - Se protegieron con `auth` + `admin` las rutas internas de alta, seleccion, staging y migracion de productos.

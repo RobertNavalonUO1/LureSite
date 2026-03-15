@@ -2,6 +2,15 @@
 
 Fecha: 2026-03-14
 
+Nota 2026-03-15:
+
+- Este documento se mantiene como auditoria forense/historica.
+- Parte de sus hallazgos sobre carrito y algunos flujos web reflejan el estado anterior a `ShoppingCartService`, `cart_items` y `api/mobile/v1`.
+- Para estado actual usar tambien:
+  - `docs/WEB_ROUTES_REMEDIATION_2026-03-14.md`
+  - `README.md`
+  - `docs/GUIDE_NEXT_AGENT.md`
+
 ## Alcance y metodologia
 
 Esta auditoria cubre las rutas definidas directamente en [routes/web.php](../routes/web.php). El objetivo no es resumir el archivo, sino auditar cada ruta por su flujo real:

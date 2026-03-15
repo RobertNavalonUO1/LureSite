@@ -84,6 +84,7 @@ php artisan view:cache
 ## Punto 4 — Deploy (procedimiento mínimo)
 
 1) Subir el código (release/rsync/git pull según tu flujo).
+   - Nota operativa actual: en producción no asumir `git pull` sobre `/var/www/limoneo/current` si el worktree sigue dirty; preferir release limpio y swap.
 2) Instalar deps backend si cambian:
 
 ```bash

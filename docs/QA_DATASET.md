@@ -4,6 +4,8 @@ Ultima actualizacion: 2026-03-15
 
 Este documento describe el dataset de QA preparado para poblar una base local con volumen suficiente para probar storefront, perfil, admin, checkout, pedidos, devoluciones, reembolsos y el staging temporal de importacion.
 
+Tambien sirve para validar la API movil canonica (`api/mobile/v1`) con usuarios, direcciones, catalogo y pedidos coherentes.
+
 ## 1. Objetivo
 
 El seeder `Database\Seeders\QaDatasetSeeder` existe para evitar dos problemas recurrentes:
@@ -188,6 +190,9 @@ Despues de cargar el dataset QA, las rutas mas utiles para smoke testing manual 
 - `/admin/products`
 - `/migrate-products`
 - `/link-aggregator`
+- `/api/mobile/v1/home`
+- `/api/mobile/v1/cart`
+- `/api/mobile/v1/orders`
 
 Si quieres ejecutar el recorrido completo con orden y criterios de aprobacion, usa tambien:
 
