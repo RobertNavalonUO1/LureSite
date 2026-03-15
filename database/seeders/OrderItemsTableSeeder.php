@@ -19,6 +19,7 @@ class OrderItemsTableSeeder extends Seeder
                     'product_id' => $product_id,
                     'quantity' => rand(1, 8),
                     'price' => DB::table('products')->where('id', $product_id)->value('price'),
+                    'status' => DB::table('orders')->where('id', $order_id)->value('status') ?? 'pendiente_pago',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

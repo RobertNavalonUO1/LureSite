@@ -4,7 +4,8 @@ import { usePage, Head } from "@inertiajs/react";
 import Header from "@/Components/navigation/Header.jsx";
 import TopNavMenu from "@/Components/navigation/TopNavMenu.jsx";
 import SidebarBanners from "@/Components/marketing/SidebarBanners.jsx";
-import { ArrowUp, RefreshCcw, Search, X } from "lucide-react";
+import SpecialCategoryRail from "@/Components/catalog/SpecialCategoryRail.jsx";
+import { ArrowUp, RefreshCcw } from "lucide-react";
 import { formatCurrency, normalizePrice } from "@/utils/pricing";
 
 const getDiscountPercentage = (currentPrice, previousPrice) => {
@@ -97,7 +98,7 @@ const DealCard = ({ product }) => {
     (product.slug ? `/product/${product.slug}` : product.id ? `/product/${product.id}` : "#");
 
   return (
-    <article className="group relative flex w-full max-w-xs flex-col rounded-2xl border border-orange-100 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-orange-200">
+    <article className="group relative flex h-full w-full min-w-0 flex-col rounded-2xl border border-orange-100 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-orange-200">
       <div className="relative mb-4 flex items-center justify-center rounded-xl bg-orange-50 p-4">
         <img
           src={product.image || product.image_url || "/images/logo.png"}
@@ -151,9 +152,16 @@ const SuperDeal = () => {
   const [products, setProducts] = useState([]);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
-  const [minDiscount, setMinDiscount] = useState(0);
+  const [activeDiscount, setActiveDiscount] = useState("all");
   const controllerRef = useRef(null);
+
+  const discountOptions = ["20%+", "40%+"];
+
+  const discountValue = useMemo(() => {
+    if (activeDiscount === "20%+") return 20;
+    if (activeDiscount === "40%+") return 40;
+    return 0;
+  }, [activeDiscount]);
 
   const loadProducts = async () => {
     try {
@@ -186,17 +194,11 @@ const SuperDeal = () => {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    const term = query.trim().toLowerCase();
     return products.filter((product) => {
       const discount = getDiscountPercentage(product.price, derivePreviousPrice(product)) || 0;
-      if (minDiscount > 0 && discount < minDiscount) return false;
-
-      if (!term) return true;
-      const title = (product.title || product.name || "").toString().toLowerCase();
-      const category = (product.category?.name || "").toString().toLowerCase();
-      return title.includes(term) || category.includes(term);
+      return discountValue === 0 || discount >= discountValue;
     });
-  }, [products, query, minDiscount]);
+  }, [products, discountValue]);
 
   const { featured, regular } = useMemo(() => {
     if (!filteredProducts.length) {
@@ -247,101 +249,48 @@ const SuperDeal = () => {
       <Header />
       <TopNavMenu />
 
-      <div
-        className="sticky z-30 border-b border-orange-200 bg-white/85 shadow-sm backdrop-blur"
+      <SpecialCategoryRail
+        categories={discountOptions}
+        activeCategory={activeDiscount}
+        onCategoryChange={setActiveDiscount}
+        theme="amber"
+        className="border-orange-200"
+        allLabel="Todos los super deals"
+        eyebrowLabel="Refinar"
+        toggleLabel="Ver filtros"
+        badgeLabel="Ahorro"
+        helperText="Selecciona el umbral de descuento sin recargar la interfaz con otra caja de búsqueda secundaria."
+        panelTitle="Filtrar super deals"
+        panelDescription="Acota las oportunidades por nivel de ahorro y mantén la atención en los productos destacados."
+        countLabel="tramos"
         style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px) - var(--header-compact-offset-active, 0px))' }}
-      >
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={loadProducts}
-                className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
-              >
-                <RefreshCcw className="h-4 w-4" aria-hidden="true" />
-                Recargar
-              </button>
+        controls={
+          <>
+            <button
+              type="button"
+              onClick={loadProducts}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
+            >
+              <RefreshCcw className="h-4 w-4" aria-hidden="true" />
+              Recargar
+            </button>
+            <span className="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600">
+              {filteredProducts.length}/{products.length}
+            </span>
+            <button
+              type="button"
+              onClick={scrollToTop}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2 text-sm font-semibold text-orange-700 shadow-sm transition hover:bg-orange-50"
+            >
+              <ArrowUp className="h-4 w-4" aria-hidden="true" />
+              Arriba
+            </button>
+          </>
+        }
+      />
 
-              <button
-                type="button"
-                onClick={() => setMinDiscount(0)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  minDiscount === 0
-                    ? "bg-orange-100 text-orange-700"
-                    : "bg-white text-slate-600 hover:bg-orange-50"
-                }`}
-              >
-                Todos
-              </button>
-              <button
-                type="button"
-                onClick={() => setMinDiscount(20)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  minDiscount === 20
-                    ? "bg-orange-100 text-orange-700"
-                    : "bg-white text-slate-600 hover:bg-orange-50"
-                }`}
-              >
-                20%+
-              </button>
-              <button
-                type="button"
-                onClick={() => setMinDiscount(40)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  minDiscount === 40
-                    ? "bg-orange-100 text-orange-700"
-                    : "bg-white text-slate-600 hover:bg-orange-50"
-                }`}
-              >
-                40%+
-              </button>
-
-              <span className="ml-1 rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600">
-                {filteredProducts.length}/{products.length}
-              </span>
-            </div>
-
-            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:w-auto">
-              <div className="relative w-full sm:w-72">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  className="w-full rounded-full border border-orange-200 bg-white py-2 pl-11 pr-10 text-sm text-slate-700 shadow-sm focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                  placeholder="Buscar super deals"
-                />
-                {(query || minDiscount) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuery("");
-                      setMinDiscount(0);
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500 transition hover:bg-slate-100"
-                    aria-label="Limpiar filtros"
-                  >
-                    <X className="h-4 w-4" aria-hidden="true" />
-                  </button>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={scrollToTop}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2 text-sm font-semibold text-orange-700 shadow-sm transition hover:bg-orange-50"
-              >
-                <ArrowUp className="h-4 w-4" aria-hidden="true" />
-                Arriba
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <main className="flex-grow px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 lg:grid-cols-[5fr_2fr]">
+      <main className="flex-grow px-3 py-8 sm:px-4 lg:px-5">
+        <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_18rem]">
           <section className="flex flex-col gap-6">
             <div className="overflow-hidden rounded-3xl border border-orange-200 bg-white/70 shadow-lg">
               <div className="bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 px-6 py-8 text-white sm:px-10">
@@ -388,11 +337,11 @@ const SuperDeal = () => {
             </div>
 
             {status === "loading" && (
-              <div className="flex flex-wrap justify-center gap-6">
+              <div className="grid gap-5 lg:grid-cols-2">
                 {Array.from({ length: 4 }).map((_, index) => (
                   <div
                     key={index}
-                    className="w-full max-w-xl rounded-3xl border border-orange-200 bg-white/70 p-6 shadow-lg animate-pulse"
+                    className="w-full rounded-3xl border border-orange-200 bg-white/70 p-6 shadow-lg animate-pulse"
                   >
                     <div className="h-40 w-full rounded-2xl bg-orange-100" />
                     <div className="mt-6 h-5 w-3/4 bg-orange-100 rounded" />
@@ -439,7 +388,7 @@ const SuperDeal = () => {
               <>
                 <FeaturedDealCard product={featured} />
                 {regular.length > 0 && (
-                  <div className="grid justify-center gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                     {regular.map((product) => (
                       <DealCard key={product.id || product.title} product={product} />
                     ))}
@@ -449,13 +398,20 @@ const SuperDeal = () => {
             )}
           </section>
 
-          <aside className="space-y-6">
-            <div className="hidden h-full rounded-3xl border border-orange-200 bg-white/70 p-6 shadow-lg lg:block">
+          <aside className="space-y-6 xl:sticky xl:top-[calc(var(--header-sticky-height,0px)+var(--topnav-sticky-height,0px)-var(--header-compact-offset-active,0px)+6.5rem)] xl:self-start">
+            <div className="hidden rounded-3xl border border-orange-200 bg-white/70 p-6 shadow-lg xl:block">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-orange-500">Guía rápida</h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Empieza por el producto destacado y baja al grid si necesitas comparar más referencias con un umbral de ahorro similar.
+              </p>
+            </div>
+
+            <div className="hidden h-full rounded-3xl border border-orange-200 bg-white/70 p-6 shadow-lg xl:block">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-orange-500">Patrocinado</h2>
               <SidebarBanners banners={banners?.superDeal || banners?.default || []} />
             </div>
 
-            <div className="block overflow-hidden rounded-3xl border border-orange-200 bg-white/70 shadow-lg lg:hidden">
+            <div className="block overflow-hidden rounded-3xl border border-orange-200 bg-white/70 shadow-lg xl:hidden">
               {banners?.superDeal?.[0] && (
                 <img
                   src={banners.superDeal[0].src}

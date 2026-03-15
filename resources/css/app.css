@@ -13,6 +13,10 @@
 	--category-rail-height-compact: 3.75rem;
 }
 
+html {
+	scrollbar-gutter: stable;
+}
+
 @media (min-width: 768px) {
 	:root {
 		--header-sticky-height-expanded: 10.5rem;

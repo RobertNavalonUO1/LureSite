@@ -2,29 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
+use App\Services\ShoppingCartService;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class CartController extends Controller
 {
+    public function __construct(
+        private readonly ShoppingCartService $shoppingCartService,
+    ) {
+    }
+
     /**
      * Mostrar el contenido del carrito.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $cartItems = session()->get('cart', []);
-        $total = collect($cartItems)->sum(fn($item) => $item['price'] * $item['quantity']);
-        $cartCount = array_sum(array_column($cartItems, 'quantity'));
+        $snapshot = $this->cartSnapshot($request);
 
-        Log::info('Vista del carrito accedida', ['cartCount' => $cartCount]);
+        Log::info('Vista del carrito accedida', ['cartCount' => $snapshot['cartCount']]);
 
-        return Inertia::render('Shop/CartPage', [
-            'cartItems' => array_values($cartItems),
-            'cartCount' => $cartCount,
-            'total'     => number_format($total, 2),
-        ]);
+        return Inertia::render('Shop/CartPage', $snapshot);
     }
 
     /**
@@ -32,23 +31,8 @@ class CartController extends Controller
      */
     public function addToCart(Request $request, $productId)
     {
-        $product = Product::findOrFail($productId);
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity']++;
-        } else {
-            $cart[$productId] = [
-                'id'        => $product->id,
-                'title'     => $product->name,
-                'price'     => $product->price,
-                'image_url' => $product->image_url ?? '/default-image.jpg',
-                'quantity'  => 1,
-            ];
-        }
-
-        session()->put('cart', $cart);
-        Log::info("Producto agregado al carrito", ['product_id' => $productId]);
+        $this->shoppingCartService->add($request, (int) $productId);
+        Log::info('Producto agregado al carrito', ['product_id' => (int) $productId]);
 
         return $this->cartResponse($request, 'Producto agregado al carrito.');
     }
@@ -58,13 +42,8 @@ class CartController extends Controller
      */
     public function removeFromCart(Request $request, $productId)
     {
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$productId])) {
-            unset($cart[$productId]);
-            session()->put('cart', $cart);
-            Log::info("Producto eliminado del carrito", ['product_id' => $productId]);
-        }
+        $this->shoppingCartService->remove($request, (int) $productId);
+        Log::info('Producto eliminado del carrito', ['product_id' => (int) $productId]);
 
         return $this->cartResponse($request);
     }
@@ -74,13 +53,8 @@ class CartController extends Controller
      */
     public function incrementQuantity(Request $request, $productId)
     {
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity']++;
-            session()->put('cart', $cart);
-            Log::info("Cantidad incrementada", ['product_id' => $productId]);
-        }
+        $this->shoppingCartService->add($request, (int) $productId, 1);
+        Log::info('Cantidad incrementada', ['product_id' => (int) $productId]);
 
         return $this->cartResponse($request);
     }
@@ -90,32 +64,26 @@ class CartController extends Controller
      */
     public function decreaseQuantity(Request $request, $productId)
     {
-        $cart = session()->get('cart', []);
+        $cart = $this->shoppingCartService->itemsForRequest($request);
+        $currentQuantity = (int) ($cart[(int) $productId]['quantity'] ?? 0);
 
-        if (isset($cart[$productId])) {
-            if ($cart[$productId]['quantity'] > 1) {
-                $cart[$productId]['quantity']--;
-                Log::info("Cantidad reducida", ['product_id' => $productId]);
-            } else {
-                unset($cart[$productId]);
-                Log::info("Producto eliminado por cantidad 0", ['product_id' => $productId]);
-            }
-            session()->put('cart', $cart);
+        if ($currentQuantity > 1) {
+            $this->shoppingCartService->setQuantity($request, (int) $productId, $currentQuantity - 1);
+            Log::info('Cantidad reducida', ['product_id' => (int) $productId]);
+        } elseif ($currentQuantity === 1) {
+            $this->shoppingCartService->remove($request, (int) $productId);
+            Log::info('Producto eliminado por cantidad 0', ['product_id' => (int) $productId]);
         }
 
         return $this->cartResponse($request);
     }
 
     /**
-     * Eliminado: checkout() y confirmOrder()
-     * Mantenemos esa logica en CheckoutController para evitar duplicacion.
-     */
-    /**
      * Resumen del carrito para peticiones asincronas.
      */
     public function summary(Request $request)
     {
-        return response()->json($this->cartSnapshot());
+        return response()->json($this->cartSnapshot($request));
     }
 
     /**
@@ -123,7 +91,7 @@ class CartController extends Controller
      */
     private function cartResponse(Request $request, ?string $message = null)
     {
-        $payload = $this->cartSnapshot();
+        $payload = $this->cartSnapshot($request);
 
         if ($message) {
             $payload['message'] = $message;
@@ -145,16 +113,8 @@ class CartController extends Controller
     /**
      * Devuelve el estado actual del carrito listo para serializar.
      */
-    private function cartSnapshot(): array
+    private function cartSnapshot(Request $request): array
     {
-        $cartItems = session()->get('cart', []);
-        $total = collect($cartItems)->sum(fn($item) => $item['price'] * $item['quantity']);
-        $cartCount = array_sum(array_column($cartItems, 'quantity'));
-
-        return [
-            'cartItems' => array_values($cartItems),
-            'cartCount' => $cartCount,
-            'total'     => number_format($total, 2),
-        ];
+        return $this->shoppingCartService->summaryForRequest($request);
     }
 }

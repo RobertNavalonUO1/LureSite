@@ -10,7 +10,10 @@ use App\Models\Review;
 use App\Models\Coupon;
 use App\Models\OrderItem;
 use App\Models\Setting;
+use App\Services\OrderLineStateService;
 use App\Services\OrderRefundService;
+use App\Support\OrderState;
+use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -156,112 +159,224 @@ class AdminController extends Controller
 
     public function orders()
     {
-        $orders = Order::with(['user', 'items.product'])->orderByDesc('created_at')->get();
+        $orders = Order::with(['user', 'items.product'])->orderByDesc('created_at')->get()->map(
+            fn (Order $order) => [
+                'id' => $order->id,
+                'status' => $order->status,
+                'summary_status' => $order->summaryStatus(),
+                'summary_status_label' => OrderState::label($order->summaryStatus()),
+                'total' => (float) $order->total,
+                'created_at' => $order->created_at?->format('d/m/Y H:i'),
+                'cancelled_by' => $order->cancelled_by,
+                'cancellation_reason' => $order->cancellation_reason,
+                'cancelled_at' => $order->cancelled_at?->format('d/m/Y H:i'),
+                'refund_reference_id' => $order->refund_reference_id,
+                'refund_error' => $order->refund_error,
+                'user' => $order->user ? [
+                    'id' => $order->user->id,
+                    'name' => $order->user->name,
+                    'email' => $order->user->email,
+                ] : null,
+                'line_counts' => $order->statusSummary()['counts'],
+                'items' => $order->items->map(fn (OrderItem $item) => [
+                    'id' => $item->id,
+                    'name' => $item->product?->name ?? 'Producto sin nombre',
+                    'quantity' => $item->quantity,
+                    'price' => (float) $item->price,
+                    'subtotal' => round((float) $item->price * (int) $item->quantity, 2),
+                    'status' => $item->status,
+                    'status_label' => OrderState::label($item->status),
+                    'refund_error' => $item->refund_error,
+                    'return_reason' => $item->return_reason,
+                    'cancellation_reason' => $item->cancellation_reason,
+                    'refund_reference_id' => $item->refund_reference_id,
+                ])->values(),
+            ]
+        )->values();
+
         return Inertia::render('Admin/Orders', ['orders' => $orders]);
     }
 
-    public function cancelOrder(Request $request, Order $order): RedirectResponse
+    public function cancelOrder(Request $request, Order $order, OrderLineStateService $lineStateService): RedirectResponse
     {
         $validated = $request->validate([
             'reason' => ['nullable', 'string', 'max:500'],
         ]);
 
-        if ($order->isShipped() || $order->status === 'cancelado') {
-            return back()->with('error', 'No se puede cancelar un pedido ya enviado o cancelado.');
+        try {
+            $affectedItems = $lineStateService->cancelOrder($order, $validated['reason'] ?? null, 'admin');
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
         }
 
-        $order->status = 'cancelado';
-        $order->cancellation_reason = $validated['reason'] ?? 'Cancelado por administrador';
-        $order->cancelled_by = 'admin';
-        $order->cancelled_at = now();
-        $order->save();
-
-        return back()->with('success', 'Pedido cancelado por el administrador.');
+        return back()->with('success', "Pedido actualizado: {$affectedItems} linea(s) canceladas por administracion.");
     }
 
-    public function markAsShipped(Order $order): RedirectResponse
+    public function cancelOrderItem(Request $request, Order $order, OrderItem $item, OrderLineStateService $lineStateService): RedirectResponse
     {
-        if (in_array($order->status, ['confirmado', 'pagado', 'pendiente_envio'])) {
-            $order->status = 'enviado';
-            $order->save();
+        abort_unless((int) $item->order_id === (int) $order->id, 404);
 
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        try {
+            $lineStateService->cancelItem($item, $validated['reason'] ?? null, 'admin');
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Linea cancelada por administracion.');
+    }
+
+    public function markAsShipped(Order $order, OrderLineStateService $lineStateService): RedirectResponse
+    {
+        try {
+            $lineStateService->markOrderShipped($order);
             return back()->with('success', 'Pedido marcado como enviado.');
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
         }
-
-        return back()->with('error', 'El pedido no se puede marcar como enviado desde su estado actual.');
     }
 
-    public function markAsDelivered(Order $order): RedirectResponse
+    public function markAsDelivered(Order $order, OrderLineStateService $lineStateService): RedirectResponse
     {
-        if ($order->status === 'enviado') {
-            $order->status = 'entregado';
-            $order->save();
-
+        try {
+            $lineStateService->markOrderDelivered($order);
             return back()->with('success', 'Pedido marcado como entregado.');
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
         }
-
-        return back()->with('error', 'Solo los pedidos enviados pueden marcarse como entregados.');
     }
 
-    public function approveReturn(Order $order): RedirectResponse
+    public function approveReturn(Order $order, OrderLineStateService $lineStateService): RedirectResponse
     {
-        if ($order->status !== 'devolucion_solicitada') {
-            return back()->with('error', 'Solo se pueden aprobar devoluciones pendientes de revisión.');
+        try {
+            $affectedItems = $lineStateService->approveRefundForOrder($order);
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
         }
 
-        $order->status = 'devolucion_aprobada';
-        $order->save();
-
-        return back()->with('success', 'La devolución fue aprobada.');
+        return back()->with('success', "La devolucion fue aprobada para {$affectedItems} linea(s).");
     }
 
-    public function rejectReturn(Order $order): RedirectResponse
+    public function approveReturnItem(Order $order, OrderItem $item, OrderLineStateService $lineStateService): RedirectResponse
     {
-        if ($order->status !== 'devolucion_solicitada') {
-            return back()->with('error', 'Solo se pueden rechazar devoluciones pendientes de revisión.');
+        abort_unless((int) $item->order_id === (int) $order->id, 404);
+
+        try {
+            $lineStateService->approveRefund($item);
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
         }
 
-        $order->status = 'devolucion_rechazada';
-        $order->save();
+        return back()->with('success', 'La devolucion de la linea fue aprobada.');
+    }
 
-        return back()->with('success', 'La devolución fue rechazada.');
+    public function rejectReturn(Request $request, Order $order, OrderLineStateService $lineStateService): RedirectResponse
+    {
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        try {
+            $affectedItems = $lineStateService->rejectRefundForOrder($order, $validated['reason'] ?? null);
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', "La devolucion fue rechazada para {$affectedItems} linea(s).");
+    }
+
+    public function rejectReturnItem(Request $request, Order $order, OrderItem $item, OrderLineStateService $lineStateService): RedirectResponse
+    {
+        abort_unless((int) $item->order_id === (int) $order->id, 404);
+
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        try {
+            $lineStateService->rejectRefund($item, $validated['reason'] ?? null);
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'La devolucion de la linea fue rechazada.');
     }
 
     public function processRefund(Order $order, OrderRefundService $refundService): RedirectResponse
     {
-        if ($order->status !== 'devolucion_aprobada') {
-            return back()->with('error', 'Solo se pueden procesar reembolsos de devoluciones aprobadas.');
-        }
-
-        if ($order->refund_reference_id && $order->refunded_at) {
-            $order->status = 'reembolsado';
-            $order->cancelled_by ??= 'admin';
-            $order->cancelled_at ??= $order->refunded_at;
-            $order->save();
-
-            return back()->with('success', 'El pedido ya tenía un reembolso registrado.');
-        }
-
         try {
-            $refund = $refundService->refund($order);
+            $order->loadMissing('items');
+            if ($order->items->isEmpty()) {
+                if ($order->refund_reference_id && $order->refunded_at) {
+                    $order->forceFill([
+                        'status' => 'reembolsado',
+                        'cancelled_by' => 'admin',
+                        'cancelled_at' => $order->cancelled_at ?: now(),
+                        'refund_error' => null,
+                    ])->save();
+
+                    return back()->with('success', 'Reembolso procesado correctamente para el pedido.');
+                }
+
+                if ($order->status !== 'devolucion_aprobada') {
+                    return back()->with('error', 'Solo se pueden reembolsar pedidos con devolucion aprobada.');
+                }
+
+                $refund = $refundService->refund($order);
+
+                $order->forceFill([
+                    'status' => 'reembolsado',
+                    'cancelled_by' => 'admin',
+                    'cancelled_at' => now(),
+                    'refunded_at' => now(),
+                    'refund_reference_id' => $refund->referenceId,
+                    'refund_error' => null,
+                ])->save();
+
+                Log::info('refund.order.updated', [
+                    'order_id' => $order->id,
+                    'payment_method' => $order->payment_method,
+                    'processed_items' => 1,
+                ]);
+
+                return back()->with('success', 'Reembolso procesado correctamente para el pedido.');
+            }
+
+            $processed = 0;
+            foreach ($order->items as $item) {
+                if ($item->status !== 'devolucion_aprobada') {
+                    continue;
+                }
+
+                $processed++;
+                $refund = $refundService->refundItem($item);
+
+                $item->forceFill([
+                    'status' => 'reembolsado',
+                    'cancelled_by' => 'admin',
+                    'cancelled_at' => now(),
+                    'refunded_at' => now(),
+                    'refund_reference_id' => $refund->referenceId,
+                    'refund_error' => null,
+                ])->save();
+            }
+
+            if ($processed === 0) {
+                return back()->with('error', 'No hay lineas aprobadas listas para reembolso en este pedido.');
+            }
+
+            app(\App\Services\OrderStateSynchronizer::class)->sync($order);
 
             Log::info('refund.order.updated', [
                 'order_id' => $order->id,
                 'payment_method' => $order->payment_method,
-                'refund_reference_id' => $refund->referenceId,
-                'provider_status' => $refund->providerStatus,
-                'already_processed' => $refund->alreadyProcessed,
+                'processed_items' => $processed,
             ]);
 
-            $order->status = 'reembolsado';
-            $order->cancelled_by = 'admin';
-            $order->cancelled_at = now();
-            $order->refunded_at = now();
-            $order->refund_reference_id = $refund->referenceId;
-            $order->refund_error = null;
-            $order->save();
-
-            return back()->with('success', 'Reembolso procesado correctamente.');
+            return back()->with('success', "Reembolso procesado correctamente para {$processed} linea(s).");
         } catch (\Throwable $exception) {
             Log::warning('refund.order.failed', [
                 'order_id' => $order->id,
@@ -273,6 +388,38 @@ class AdminController extends Controller
             $order->save();
 
             return back()->with('error', 'No se pudo procesar el reembolso con el proveedor de pago.');
+        }
+    }
+
+    public function processRefundItem(Order $order, OrderItem $item, OrderRefundService $refundService): RedirectResponse
+    {
+        abort_unless((int) $item->order_id === (int) $order->id, 404);
+
+        if ($item->status !== 'devolucion_aprobada') {
+            return back()->with('error', 'Solo se pueden procesar lineas con devolucion aprobada.');
+        }
+
+        try {
+            $refund = $refundService->refundItem($item);
+
+            $item->forceFill([
+                'status' => 'reembolsado',
+                'cancelled_by' => 'admin',
+                'cancelled_at' => now(),
+                'refunded_at' => now(),
+                'refund_reference_id' => $refund->referenceId,
+                'refund_error' => null,
+            ])->save();
+
+            app(\App\Services\OrderStateSynchronizer::class)->sync($order);
+
+            return back()->with('success', 'Reembolso de linea procesado correctamente.');
+        } catch (\Throwable $exception) {
+            $item->forceFill([
+                'refund_error' => $exception->getMessage(),
+            ])->save();
+
+            return back()->with('error', 'No se pudo procesar el reembolso de la linea.');
         }
     }
 

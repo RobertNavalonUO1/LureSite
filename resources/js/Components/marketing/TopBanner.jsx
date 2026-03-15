@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { repairText } from '@/i18n';
 
 const FALLBACK_SLIDES = [
   {
@@ -30,9 +31,9 @@ const normalizeSlides = (banners = []) =>
 
     return {
       image: banner.image ?? banner.image_path ?? fallback.image,
-      headline: banner.title ?? fallback.headline,
-      subheadline: banner.subtitle ?? fallback.subheadline,
-      cta: banner.cta_label ?? banner.cta ?? fallback.cta,
+      headline: repairText(banner.title ?? fallback.headline),
+      subheadline: repairText(banner.subtitle ?? fallback.subheadline),
+      cta: repairText(banner.cta_label ?? banner.cta ?? fallback.cta),
       href: banner.link ?? banner.href ?? '#',
       key: banner.id ?? `${banner.link ?? 'slide'}-${index}`,
     };

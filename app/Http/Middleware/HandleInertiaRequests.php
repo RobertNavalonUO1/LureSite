@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\ShoppingCartService;
 use App\Support\ProfileAvatar;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -17,6 +18,9 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
+        $shoppingCartService = app(ShoppingCartService::class);
+        $cartItems = array_values($shoppingCartService->itemsForRequest($request));
+
         return array_merge(parent::share($request), [
             'locale' => app()->getLocale(),
             'locales' => ['es', 'en', 'fr'],
@@ -36,9 +40,9 @@ class HandleInertiaRequests extends Middleware
                     'is_admin' => (bool) $request->user()->is_admin,
                 ] : null,
             ],
-            'cartItems' => array_values($request->session()->get('cart', [])),
-            'cartCount' => array_sum(array_column($request->session()->get('cart', []), 'quantity')),
-            'total' => collect($request->session()->get('cart', []))->sum(function($item) {
+            'cartItems' => $cartItems,
+            'cartCount' => array_sum(array_column($cartItems, 'quantity')),
+            'total' => collect($cartItems)->sum(function ($item) {
                 return $item['price'] * $item['quantity'];
             }),
             'flash' => [

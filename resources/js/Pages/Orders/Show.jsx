@@ -1,204 +1,165 @@
-﻿import React, { useState } from 'react';
-import Header from '@/Components/navigation/Header.jsx';
-import Footer from '@/Components/navigation/Footer.jsx';
-import { Link, usePage } from '@inertiajs/react';
-import { XCircle, RotateCcw } from 'lucide-react';
-
-const STATUS_INFO = {
-  pendiente_pago: {
-    label: 'Pendiente de pago',
-    color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    description: 'Tu pedido está pendiente de pago. Realiza el pago para continuar.',
-  },
-  pagado: {
-    label: 'Pagado',
-    color: 'bg-green-100 text-green-800 border-green-300',
-    description: 'El pedido ha sido pagado y está en proceso.',
-  },
-  pendiente_envio: {
-    label: 'Pendiente de envío',
-    color: 'bg-blue-100 text-blue-800 border-blue-300',
-    description: 'Tu pedido está pendiente de ser enviado.',
-  },
-  enviado: {
-    label: 'Enviado',
-    color: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-    description: 'Tu pedido ha sido enviado. Pronto lo recibirás.',
-  },
-  entregado: {
-    label: 'Entregado',
-    color: 'bg-teal-100 text-teal-800 border-teal-300',
-    description: 'El pedido ha sido entregado. Gracias por tu compra.',
-  },
-  confirmado: {
-    label: 'Confirmado',
-    color: 'bg-green-50 text-green-700 border-green-200',
-    description: 'Has confirmado la recepción del pedido.',
-  },
-  cancelacion_pendiente: {
-    label: 'Cancelación en proceso',
-    color: 'bg-amber-100 text-amber-800 border-amber-300',
-    description: 'Tu cancelación está en revisión. Recibirás respuesta en 24-48 horas.',
-  },
-  cancelado: {
-    label: 'Cancelado',
-    color: 'bg-red-100 text-red-800 border-red-300',
-    description: 'El pedido ha sido cancelado.',
-  },
-  reembolsado: {
-    label: 'Reembolsado',
-    color: 'bg-gray-100 text-gray-800 border-gray-300',
-    description: 'El pedido ha sido reembolsado.',
-  },
-  fallido: {
-    label: 'Pago fallido',
-    color: 'bg-red-50 text-red-700 border-red-200',
-    description: 'El pago ha fallado. Intenta nuevamente.',
-  },
-  devolucion_solicitada: {
-    label: 'Devolución solicitada',
-    color: 'bg-orange-100 text-orange-800 border-orange-300',
-    description: 'Has solicitado la devolucion de este pedido.',
-  },
-  devolucion_aprobada: {
-    label: 'Devolucion aprobada',
-    color: 'bg-green-100 text-green-800 border-green-300',
-    description: 'La devolucion ha sido aprobada.',
-  },
-  devolucion_rechazada: {
-    label: 'Devolucion rechazada',
-    color: 'bg-red-100 text-red-800 border-red-300',
-    description: 'La devolucion ha sido rechazada.',
-  },
-};
-
-const ProductPopup = ({ product, onClick }) => (
-  <div
-    className="w-[300px] h-[300px] bg-white rounded-xl shadow-lg border p-4 flex flex-col items-center justify-center cursor-pointer"
-    onClick={onClick}
-    tabIndex={0}
-    role="button"
-  >
-    <img src={product.image_url} alt={product.name} className="w-24 h-24 object-contain mb-2 rounded" />
-    <div className="font-bold text-lg text-slate-800 mb-1">{product.name}</div>
-    <div className="text-sm text-gray-500 mb-1">{product.category?.name || 'Sin categoria'}</div>
-    <div className="text-rose-600 font-semibold text-xl mb-2">${product.price}</div>
-    <div className={`text-sm font-medium mb-2 ${product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
-      {product.stock > 0 ? `En stock: ${product.stock}` : 'Agotado'}
-    </div>
-    <div className="text-xs text-gray-400 mb-2">SKU: {product.id} · Vendidos: {product.sold_count || 0}</div>
-    <div className="text-center mt-2">
-      <span className="text-indigo-600 underline cursor-pointer">Ver producto &rarr;</span>
-    </div>
-  </div>
-);
+﻿import React, { useMemo } from 'react';
+import { Link, router } from '@inertiajs/react';
+import { CheckCircle2, ChevronLeft, RotateCcw, XCircle } from 'lucide-react';
+import OrdersDashboardLayout from '@/Layouts/OrdersDashboardLayout.jsx';
+import OrderStatusBadge from '@/Components/orders/OrderStatusBadge.jsx';
+import OrderLineItemCard from '@/Components/orders/OrderLineItemCard.jsx';
+import { formatCurrency } from '@/Components/orders/orderUi.jsx';
+import { useI18n } from '@/i18n';
 
 const OrderShow = ({ order }) => {
-  const { csrfToken } = usePage().props;
-  const [hoveredProductId, setHoveredProductId] = useState(null);
-  const [popupItem, setPopupItem] = useState(null);
+  const { locale, t } = useI18n();
+  const heroStats = useMemo(
+    () => [
+      { label: t('orders.module.stats.lines'), value: order.line_counts.total },
+      { label: t('orders.module.stats.active_lines'), value: order.line_counts.active },
+      { label: t('orders.module.stats.affected_lines'), value: order.line_counts.affected },
+      { label: t('orders.module.stats.active_value'), value: formatCurrency(order.active_total, locale) },
+    ],
+    [locale, order, t]
+  );
 
-  const handleMouseEnter = (item) => {
-    setHoveredProductId(item.id);
-    setPopupItem(item);
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredProductId(null);
-    setPopupItem(null);
-  };
-
-  const handleProductRowClick = (item) => {
-    if (item.product_id) {
-      window.open(`/product/${item.product_id}`, '_blank');
+  const confirmAction = (message, callback) => {
+    if (window.confirm(message)) {
+      callback();
     }
   };
 
-  const statusInfo = STATUS_INFO[order.status] || {
-    label: order.status,
-    color: 'bg-gray-100 text-gray-800 border-gray-300',
-    description: '',
-  };
-
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Header />
-      <main className="flex-grow max-w-2xl mx-auto p-6 relative">
-        <Link href="/orders" className="text-indigo-600 hover:underline mb-4 block">
-          &larr; Volver a pedidos
-        </Link>
-
-        <h1 className="text-2xl font-bold text-blue-700 mb-2">Pedido #{order.id}</h1>
-
-        <div className={`mb-4 px-4 py-3 rounded border ${statusInfo.color}`}>
-          <span className="font-semibold">{statusInfo.label}</span>
-          {statusInfo.description && <span className="block text-sm mt-1">{statusInfo.description}</span>}
-          <span className="ml-4 text-gray-600">Fecha: {order.date}</span>
+    <OrdersDashboardLayout
+      title={t('orders.common.order_number', { id: order.id })}
+      subtitle={t('orders.detail.subtitle')}
+      filters={[
+        { key: 'all', label: 'Todos', href: '/orders', count: null },
+        { key: 'paid', label: 'Activos', href: '/orders/paid', count: null },
+        { key: 'shipped', label: 'Seguimiento', href: '/orders/shipped', count: null },
+        { key: 'cancelled', label: 'Incidencias', href: '/orders/cancelled', count: null },
+      ].map((filter) => ({ ...filter, count: filter.count ?? '' }))}
+      activeFilter="all"
+      heroStats={heroStats}
+    >
+      <div className="space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link href="/orders" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900">
+            <ChevronLeft className="h-4 w-4" />
+            {t('orders.show.back')}
+          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <OrderStatusBadge status={order.summary_status} label={order.summary_status_label} />
+            <OrderStatusBadge status={order.status} label={order.status_label} compact />
+          </div>
         </div>
 
-        <h2 className="text-lg font-semibold mb-2">Articulos</h2>
-
-        <div className="flex">
-          <ul className="divide-y divide-gray-100 mb-4 flex-1">
-            {order.items.map((item) => (
-              <li
-                key={item.id}
-                className="py-3 flex items-center gap-4 cursor-pointer hover:bg-blue-50 transition"
-                onMouseEnter={() => handleMouseEnter(item)}
-                onMouseLeave={handleMouseLeave}
-                onClick={() => handleProductRowClick(item)}
-              >
-                {item.image_url && (
-                  <img src={item.image_url} alt={item.name} className="w-16 h-16 object-cover rounded" />
-                )}
-                <div className="flex-1">
-                  <div className="font-medium">{item.name}</div>
-                  <div className="text-sm text-gray-500">Cantidad: {item.quantity}</div>
-                </div>
-                <div className="font-bold text-blue-700">${(item.price * item.quantity).toFixed(2)}</div>
-              </li>
-            ))}
-          </ul>
-
-          {hoveredProductId && popupItem && popupItem.product && (
-            <div className="fixed z-50 top-1/2 right-8 transform -translate-y-1/2" style={{ minWidth: 260 }}>
-              <ProductPopup product={popupItem.product} onClick={() => handleProductRowClick(popupItem)} />
+        <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-4 rounded-[1.75rem] border border-slate-200 bg-slate-50/70 p-5">
+            <div className="grid gap-4 border-b border-slate-200 pb-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{t('orders.common.date')}</div>
+                <div className="mt-2 text-sm text-slate-700">{order.date}</div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{t('orders.common.address')}</div>
+                <div className="mt-2 text-sm text-slate-700">{order.address}</div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{t('orders.module.summary.total_order')}</div>
+                <div className="mt-2 text-sm font-semibold text-slate-900">{formatCurrency(order.total, locale)}</div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{t('orders.module.stats.active_value')}</div>
+                <div className="mt-2 text-sm font-semibold text-slate-900">{formatCurrency(order.active_total, locale)}</div>
+              </div>
             </div>
-          )}
-        </div>
 
-        <div className="text-right font-bold text-xl text-blue-700 mt-6">
-          Total: ${parseFloat(order.total).toFixed(2)}
-        </div>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <SummaryMetric label={t('orders.module.summary.active_lines')} value={order.line_counts.active} help={t('orders.module.summary.active_lines_help')} />
+              <SummaryMetric label={t('orders.module.summary.cancelled_lines')} value={order.line_counts.cancelled} help={t('orders.module.summary.cancelled_lines_help')} />
+              <SummaryMetric label={t('orders.module.summary.pending_review')} value={order.line_counts.cancellation_requested + order.line_counts.refund_requested} help={t('orders.module.summary.pending_review_help')} />
+              <SummaryMetric label={t('orders.module.summary.refunded_lines')} value={order.line_counts.refunded} help={t('orders.module.summary.refunded_lines_help')} />
+            </div>
+          </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          {order.can_cancel && (
-            <Link
-              href={`/orders/${order.id}/cancel`}
-              className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
-            >
-              <XCircle className="w-4 h-4" />
-              Solicitar cancelacion
-            </Link>
-          )}
+          <aside className="space-y-3 rounded-[1.75rem] border border-slate-200 bg-slate-950 p-5 text-white">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50">{t('orders.detail.operational_summary')}</div>
+              <div className="mt-2 text-lg font-semibold">{order.summary_status_label}</div>
+              <p className="mt-2 text-sm leading-6 text-white/70">
+                {t('orders.detail.operational_summary_body')}
+              </p>
+            </div>
 
-          {order.can_refund && (
-            <form method="POST" action={`/orders/${order.id}/refund`}>
-              <input type="hidden" name="_token" value={csrfToken} />
+            {order.can_cancel ? (
               <button
-                type="submit"
-                className="inline-flex items-center gap-2 rounded-lg bg-yellow-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-yellow-600"
+                type="button"
+                onClick={() =>
+                  confirmAction(t('orders.prompts.group_cancel'), () => {
+                    router.post(`/orders/${order.id}/cancel`, {}, { preserveScroll: true });
+                  })
+                }
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-rose-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-400"
               >
-                <RotateCcw className="w-4 h-4" />
-                Solicitar reembolso
+                <XCircle className="h-4 w-4" />
+                {t('orders.actions.grouped_cancel')}
               </button>
-            </form>
-          )}
-        </div>
-      </main>
-      <Footer />
-    </div>
+            ) : null}
+
+            {order.can_refund ? (
+              <button
+                type="button"
+                onClick={() =>
+                  confirmAction(t('orders.prompts.group_refund'), () => {
+                    router.post(`/orders/${order.id}/refund`, {}, { preserveScroll: true });
+                  })
+                }
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-400"
+              >
+                <RotateCcw className="h-4 w-4" />
+                {t('orders.actions.grouped_refund')}
+              </button>
+            ) : null}
+
+            {order.status === 'entregado' ? (
+              <button
+                type="button"
+                onClick={() =>
+                  confirmAction(t('orders.prompts.confirm_reception'), () => {
+                    router.post(`/orders/${order.id}/confirm`, {}, { preserveScroll: true });
+                  })
+                }
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                {t('orders.actions.confirm_reception')}
+              </button>
+            ) : null}
+          </aside>
+        </section>
+
+        <section className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">{t('orders.detail.lines_title')}</h2>
+              <p className="mt-1 text-sm text-slate-500">{t('orders.detail.lines_subtitle')}</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {order.items.map((item) => (
+              <OrderLineItemCard key={item.id} orderId={order.id} item={item} detailed />
+            ))}
+          </div>
+        </section>
+      </div>
+    </OrdersDashboardLayout>
   );
 };
+
+const SummaryMetric = ({ label, value, help }) => (
+  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</div>
+    <div className="mt-2 text-2xl font-semibold text-slate-900">{value}</div>
+    <div className="mt-1 text-xs text-slate-500">{help}</div>
+  </div>
+);
 
 export default OrderShow;

@@ -20,13 +20,13 @@ export default function SearchBar({
 }) {
   const formClass = clsx(
     'hidden transition-all duration-300 ease-out',
-    isCompact ? 'md:flex flex-1' : 'lg:flex flex-1'
+    isCompact ? 'md:flex min-w-0 flex-[1_1_18rem]' : 'lg:flex flex-1'
   );
 
   const wrapperClass = clsx(
-    'relative w-full transition-all duration-300 ease-out',
+    'relative min-w-0 w-full transition-all duration-300 ease-out',
     isCompact
-      ? 'max-w-[12rem] sm:max-w-[14rem] md:max-w-[32rem] focus-within:max-w-[36rem]'
+      ? 'max-w-[10rem] sm:max-w-[12rem] md:max-w-[24rem] lg:max-w-[28rem] xl:max-w-[32rem] focus-within:max-w-[34rem]'
       : 'max-w-xl'
   );
 

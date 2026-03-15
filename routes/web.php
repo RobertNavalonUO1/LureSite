@@ -26,6 +26,7 @@ use App\Http\Controllers\{
     ReviewController
 };
 use App\Services\CampaignBannerResolver;
+use App\Services\ShoppingCartService;
 use App\Support\CatalogDataLocalizer;
 use App\Http\Controllers\Admin\TemporaryProductImportController;
 
@@ -88,7 +89,7 @@ Route::get('/', function () {
         ]);
     }
 
-    $cartItems = session()->get('cart', []);
+    $cartItems = array_values(app(ShoppingCartService::class)->itemsForRequest(request()));
     $cartCount = array_sum(array_column($cartItems, 'quantity'));
 
     $campaignData = app(CampaignBannerResolver::class)->resolve();
@@ -186,9 +187,9 @@ Route::prefix('checkout')->group(function () {
 |--------------------------------------------------------------------------
 */
 Inertia::share([
-    'cartItems' => fn() => session('cart', []),
-    'cartCount' => fn() => array_sum(array_column(session('cart', []), 'quantity')),
-    'total'     => fn() => collect(session('cart', []))->sum(fn($i) => $i['price'] * $i['quantity']),
+    'cartItems' => fn() => array_values(app(ShoppingCartService::class)->itemsForRequest(request())),
+    'cartCount' => fn() => array_sum(array_column(array_values(app(ShoppingCartService::class)->itemsForRequest(request())), 'quantity')),
+    'total'     => fn() => collect(array_values(app(ShoppingCartService::class)->itemsForRequest(request())))->sum(fn($i) => $i['price'] * $i['quantity']),
     'csrfToken' => fn() => csrf_token(),
 ]);
 
@@ -209,7 +210,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{order}/cancel', [OrderController::class, 'cancelPrompt'])->name('orders.cancel.prompt');
         Route::post('/{order}/confirm', [OrderController::class, 'confirm'])->name('orders.confirm');
         Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+        Route::post('/{order}/items/{item}/cancel', [OrderController::class, 'cancelItem'])->name('orders.items.cancel');
         Route::post('/{order}/refund', [OrderController::class, 'refund'])->name('orders.refund');
+        Route::post('/{order}/items/{item}/refund', [OrderController::class, 'refundItem'])->name('orders.items.refund');
         Route::get('/{order}', [OrderController::class, 'show'])->name('orders.show');
     });
 
@@ -252,11 +255,15 @@ Route::middleware(['auth', 'admin'])
         // Pedidos
         Route::get('/orders', [AdminController::class, 'orders'])->name('orders.index');
         Route::patch('/orders/{order}/cancel', [AdminController::class, 'cancelOrder'])->name('orders.cancel');
+        Route::patch('/orders/{order}/items/{item}/cancel', [AdminController::class, 'cancelOrderItem'])->name('orders.items.cancel');
         Route::patch('/orders/{order}/ship', [AdminController::class, 'markAsShipped'])->name('orders.shipped');
         Route::patch('/orders/{order}/deliver', [AdminController::class, 'markAsDelivered'])->name('orders.delivered');
         Route::patch('/orders/{order}/approve-return', [AdminController::class, 'approveReturn'])->name('orders.return.approve');
+        Route::patch('/orders/{order}/items/{item}/approve-return', [AdminController::class, 'approveReturnItem'])->name('orders.items.return.approve');
         Route::patch('/orders/{order}/reject-return', [AdminController::class, 'rejectReturn'])->name('orders.return.reject');
+        Route::patch('/orders/{order}/items/{item}/reject-return', [AdminController::class, 'rejectReturnItem'])->name('orders.items.return.reject');
         Route::patch('/orders/{order}/refund', [AdminController::class, 'processRefund'])->name('orders.refund.process');
+        Route::patch('/orders/{order}/items/{item}/refund', [AdminController::class, 'processRefundItem'])->name('orders.items.refund.process');
 
         // Usuarios
         Route::get('/users', [AdminController::class, 'users'])->name('users.index');
@@ -336,7 +343,6 @@ require __DIR__ . '/auth.php';
 if (app()->environment('local')) {
     Route::get('/test', fn () => Inertia::render('Orders/ShippedOrders', ['message' => 'Hola Inertia!']));
 }
-
 
 
 

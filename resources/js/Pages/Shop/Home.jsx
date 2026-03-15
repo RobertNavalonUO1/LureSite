@@ -30,7 +30,7 @@ import TopBanner from "@/Components/marketing/TopBanner";
 import AutumnShowcase from "@/Components/marketing/AutumnShowcase.jsx";
 import PromoPopups from "@/Components/marketing/PromoPopups.jsx";
 import StorefrontLayout from "@/Layouts/StorefrontLayout.jsx";
-import { useI18n } from "@/i18n";
+import { repairTextTree, useI18n } from "@/i18n";
 import { CATALOG_STICKY_TOP_WITH_RAIL } from "@/config/catalogLayout.js";
 import { addCartItem } from "@/utils/cartClient";
 
@@ -75,8 +75,9 @@ const Home = () => {
   } = usePage().props;
   const { t } = useI18n();
   const user = auth?.user;
-  const campaignBanners = campaign?.banners ?? {};
-  const generalBanners = campaignBanners.general ?? legacyBanners;
+  const campaignBanners = useMemo(() => repairTextTree(campaign?.banners ?? {}), [campaign?.banners]);
+  const fallbackLegacyBanners = useMemo(() => repairTextTree(legacyBanners ?? []), [legacyBanners]);
+  const generalBanners = campaignBanners.general ?? fallbackLegacyBanners;
   const heroBanners =
     campaignBanners.hero?.length ? campaignBanners.hero : generalBanners;
   const showcaseBanners =
@@ -125,34 +126,34 @@ const Home = () => {
     () => [
       {
         href: "/deals/today",
-        title: "Ofertas de hoy",
-        subtitle: "Descuentos activos",
+        title: t('nav.deals_today'),
+        subtitle: t('home.quick_link_subtitle.deals_today'),
         Icon: BadgePercent,
         accent: "from-amber-500/20 via-white to-white",
       },
       {
         href: "/superdeal",
-        title: "Superdeal",
-        subtitle: "Top precio/calidad",
+        title: t('nav.super_deal'),
+        subtitle: t('home.quick_link_subtitle.super_deal'),
         Icon: Flame,
         accent: "from-rose-500/15 via-white to-white",
       },
       {
         href: "/fast-shipping",
-        title: "Envío rápido",
-        subtitle: "48h en seleccionados",
+        title: t('nav.fast_shipping'),
+        subtitle: t('home.quick_link_subtitle.fast_shipping'),
         Icon: Truck,
         accent: "from-emerald-500/15 via-white to-white",
       },
       {
         href: "/new-arrivals",
-        title: "Novedades",
-        subtitle: "Recién llegados",
+        title: t('nav.new_arrivals'),
+        subtitle: t('home.quick_link_subtitle.new_arrivals'),
         Icon: Sparkles,
         accent: "from-indigo-500/15 via-white to-white",
       },
     ],
-    []
+    [t]
   );
 
   const sortOptions = useMemo(
@@ -715,24 +716,24 @@ const Home = () => {
 
                     <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 p-6 text-white shadow-lg">
                       <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/50">
-                        Resumen del catálogo
+                        {t('home.catalog_summary')}
                       </p>
                       <div className="mt-5 grid grid-cols-1 gap-3 text-center sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
                         <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
                           <p className="text-2xl font-bold">{stats.total}</p>
-                          <p className="mt-1 text-xs text-white/70">Productos activos</p>
+                          <p className="mt-1 text-xs text-white/70">{t('home.catalog_total_products')}</p>
                         </div>
                         <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
                           <p className="text-2xl font-bold">{stats.discounted}</p>
-                          <p className="mt-1 text-xs text-white/70">Con descuento</p>
+                          <p className="mt-1 text-xs text-white/70">{t('home.catalog_discounted_products')}</p>
                         </div>
                         <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
                           <p className="text-2xl font-bold">{stats.fastShipping}</p>
-                          <p className="mt-1 text-xs text-white/70">Envío rápido</p>
+                          <p className="mt-1 text-xs text-white/70">{t('home.catalog_fast_shipping_products')}</p>
                         </div>
                       </div>
                       <p className="mt-6 text-xs text-white/60">
-                        Actualizamos inventario y ofertas varias veces al día.
+                        {t('home.catalog_refresh_note')}
                       </p>
                     </div>
                   </div>
@@ -798,7 +799,7 @@ const Home = () => {
                       >
                         <span className="inline-flex items-center gap-2">
                           <HelpCircle className="h-4 w-4 text-white/70" aria-hidden="true" />
-                          FAQ
+                          {t('home.support_faq')}
                         </span>
                         <span className="text-white/60 group-hover:text-white/85">{t('home.aside_go')}</span>
                       </Link>
@@ -808,7 +809,7 @@ const Home = () => {
                       >
                         <span className="inline-flex items-center gap-2">
                           <Truck className="h-4 w-4 text-white/70" aria-hidden="true" />
-                          Contacto
+                          {t('home.support_contact')}
                         </span>
                         <span className="text-white/60 group-hover:text-white/85">{t('home.aside_go')}</span>
                       </Link>

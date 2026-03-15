@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Services\OrderLineStateService;
+use App\Support\OrderState;
+use DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -11,117 +15,43 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::with(['items.product'])
-            ->byUser(Auth::id())
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(fn (Order $order) => $this->mapOrderListItem($order));
-
-        return Inertia::render('Orders/Index', [
-            'orders' => $orders,
-        ]);
+        return $this->renderOrdersIndex('all');
     }
 
     public function shipped()
     {
-        $statusDetails = [
-            'enviado' => ['label' => 'Enviado', 'progress' => 2],
-            'entregado' => ['label' => 'Entregado', 'progress' => 3],
-            'confirmado' => ['label' => 'Confirmado', 'progress' => 3],
-        ];
-
-        $orders = Order::with(['items.product'])
-            ->byUser(Auth::id())
-            ->shipped()
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(function (Order $order) use ($statusDetails) {
-                $detail = $statusDetails[$order->status] ?? [];
-
-                return [
-                    'id' => $order->id,
-                    'date' => $order->created_at?->format('d/m/Y H:i'),
-                    'status' => $order->status,
-                    'status_label' => $detail['label'] ?? ucfirst(str_replace('_', ' ', $order->status)),
-                    'total' => $order->total,
-                    'address' => $order->address,
-                    'estimated_delivery' => $this->estimatedDelivery($order),
-                    'progress_step' => $detail['progress'] ?? 0,
-                    'items' => $order->items->map(fn ($item) => $this->mapOrderItem($item))->values(),
-                ];
-            })
-            ->values();
-
-        return Inertia::render('Orders/ShippedOrders', [
-            'orders' => $orders,
-        ]);
+        return $this->renderOrdersIndex('shipped');
     }
 
     public function paid()
     {
-        $orders = Order::with(['items.product'])
-            ->byUser(Auth::id())
-            ->paid()
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(fn (Order $order) => $this->mapOrderListItem($order));
-
-        return Inertia::render('Orders/Paid', [
-            'orders' => $orders,
-        ]);
+        return $this->renderOrdersIndex('paid');
     }
 
     public function cancelled()
     {
-        $orders = Order::with(['items.product'])
-            ->byUser(Auth::id())
-            ->whereIn('status', ['cancelacion_pendiente', 'cancelado', 'devolucion_solicitada', 'devolucion_aprobada', 'devolucion_rechazada', 'reembolsado'])
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(fn (Order $order) => $this->mapOrderListItem($order));
-
-        return Inertia::render('Orders/CancelledRefundedOrders', [
-            'orders' => $orders,
-        ]);
+        return $this->renderOrdersIndex('cancelled');
     }
 
     public function cancelPrompt($orderId)
     {
-        $order = Order::with('items.product')
-            ->where('id', $orderId)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
-
-        if (!$order->canBeCancelled()) {
-            return redirect()->route('orders.show', $orderId)
-                ->with('error', 'Este pedido no puede cancelarse en este momento.');
-        }
-
-        return Inertia::render('Orders/CancelConfirm', [
-            'order' => [
-                'id' => $order->id,
-                'date' => $order->created_at?->format('d/m/Y H:i'),
-                'status' => $order->status,
-                'total' => $order->total,
-                'items' => $order->items->map(fn ($item) => $this->mapOrderItem($item))->values(),
-            ],
-        ]);
+        return redirect()
+            ->route('orders.show', $orderId)
+            ->with('info', 'La cancelacion ahora se gestiona desde el detalle del pedido por linea o de forma agrupada.');
     }
 
-    public function confirm($orderId)
+    public function confirm($orderId, OrderLineStateService $lineStateService)
     {
         $order = Order::where('id', $orderId)
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        if ($order->status === 'entregado') {
-            $order->status = 'confirmado';
-            $order->save();
-
+        try {
+            $lineStateService->confirmDeliveredItems($order);
             return back()->with('success', 'Has confirmado la entrega del pedido.');
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
         }
-
-        return back()->with('error', 'Este pedido no puede ser confirmado todavía.');
     }
 
     public function show($orderId)
@@ -132,82 +62,166 @@ class OrderController extends Controller
             ->firstOrFail();
 
         return Inertia::render('Orders/Show', [
-            'order' => [
-                'id' => $order->id,
-                'date' => $order->created_at->format('d/m/Y H:i'),
-                'status' => $order->status,
-                'total' => $order->total,
-                'address' => $order->address,
-                'can_cancel' => $order->canBeCancelled(),
-                'can_refund' => $order->isRefundable(),
-                'items' => $order->items->map(fn ($item) => $this->mapOrderItem($item))->values(),
-            ],
+            'order' => $this->mapOrderListItem($order),
         ]);
     }
 
-    public function cancel(Request $request, $orderId)
+    public function cancel(Request $request, $orderId, OrderLineStateService $lineStateService)
     {
         $order = Order::where('id', $orderId)
             ->where('user_id', Auth::id())
             ->firstOrFail();
-
-        if (!$order->canBeCancelled()) {
-            return back()->with('error', 'Este pedido no puede cancelarse en este estado.');
-        }
 
         $validated = $request->validate([
             'reason' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $order->status = 'cancelacion_pendiente';
-        $order->cancellation_reason = $validated['reason'] ?? 'Solicitud de cancelacion por el usuario';
-        $order->cancelled_by = 'user';
-        $order->cancelled_at = null;
-        $order->save();
+        try {
+            $affectedItems = $lineStateService->cancelOrder(
+                order: $order,
+                reason: $validated['reason'] ?? null,
+                actor: 'user',
+            );
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
 
         return redirect()
             ->route('orders.cancelled')
-            ->with('success', 'Solicitud de cancelacion registrada. Revisaremos el pedido y confirmaremos en un plazo estimado de 24-48 horas.');
+            ->with('success', "Solicitud de cancelacion registrada para {$affectedItems} linea(s). Revisaremos el pedido y confirmaremos en un plazo estimado de 24-48 horas.");
     }
 
-    public function refund($orderId)
+    public function cancelItem(Request $request, $orderId, $itemId, OrderLineStateService $lineStateService)
+    {
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $item = $this->findOwnedOrderItem($orderId, $itemId);
+
+        try {
+            $lineStateService->cancelItem($item, $validated['reason'] ?? null, 'user');
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'La linea del pedido se ha marcado para cancelacion.');
+    }
+
+    public function refund($orderId, OrderLineStateService $lineStateService, Request $request)
     {
         $order = Order::where('id', $orderId)
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        if (!$order->isRefundable()) {
-            return back()->with('error', 'El pedido aun no es elegible para devolución.');
-        }
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
 
-        $order->status = 'devolucion_solicitada';
-        $order->save();
+        try {
+            $affectedItems = $lineStateService->requestRefundForOrder($order, $validated['reason'] ?? null);
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
 
         return redirect()
             ->route('orders.cancelled')
-            ->with('success', 'Solicitud de devolución registrada. Revisaremos el caso antes de emitir el reembolso.');
+            ->with('success', "Solicitud de devolucion registrada para {$affectedItems} linea(s). Revisaremos el caso antes de emitir el reembolso.");
+    }
+
+    public function refundItem(Request $request, $orderId, $itemId, OrderLineStateService $lineStateService)
+    {
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $item = $this->findOwnedOrderItem($orderId, $itemId);
+
+        try {
+            $lineStateService->requestRefund($item, $validated['reason'] ?? null);
+        } catch (DomainException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'La devolucion de la linea se ha solicitado correctamente.');
+    }
+
+    private function renderOrdersIndex(string $activeFilter)
+    {
+        $mappedOrders = Order::with(['items.product'])
+            ->byUser(Auth::id())
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (Order $order) => $this->mapOrderListItem($order))
+            ->values();
+
+        $filters = collect([
+            ['key' => 'all', 'label' => 'Todos', 'href' => route('orders.index')],
+            ['key' => 'paid', 'label' => 'Activos', 'href' => route('orders.paid')],
+            ['key' => 'shipped', 'label' => 'En seguimiento', 'href' => route('orders.shipped')],
+            ['key' => 'cancelled', 'label' => 'Cancelados y reembolsos', 'href' => route('orders.cancelled')],
+        ])->map(function (array $filter) use ($mappedOrders) {
+            $filter['count'] = $mappedOrders->filter(
+                fn (array $order) => $this->matchesFilter($order, $filter['key'])
+            )->count();
+
+            return $filter;
+        })->values();
+
+        return Inertia::render('Orders/Index', [
+            'orders' => $mappedOrders->filter(fn (array $order) => $this->matchesFilter($order, $activeFilter))->values(),
+            'filters' => $filters,
+            'activeFilter' => $activeFilter,
+        ]);
     }
 
     private function mapOrderListItem(Order $order): array
     {
+        $summary = $order->statusSummary();
+        $items = $order->items->map(fn ($item) => $this->mapOrderItem($item))->values();
+        $activeTotal = $items->whereIn('status', OrderState::ACTIVE_ITEM_STATUSES)->sum('subtotal');
+        $affectedTotal = $items->whereNotIn('status', OrderState::ACTIVE_ITEM_STATUSES)->sum('subtotal');
+
         return [
             'id' => $order->id,
             'date' => $order->created_at?->format('d/m/Y H:i'),
             'status' => $order->status,
-            'total' => $order->total,
+            'status_label' => OrderState::label($order->status),
+            'summary_status' => $summary['summary_status'],
+            'summary_status_label' => OrderState::label($summary['summary_status']),
+            'total' => (float) $order->total,
+            'active_total' => round((float) $activeTotal, 2),
+            'affected_total' => round((float) $affectedTotal, 2),
             'address' => $order->address,
             'estimated_delivery' => $this->estimatedDelivery($order),
-            'items' => $order->items->map(fn ($item) => $this->mapOrderItem($item))->values(),
+            'can_cancel' => $summary['can_cancel_order'],
+            'can_refund' => $summary['can_refund_order'],
+            'line_counts' => $summary['counts'],
+            'items' => $items,
         ];
     }
 
     private function mapOrderItem($item): array
     {
+        $status = $item->status ?? 'pendiente_pago';
+
         return [
             'id' => $item->id,
             'name' => $item->product->name ?? $item->name,
             'quantity' => $item->quantity,
             'price' => $item->price,
+            'subtotal' => round((float) $item->price * (int) $item->quantity, 2),
+            'status' => $status,
+            'status_label' => OrderState::label($status),
+            'can_cancel' => $item->canBeCancelled(),
+            'can_refund' => $item->canRequestRefund(),
+            'cancellation_reason' => $item->cancellation_reason,
+            'cancelled_by' => $item->cancelled_by,
+            'cancelled_at' => $item->cancelled_at?->format('d/m/Y H:i'),
+            'return_reason' => $item->return_reason,
+            'refund_reference_id' => $item->refund_reference_id,
+            'refunded_at' => $item->refunded_at?->format('d/m/Y H:i'),
+            'refund_error' => $item->refund_error,
             'image_url' => $item->product->image_url ?? null,
             'product_id' => $item->product->id ?? null,
             'product' => $item->product ? [
@@ -226,5 +240,38 @@ class OrderController extends Controller
         return $order->created_at
             ? $order->created_at->copy()->addDays(5)->format('d/m/Y')
             : null;
+    }
+
+    private function matchesFilter(array $order, string $filter): bool
+    {
+        if ($filter === 'all') {
+            return true;
+        }
+
+        $itemStatuses = collect($order['items'])->pluck('status');
+
+        return match ($filter) {
+            'paid' => $itemStatuses->contains(fn (string $status) => in_array($status, [
+                'pagado',
+                'pendiente_envio',
+                'enviado',
+                'entregado',
+                'confirmado',
+            ], true)),
+            'shipped' => $itemStatuses->contains(fn (string $status) => in_array($status, ['enviado', 'entregado', 'confirmado'], true)),
+            'cancelled' => $itemStatuses->contains(fn (string $status) => OrderState::isCancellationRelated($status) || OrderState::isRefundRelated($status))
+                || OrderState::isCancellationRelated($order['summary_status'])
+                || OrderState::isRefundRelated($order['summary_status']),
+            default => true,
+        };
+    }
+
+    private function findOwnedOrderItem(int|string $orderId, int|string $itemId): OrderItem
+    {
+        return OrderItem::query()
+            ->where('id', $itemId)
+            ->where('order_id', $orderId)
+            ->whereHas('order', fn ($query) => $query->where('user_id', Auth::id()))
+            ->firstOrFail();
     }
 }

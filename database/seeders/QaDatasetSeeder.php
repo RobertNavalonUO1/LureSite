@@ -622,6 +622,24 @@ class QaDatasetSeeder extends Seeder
                     [
                         'quantity' => $quantity,
                         'price' => $unitPrice,
+                        'status' => $this->lineStatusForOrder($order),
+                        'cancellation_reason' => in_array($order->status, ['cancelacion_pendiente', 'cancelado'], true)
+                            ? $order->cancellation_reason
+                            : null,
+                        'cancelled_by' => in_array($order->status, ['cancelacion_pendiente', 'cancelado', 'reembolsado'], true)
+                            ? $order->cancelled_by
+                            : null,
+                        'cancelled_at' => in_array($order->status, ['cancelado', 'reembolsado'], true)
+                            ? $order->cancelled_at
+                            : null,
+                        'return_reason' => in_array($order->status, ['devolucion_solicitada', 'devolucion_aprobada', 'devolucion_rechazada', 'reembolsado'], true)
+                            ? $order->cancellation_reason
+                            : null,
+                        'refund_reference_id' => $order->status === 'reembolsado' ? $order->refund_reference_id : null,
+                        'refunded_at' => $order->status === 'reembolsado' ? $order->refunded_at : null,
+                        'refund_error' => in_array($order->status, ['devolucion_aprobada', 'devolucion_rechazada'], true)
+                            ? $order->refund_error
+                            : null,
                     ]
                 );
 
@@ -673,6 +691,14 @@ class QaDatasetSeeder extends Seeder
             $address->zip_code,
             $address->country,
         ]);
+    }
+
+    private function lineStatusForOrder(Order $order): string
+    {
+        return match ($order->status) {
+            'cancelacion_pendiente', 'cancelado', 'devolucion_solicitada', 'devolucion_aprobada', 'devolucion_rechazada', 'reembolsado' => $order->status,
+            default => $order->status,
+        };
     }
 
     private function printSummary(): void

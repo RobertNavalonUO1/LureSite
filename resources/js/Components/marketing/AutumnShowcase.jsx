@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useI18n } from '@/i18n';
+import { repairText, useI18n } from '@/i18n';
 
 const FALLBACK_CARD_CONFIG = [
   { image: '/images/autumn-photo-03.jpg', href: '/new-arrivals', key: 'coffee' },
@@ -23,10 +23,10 @@ const normalizeCards = (cards = [], fallbackCards) =>
 
     return {
       image: card.image ?? card.image_path ?? fallback.image,
-      eyebrow: card.subtitle ?? card.eyebrow ?? fallback.eyebrow,
-      title: card.title ?? fallback.title,
-      description: card.description ?? fallback.description,
-      cta: card.cta_label ?? card.cta ?? fallback.cta,
+      eyebrow: repairText(card.subtitle ?? card.eyebrow ?? fallback.eyebrow),
+      title: repairText(card.title ?? fallback.title),
+      description: repairText(card.description ?? fallback.description),
+      cta: repairText(card.cta_label ?? card.cta ?? fallback.cta),
       href: card.link ?? card.href ?? fallback.href,
       key: card.id ?? `${card.link ?? card.href ?? fallback.key}-${index}`,
     };
@@ -38,7 +38,7 @@ const AutumnShowcase = ({ cards = [], campaignName }) => {
   const cardList = useMemo(() => normalizeCards(cards, fallbackCards), [cards, fallbackCards]);
 
   const heading = campaignName
-    ? t('marketing.autumn.heading_with_campaign', { campaign: campaignName.replace(/-/g, ' ') })
+    ? t('marketing.autumn.heading_with_campaign', { campaign: repairText(campaignName.replace(/-/g, ' ')) })
     : t('marketing.autumn.heading_default');
 
   return (

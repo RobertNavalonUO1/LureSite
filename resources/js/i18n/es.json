@@ -96,6 +96,11 @@
     "hero_subtitle": "Seleccionamos lo mejor de electrónica, moda, hogar y más para que encuentres lo que necesitas sin perder tiempo.",
     "hero_cta_primary": "Explorar productos",
     "hero_cta_secondary": "Ver lanzamientos",
+    "catalog_summary": "Resumen del catálogo",
+    "catalog_total_products": "Productos activos",
+    "catalog_discounted_products": "Con descuento",
+    "catalog_fast_shipping_products": "Envíos rápidos",
+    "catalog_refresh_note": "Actualizamos inventario y ofertas varias veces al día.",
     "filters_title": "Filtrar resultados",
     "filters_subtitle": "Ajusta tu búsqueda por categoría, precio y relevancia.",
     "filters_clear": "Limpiar",
@@ -116,6 +121,8 @@
     "aside_see": "Ver",
     "aside_tip_label": "Tip",
     "aside_tip_text": "Usa \"Envío rápido\" para filtrar.",
+    "support_faq": "FAQ",
+    "support_contact": "Contacto",
     "quick_link_subtitle": {
       "deals_today": "Descuentos activos",
       "super_deal": "Top precio/calidad",
@@ -351,7 +358,45 @@
       "devolucion_solicitada": "Devolución solicitada",
       "devolucion_aprobada": "Devolución aprobada",
       "devolucion_rechazada": "Devolución rechazada",
-      "reembolsado": "Reembolsado"
+      "reembolsado": "Reembolsado",
+      "parcialmente_cancelado": "Parcialmente cancelado",
+      "parcialmente_reembolsado": "Parcialmente reembolsado"
+    },
+    "module": {
+      "kicker": "Módulo de pedidos",
+      "title": "Pedidos",
+      "subtitle": "Una vista unificada para pedidos activos, seguimiento, incidencias y cancelaciones parciales por línea.",
+      "empty_filtered": "No hay pedidos para este filtro. Cuando existan líneas en este estado las verás aquí.",
+      "filters": {
+        "all": { "label": "Todos los pedidos", "short": "Todos", "description": "Vista general del historial de pedidos." },
+        "paid": { "label": "Pedidos activos", "short": "Activos", "description": "Pedidos con líneas todavía activas o en curso." },
+        "shipped": { "label": "Seguimiento", "short": "Tracking", "description": "Líneas enviadas, entregadas o confirmadas." },
+        "cancelled": { "label": "Cancelados y reembolsos", "short": "Incidencias", "description": "Pedidos mixtos, cancelados y devoluciones." }
+      },
+      "stats": {
+        "orders": "Pedidos",
+        "lines": "Líneas",
+        "active_lines": "Líneas activas",
+        "affected_lines": "Líneas afectadas",
+        "cancelled_lines": "Líneas canceladas",
+        "active_value": "Valor activo"
+      },
+      "summary": {
+        "total_order": "Total pedido",
+        "active_value": "Valor activo",
+        "affected_value": "Valor afectado",
+        "active_lines": "Activas",
+        "affected_lines": "Afectadas",
+        "cancelled_lines": "Canceladas",
+        "active_lines_help": "Todavía operativas",
+        "cancelled_lines_help": "Cancelación final",
+        "pending_review": "En revisión",
+        "pending_review_help": "Esperando gestión",
+        "refunded_lines": "Reembolsadas",
+        "refunded_lines_help": "Refund completado",
+        "units": "{count} ud.",
+        "more_lines": "+ {count} línea(s) adicionales en el detalle."
+      }
     },
     "cancel_warning": "¿Seguro que quieres cancelar este pedido?",
     "common": {
@@ -370,13 +415,25 @@
       "products": "Productos",
       "view_detail": "Ver detalle",
       "view_detail_full": "Ver detalle del pedido →",
-      "view_details": "Ver detalles"
+      "view_details": "Ver detalles",
+      "not_available": "N/A"
     },
     "actions": {
       "request_cancel": "Solicitar cancelación",
       "request_refund": "Solicitar reembolso",
       "cancel_order": "Cancelar pedido",
-      "confirm_reception": "Confirmar recepción"
+      "confirm_reception": "Confirmar recepción",
+      "grouped_cancel": "Cancelación agrupada",
+      "grouped_refund": "Devolución agrupada",
+      "cancel_line": "Cancelar línea",
+      "refund_line": "Devolver línea"
+    },
+    "prompts": {
+      "group_cancel": "Se solicitará la cancelación de todas las líneas elegibles del pedido. ¿Continuar?",
+      "group_refund": "Se solicitará la devolución de todas las líneas elegibles del pedido. ¿Continuar?",
+      "line_cancel": "Se solicitará la cancelación de esta línea. ¿Continuar?",
+      "line_refund": "Se solicitará la devolución de esta línea. ¿Continuar?",
+      "confirm_reception": "Se confirmará la recepción de las líneas entregadas. ¿Continuar?"
     },
     "index": {
       "title": "Mis pedidos",
@@ -386,6 +443,7 @@
     "show": {
       "back": "Volver a pedidos",
       "items_title": "Artículos",
+      "subtitle": "Detalle por línea con estados independientes, acciones contextuales y lectura explícita del estado agregado del pedido.",
       "status_desc": {
         "pendiente_pago": "Estamos esperando el pago para procesar tu pedido.",
         "pagado": "Pago confirmado. Estamos preparando tu pedido.",
@@ -401,6 +459,26 @@
         "devolucion_aprobada": "La devolución fue aprobada.",
         "devolucion_rechazada": "La devolución fue rechazada."
       }
+    },
+    "detail": {
+      "subtitle": "Detalle por línea con estados independientes, acciones contextuales y lectura explícita del estado agregado del pedido.",
+      "operational_summary": "Resumen operativo",
+      "operational_summary_body": "Esta vista separa claramente el estado agregado del pedido y el estado real de cada línea. Las acciones de grupo se mantienen como opción secundaria.",
+      "lines_title": "Líneas del pedido",
+      "lines_subtitle": "Cada línea puede gestionar su propia cancelación o devolución cuando el estado lo permite."
+    },
+    "line": {
+      "no_image": "Sin imagen",
+      "unit_price": "Precio unitario",
+      "subtotal": "Subtotal",
+      "cancellation_reason": "Motivo cancelación",
+      "return_reason": "Motivo devolución",
+      "notes": "Observación",
+      "refunded_at": "Reembolsado",
+      "technical_status": "Estado técnico",
+      "cancelled_by": "Cancelado por",
+      "cancelled_at": "Fecha cancelación",
+      "refund_reference": "Referencia refund"
     },
     "product": {
       "category_missing": "Sin categoría",
@@ -1429,6 +1507,35 @@
       "user_fallback": "Sin usuario"
     },
     "dashboard": {
+      "orders_module": {
+        "title": "Gestión de pedidos",
+        "subtitle": "Vista operativa con jerarquía pedido-línea y acciones específicas para cancelaciones y devoluciones parciales.",
+        "export_csv": "Exportar CSV",
+        "customer": "Cliente",
+        "general_reason": "Motivo general",
+        "no_general_notes": "Sin anotaciones generales",
+        "actions_title": "Acciones de pedido",
+        "reason_placeholder": "Motivo administrativo",
+        "cancel_eligible": "Cancelar elegibles",
+        "ship_active": "Enviar activas",
+        "deliver_active": "Entregar activas",
+        "approve_returns": "Aprobar devoluciones",
+        "reject_returns": "Rechazar devoluciones",
+        "process_refunds": "Procesar refunds",
+        "approve_item": "Aprobar",
+        "reject_item": "Rechazar",
+        "refund_item": "Refund línea",
+        "prompts": {
+          "cancel_order": "¿Seguro que quieres cancelar este pedido desde administración?",
+          "approve_returns": "¿Aprobar las devoluciones solicitadas de este pedido?",
+          "reject_returns": "¿Rechazar las devoluciones solicitadas de este pedido?",
+          "process_refunds": "¿Procesar los reembolsos aprobados de este pedido?",
+          "cancel_line": "¿Cancelar esta línea?",
+          "approve_item": "¿Aprobar la devolución de esta línea?",
+          "reject_item": "¿Rechazar la devolución de esta línea?",
+          "refund_item": "¿Procesar el refund de esta línea?"
+        }
+      },
       "header": {
         "kicker": "Panel de control",
         "title": "Bienvenido de nuevo",

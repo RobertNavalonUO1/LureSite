@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Support\Facades\Log;
 use PayPalCheckoutSdk\Core\LiveEnvironment;
 use PayPalCheckoutSdk\Core\PayPalHttpClient;
@@ -34,13 +35,72 @@ class OrderRefundService
         ]);
 
         return match ($order->payment_method) {
-            'stripe' => $this->refundStripeOrder($order),
-            'paypal' => $this->refundPaypalOrder($order),
+            'stripe' => $this->refundStripeAmount(
+                order: $order,
+                amount: (float) $order->total,
+                metadata: [
+                    'order_id' => (string) $order->id,
+                    'transaction_id' => (string) ($order->transaction_id ?? ''),
+                ],
+                idempotencyKey: sprintf('order-refund-%s', $order->id),
+            ),
+            'paypal' => $this->refundPaypalAmount(
+                order: $order,
+                amount: (float) $order->total,
+                metadata: [
+                    'order_id' => (string) $order->id,
+                    'transaction_id' => (string) ($order->transaction_id ?? ''),
+                ],
+            ),
             default => throw new \RuntimeException('Proveedor de pago no soportado para reembolso.'),
         };
     }
 
-    private function refundStripeOrder(Order $order): RefundResult
+    public function refundItem(OrderItem $item): RefundResult
+    {
+        $item->loadMissing('order');
+        $order = $item->order;
+
+        if (!$order) {
+            throw new \RuntimeException('La linea no tiene pedido asociado para procesar el reembolso.');
+        }
+
+        if ($item->refund_reference_id && $item->refunded_at) {
+            return new RefundResult(
+                referenceId: $item->refund_reference_id,
+                providerStatus: 'already_refunded',
+                payload: [],
+                alreadyProcessed: true,
+            );
+        }
+
+        $amount = round((float) $item->price * (int) $item->quantity, 2);
+
+        return match ($order->payment_method) {
+            'stripe' => $this->refundStripeAmount(
+                order: $order,
+                amount: $amount,
+                metadata: [
+                    'order_id' => (string) $order->id,
+                    'order_item_id' => (string) $item->id,
+                    'transaction_id' => (string) ($order->transaction_id ?? ''),
+                ],
+                idempotencyKey: sprintf('order-item-refund-%s', $item->id),
+            ),
+            'paypal' => $this->refundPaypalAmount(
+                order: $order,
+                amount: $amount,
+                metadata: [
+                    'order_id' => (string) $order->id,
+                    'order_item_id' => (string) $item->id,
+                    'transaction_id' => (string) ($order->transaction_id ?? ''),
+                ],
+            ),
+            default => throw new \RuntimeException('Proveedor de pago no soportado para reembolso.'),
+        };
+    }
+
+    private function refundStripeAmount(Order $order, float $amount, array $metadata, string $idempotencyKey): RefundResult
     {
         $secret = config('services.stripe.secret');
         if (!$secret) {
@@ -68,12 +128,10 @@ class OrderRefundService
 
         $refund = Refund::create([
             'payment_intent' => $paymentIntentId,
-            'metadata' => [
-                'order_id' => (string) $order->id,
-                'transaction_id' => (string) ($order->transaction_id ?? ''),
-            ],
+            'amount' => (int) round($amount * 100),
+            'metadata' => $metadata,
         ], [
-            'idempotency_key' => sprintf('order-refund-%s', $order->id),
+            'idempotency_key' => $idempotencyKey,
         ]);
 
         Log::info('refund.attempt.succeeded', [
@@ -90,7 +148,7 @@ class OrderRefundService
         );
     }
 
-    private function refundPaypalOrder(Order $order): RefundResult
+    private function refundPaypalAmount(Order $order, float $amount, array $metadata): RefundResult
     {
         $captureId = $order->payment_reference_id ?: $this->resolvePaypalCaptureId($order);
 
@@ -101,9 +159,12 @@ class OrderRefundService
         $request = new CapturesRefundRequest($captureId);
         $request->body = [
             'amount' => [
-                'value' => number_format((float) $order->total, 2, '.', ''),
+                'value' => number_format($amount, 2, '.', ''),
                 'currency_code' => 'USD',
             ],
+            'note_to_payer' => isset($metadata['order_item_id'])
+                ? 'Reembolso parcial por linea de pedido.'
+                : 'Reembolso total del pedido.',
         ];
 
         $response = $this->paypalClient()->execute($request);

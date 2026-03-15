@@ -9,7 +9,9 @@ import ForgotPassword from "@/Components/auth/ForgotPassword.jsx";
 import TopNavMenu from "@/Components/navigation/TopNavMenu.jsx";
 import CookieConsentModal from "@/Components/cookies/CookieConsentModal.jsx";
 import CustomizeCookiesModal from "@/Components/cookies/CustomizeCookiesModal.jsx";
+import SpecialCategoryRail from "@/Components/catalog/SpecialCategoryRail.jsx";
 import UI_CONFIG from "@/config/ui.config";
+import { addCartItem } from "@/utils/cartClient";
 import { formatCurrency, normalizePrice } from "@/utils/pricing";
 
 const getDiscountPercentage = (currentPrice, previousPrice) => {
@@ -32,7 +34,7 @@ const derivePreviousPrice = (product) => {
 };
 
 const SkeletonCard = () => (
-  <div className="w-full max-w-xs rounded-2xl border border-indigo-100 bg-white/80 p-4 shadow-sm animate-pulse">
+  <div className="w-full rounded-2xl border border-indigo-100 bg-white/80 p-4 shadow-sm animate-pulse">
     <div className="h-36 w-full rounded-xl bg-indigo-100" />
     <div className="mt-5 h-4 w-3/4 rounded bg-indigo-100" />
     <div className="mt-3 h-3 w-1/2 rounded bg-indigo-100" />
@@ -49,7 +51,7 @@ const ProductCard = ({ product, onAddToCart }) => {
     (product.slug ? `/product/${product.slug}` : product.id ? `/product/${product.id}` : "#");
 
   return (
-    <article className="group relative flex w-full max-w-xs flex-col rounded-2xl border border-indigo-100 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-indigo-200">
+    <article className="group relative flex h-full w-full min-w-0 flex-col rounded-2xl border border-indigo-100 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-indigo-200">
       <div className="relative mb-4 flex items-center justify-center overflow-hidden rounded-xl bg-indigo-50 p-4">
         <img
           src={product.image || product.image_url || "/images/logo.png"}
@@ -125,7 +127,6 @@ const NewArrivals = () => {
   const controllerRef = useRef(null);
 
   const [activeCategory, setActiveCategory] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("featured");
 
   useEffect(() => {
@@ -154,12 +155,20 @@ const NewArrivals = () => {
     Inertia.post("/logout");
   };
 
+  const showToast = (message) => {
+    setModalMessage(message);
+    setIsModalVisible(true);
+    clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => {
+      setIsModalVisible(false);
+    }, 2800);
+  };
+
   const loadProducts = async () => {
     try {
       controllerRef.current?.abort();
       const controller = new AbortController();
       controllerRef.current = controller;
-
       setStatus("loading");
       setError("");
 
@@ -176,57 +185,50 @@ const NewArrivals = () => {
       console.error(err);
       setStatus("error");
       setError("No pudimos cargar las novedades en este momento. Intenta nuevamente en unos segundos.");
+      showToast("Error al cargar las novedades. Vuelve a intentarlo en unos segundos.");
     }
   };
 
   useEffect(() => {
     loadProducts();
-    return () => controllerRef.current?.abort();
+    return () => {
+      controllerRef.current?.abort();
+      clearTimeout(toastTimeoutRef.current);
+    };
   }, []);
 
-  useEffect(() => {
-    if (!isModalVisible) return undefined;
-    const timeout = setTimeout(() => setIsModalVisible(false), 3200);
-    return () => clearTimeout(timeout);
-  }, [isModalVisible]);
-
   const handleAddToCart = (product) => {
-    setIsModalVisible(true);
-    setModalMessage(`"${product.name || product.title}" se añadió al carrito.`);
-    clearTimeout(toastTimeoutRef.current);
-    toastTimeoutRef.current = setTimeout(() => setIsModalVisible(false), 3200);
+    const productId = product?.id;
+    if (!productId) {
+      showToast("Este producto no se puede añadir al carrito ahora mismo.");
+      return;
+    }
+
+    addCartItem(productId)
+      .then((payload) => {
+        showToast(payload.message || "Producto añadido al carrito.");
+      })
+      .catch((cartError) => {
+        console.error(cartError);
+        showToast("Hubo un error al agregar el producto al carrito.");
+      });
   };
 
   const categories = useMemo(() => {
     const set = new Set();
     products.forEach((product) => {
-      if (product.category?.name) {
-        set.add(product.category.name);
-      } else if (typeof product.category === "string") {
-        set.add(product.category);
-      }
+      const categoryName = product.category?.name || product.category;
+      if (categoryName) set.add(categoryName);
     });
     return Array.from(set);
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
     return products.filter((product) => {
-      const categoryName =
-        product.category?.name || (typeof product.category === "string" ? product.category : "");
-      const matchesCategory = activeCategory === "all" || categoryName === activeCategory;
-      if (!matchesCategory) return false;
-
-      if (!term) return true;
-
-      const haystack = [product.name, product.title, categoryName, product.description]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      return haystack.includes(term);
+      const categoryName = product.category?.name || product.category;
+      return activeCategory === "all" || categoryName === activeCategory;
     });
-  }, [products, activeCategory, searchTerm]);
+  }, [products, activeCategory]);
 
   const sortedProducts = useMemo(() => {
     const base = [...filteredProducts];
@@ -280,67 +282,29 @@ const NewArrivals = () => {
       <Header user={user} onLogout={handleLogout} />
       <TopNavMenu />
 
-      <div
-        className="sticky z-30 border-b border-indigo-100 bg-white/85 shadow-sm backdrop-blur"
+      <SpecialCategoryRail
+        categories={categories}
+        activeCategory={activeCategory}
+        onCategoryChange={setActiveCategory}
+        theme="indigo"
+        className="border-indigo-100"
         style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px) - var(--header-compact-offset-active, 0px))' }}
-      >
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-200">
-              <button
-                type="button"
-                onClick={() => setActiveCategory("all")}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  activeCategory === "all"
-                    ? "bg-indigo-600 text-white shadow"
-                    : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
-                }`}
-              >
-                Todas las categorías
-              </button>
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setActiveCategory(category)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    activeCategory === category
-                      ? "bg-indigo-600 text-white shadow"
-                      : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
+        controls={
+          <select
+            value={sortOrder}
+            onChange={(event) => setSortOrder(event.target.value)}
+            className="rounded-full border border-indigo-100 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          >
+            <option value="featured">Destacados</option>
+            <option value="newest">Más recientes</option>
+            <option value="lowest-price">Precio más bajo</option>
+            <option value="highest-discount">Mayor descuento</option>
+          </select>
+        }
+      />
 
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-              <div className="relative sm:w-64">
-                <input
-                  type="search"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  className="w-full rounded-full border border-indigo-100 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                  placeholder="Buscar por nombre o categoría"
-                />
-              </div>
-              <select
-                value={sortOrder}
-                onChange={(event) => setSortOrder(event.target.value)}
-                className="rounded-full border border-indigo-100 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-              >
-                <option value="featured">Destacados</option>
-                <option value="newest">Más recientes</option>
-                <option value="lowest-price">Precio más bajo</option>
-                <option value="highest-discount">Mayor descuento</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <main className="flex-grow px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 lg:grid-cols-[5fr_2fr]">
+      <main className="flex-grow px-3 py-8 sm:px-4 lg:px-5">
+        <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_18rem]">
           <section className="flex flex-col gap-6">
             <div className="overflow-hidden rounded-3xl border border-indigo-100 bg-white/70 shadow-lg">
               <div className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-500 px-6 py-8 text-white sm:px-10">
@@ -393,7 +357,7 @@ const NewArrivals = () => {
 
             <section aria-live="polite">
               {status === "loading" && (
-                <div className="flex flex-wrap justify-center gap-6">
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {Array.from({ length: 6 }).map((_, index) => (
                     <SkeletonCard key={index} />
                   ))}
@@ -424,7 +388,7 @@ const NewArrivals = () => {
               )}
 
               {status === "ready" && sortedProducts.length > 0 && (
-                <div className="grid justify-center gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {sortedProducts.map((product) => (
                     <ProductCard key={product.id || product.name} product={product} onAddToCart={handleAddToCart} />
                   ))}
@@ -437,15 +401,15 @@ const NewArrivals = () => {
             </p>
           </section>
 
-          <aside className="space-y-6">
-            <div className="hidden rounded-3xl border border-indigo-100 bg-white/70 p-6 shadow-lg lg:block">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-indigo-500">Consejo</h2>
+          <aside className="space-y-6 xl:sticky xl:top-[calc(var(--header-sticky-height,0px)+var(--topnav-sticky-height,0px)-var(--header-compact-offset-active,0px)+6.5rem)] xl:self-start">
+            <div className="hidden rounded-3xl border border-indigo-100 bg-white/70 p-6 shadow-lg xl:block">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-indigo-500">Guía rápida</h2>
               <p className="mt-2 text-sm text-slate-600">
                 Prioriza los articulos con descuento activo o pocas unidades para no perder el stock inicial de lanzamiento.
               </p>
             </div>
 
-            <div className="block overflow-hidden rounded-3xl border border-indigo-100 bg-white/70 shadow-lg lg:hidden">
+            <div className="block overflow-hidden rounded-3xl border border-indigo-100 bg-white/70 shadow-lg xl:hidden">
               <img
                 src="/images/banners/new-arrivals-mobile.jpg"
                 alt="Novedades destacadas"

@@ -83,6 +83,7 @@ class MobileApiController extends Controller
                 'product_id'=> $item['product_id'],
                 'quantity'  => $item['quantity'],
                 'price'     => $item['price'],
+                'status'    => 'confirmado',
             ]);
         }
 

@@ -130,7 +130,7 @@ class ProfileService
         ];
     }
 
-    protected function serializeUser(User $user): array
+    public function serializeUser(User $user): array
     {
         return [
             'id' => $user->id,

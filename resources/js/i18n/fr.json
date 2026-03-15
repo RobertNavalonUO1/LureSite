@@ -96,6 +96,11 @@
     "hero_subtitle": "Nous sélectionnons le meilleur en électronique, mode, maison et plus pour vous faire gagner du temps.",
     "hero_cta_primary": "Explorer les produits",
     "hero_cta_secondary": "Voir les nouveautés",
+    "catalog_summary": "Résumé du catalogue",
+    "catalog_total_products": "Produits actifs",
+    "catalog_discounted_products": "En promotion",
+    "catalog_fast_shipping_products": "Livraison rapide",
+    "catalog_refresh_note": "Nous mettons à jour le stock et les offres plusieurs fois par jour.",
     "filters_title": "Filtrer les résultats",
     "filters_subtitle": "Affinez par catégorie, prix et pertinence.",
     "filters_clear": "Réinitialiser",
@@ -116,6 +121,8 @@
     "aside_see": "Voir",
     "aside_tip_label": "Astuce",
     "aside_tip_text": "Utilisez \"Livraison rapide\" pour filtrer.",
+    "support_faq": "FAQ",
+    "support_contact": "Contact",
     "quick_link_subtitle": {
       "deals_today": "Promotions actives",
       "super_deal": "Meilleur rapport qualité/prix",
@@ -351,7 +358,45 @@
       "devolucion_solicitada": "Retour demandé",
       "devolucion_aprobada": "Retour approuvé",
       "devolucion_rechazada": "Retour refusé",
-      "reembolsado": "Remboursé"
+      "reembolsado": "Remboursé",
+      "parcialmente_cancelado": "Partiellement annulé",
+      "parcialmente_reembolsado": "Partiellement remboursé"
+    },
+    "module": {
+      "kicker": "Module commandes",
+      "title": "Commandes",
+      "subtitle": "Une vue unifiée pour les commandes actives, le suivi, les incidents et les annulations partielles par ligne.",
+      "empty_filtered": "Aucune commande pour ce filtre. Les lignes correspondantes apparaîtront ici lorsqu'elles existeront.",
+      "filters": {
+        "all": { "label": "Toutes les commandes", "short": "Toutes", "description": "Vue générale de votre historique de commandes." },
+        "paid": { "label": "Commandes actives", "short": "Actives", "description": "Commandes avec des lignes encore actives ou en cours." },
+        "shipped": { "label": "Suivi", "short": "Suivi", "description": "Lignes expédiées, livrées ou confirmées." },
+        "cancelled": { "label": "Annulations et remboursements", "short": "Incidents", "description": "Commandes mixtes, annulations et retours." }
+      },
+      "stats": {
+        "orders": "Commandes",
+        "lines": "Lignes",
+        "active_lines": "Lignes actives",
+        "affected_lines": "Lignes affectées",
+        "cancelled_lines": "Lignes annulées",
+        "active_value": "Valeur active"
+      },
+      "summary": {
+        "total_order": "Total commande",
+        "active_value": "Valeur active",
+        "affected_value": "Valeur affectée",
+        "active_lines": "Actives",
+        "affected_lines": "Affectées",
+        "cancelled_lines": "Annulées",
+        "active_lines_help": "Toujours opérationnelles",
+        "cancelled_lines_help": "Annulation finale",
+        "pending_review": "En révision",
+        "pending_review_help": "En attente de traitement",
+        "refunded_lines": "Remboursées",
+        "refunded_lines_help": "Remboursement terminé",
+        "units": "{count} unité(s)",
+        "more_lines": "+ {count} ligne(s) supplémentaire(s) dans le détail."
+      }
     },
     "cancel_warning": "Voulez-vous vraiment annuler cette commande ?",
     "common": {
@@ -370,13 +415,25 @@
       "products": "Produits",
       "view_detail": "Voir le détail",
       "view_detail_full": "Voir les détails de la commande →",
-      "view_details": "Voir les détails"
+      "view_details": "Voir les détails",
+      "not_available": "N/A"
     },
     "actions": {
       "request_cancel": "Demander une annulation",
       "request_refund": "Demander un remboursement",
       "cancel_order": "Annuler la commande",
-      "confirm_reception": "Confirmer la réception"
+      "confirm_reception": "Confirmer la réception",
+      "grouped_cancel": "Annulation groupée",
+      "grouped_refund": "Retour groupé",
+      "cancel_line": "Annuler la ligne",
+      "refund_line": "Retourner la ligne"
+    },
+    "prompts": {
+      "group_cancel": "Toutes les lignes éligibles de cette commande seront envoyées en annulation. Continuer ?",
+      "group_refund": "Toutes les lignes éligibles de cette commande seront envoyées en retour. Continuer ?",
+      "line_cancel": "Cette ligne sera envoyée en annulation. Continuer ?",
+      "line_refund": "Cette ligne sera envoyée en retour. Continuer ?",
+      "confirm_reception": "Les lignes livrées seront confirmées comme reçues. Continuer ?"
     },
     "index": {
       "title": "Mes commandes",
@@ -386,6 +443,7 @@
     "show": {
       "back": "Retour aux commandes",
       "items_title": "Articles",
+      "subtitle": "Détail par ligne avec statuts indépendants, actions contextuelles et lecture claire de l'état agrégé de la commande.",
       "status_desc": {
         "pendiente_pago": "Nous attendons le paiement pour traiter votre commande.",
         "pagado": "Paiement confirmé. Nous préparons votre commande.",
@@ -401,6 +459,26 @@
         "devolucion_aprobada": "Le retour a été approuvé.",
         "devolucion_rechazada": "Le retour a été refusé."
       }
+    },
+    "detail": {
+      "subtitle": "Détail par ligne avec statuts indépendants, actions contextuelles et lecture claire de l'état agrégé de la commande.",
+      "operational_summary": "Résumé opérationnel",
+      "operational_summary_body": "Cette vue sépare clairement l'état agrégé de la commande et l'état réel de chaque ligne. Les actions de groupe restent disponibles comme option secondaire.",
+      "lines_title": "Lignes de commande",
+      "lines_subtitle": "Chaque ligne peut gérer sa propre annulation ou son propre retour lorsque l'état courant l'autorise."
+    },
+    "line": {
+      "no_image": "Sans image",
+      "unit_price": "Prix unitaire",
+      "subtotal": "Sous-total",
+      "cancellation_reason": "Motif d'annulation",
+      "return_reason": "Motif du retour",
+      "notes": "Observation",
+      "refunded_at": "Remboursé",
+      "technical_status": "Statut technique",
+      "cancelled_by": "Annulé par",
+      "cancelled_at": "Date d'annulation",
+      "refund_reference": "Référence remboursement"
     },
     "product": {
       "category_missing": "Sans catégorie",
@@ -1366,6 +1444,35 @@
     }
   },
   "admin": {
+    "orders_module": {
+      "title": "Gestion des commandes",
+      "subtitle": "Vue opérationnelle avec hiérarchie commande-ligne et actions spécifiques pour les annulations et retours partiels.",
+      "export_csv": "Exporter CSV",
+      "customer": "Client",
+      "general_reason": "Motif général",
+      "no_general_notes": "Aucune note générale",
+      "actions_title": "Actions de commande",
+      "reason_placeholder": "Motif administratif",
+      "cancel_eligible": "Annuler les éligibles",
+      "ship_active": "Expédier les actives",
+      "deliver_active": "Livrer les actives",
+      "approve_returns": "Approuver les retours",
+      "reject_returns": "Rejeter les retours",
+      "process_refunds": "Traiter les remboursements",
+      "approve_item": "Approuver",
+      "reject_item": "Rejeter",
+      "refund_item": "Rembourser la ligne",
+      "prompts": {
+        "cancel_order": "Voulez-vous vraiment annuler cette commande depuis l'administration ?",
+        "approve_returns": "Approuver les retours demandés pour cette commande ?",
+        "reject_returns": "Rejeter les retours demandés pour cette commande ?",
+        "process_refunds": "Traiter les remboursements approuvés pour cette commande ?",
+        "cancel_line": "Annuler cette ligne ?",
+        "approve_item": "Approuver le retour de cette ligne ?",
+        "reject_item": "Rejeter le retour de cette ligne ?",
+        "refund_item": "Traiter le remboursement de cette ligne ?"
+      }
+    },
     "products": {
       "title": "Gestion des produits",
       "columns": {

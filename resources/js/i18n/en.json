@@ -96,6 +96,11 @@
     "hero_subtitle": "We pick the best in electronics, fashion, home and more so you can find what you need fast.",
     "hero_cta_primary": "Browse products",
     "hero_cta_secondary": "See new releases",
+    "catalog_summary": "Catalog summary",
+    "catalog_total_products": "Active products",
+    "catalog_discounted_products": "Discounted",
+    "catalog_fast_shipping_products": "Fast shipping",
+    "catalog_refresh_note": "We refresh inventory and offers several times a day.",
     "filters_title": "Filter results",
     "filters_subtitle": "Refine by category, price and relevance.",
     "filters_clear": "Clear",
@@ -116,6 +121,8 @@
     "aside_see": "View",
     "aside_tip_label": "Tip",
     "aside_tip_text": "Use \"Fast shipping\" to filter.",
+    "support_faq": "FAQ",
+    "support_contact": "Contact",
     "quick_link_subtitle": {
       "deals_today": "Active discounts",
       "super_deal": "Best value",
@@ -351,7 +358,45 @@
       "devolucion_solicitada": "Return requested",
       "devolucion_aprobada": "Return approved",
       "devolucion_rechazada": "Return rejected",
-      "reembolsado": "Refunded"
+      "reembolsado": "Refunded",
+      "parcialmente_cancelado": "Partially cancelled",
+      "parcialmente_reembolsado": "Partially refunded"
+    },
+    "module": {
+      "kicker": "Orders module",
+      "title": "Orders",
+      "subtitle": "A unified view for active orders, tracking, incidents, and partial line cancellations.",
+      "empty_filtered": "There are no orders for this filter yet. Matching lines will appear here when they exist.",
+      "filters": {
+        "all": { "label": "All orders", "short": "All", "description": "General view of your order history." },
+        "paid": { "label": "Active orders", "short": "Active", "description": "Orders with lines that are still active or in progress." },
+        "shipped": { "label": "Tracking", "short": "Tracking", "description": "Lines that are shipped, delivered, or confirmed." },
+        "cancelled": { "label": "Cancelled and refunds", "short": "Incidents", "description": "Mixed orders, cancellations, and returns." }
+      },
+      "stats": {
+        "orders": "Orders",
+        "lines": "Lines",
+        "active_lines": "Active lines",
+        "affected_lines": "Affected lines",
+        "cancelled_lines": "Cancelled lines",
+        "active_value": "Active value"
+      },
+      "summary": {
+        "total_order": "Order total",
+        "active_value": "Active value",
+        "affected_value": "Affected value",
+        "active_lines": "Active",
+        "affected_lines": "Affected",
+        "cancelled_lines": "Cancelled",
+        "active_lines_help": "Still operational",
+        "cancelled_lines_help": "Final cancellation",
+        "pending_review": "Under review",
+        "pending_review_help": "Waiting for processing",
+        "refunded_lines": "Refunded",
+        "refunded_lines_help": "Refund completed",
+        "units": "{count} unit(s)",
+        "more_lines": "+ {count} more line(s) in the detail view."
+      }
     },
     "cancel_warning": "Are you sure you want to cancel this order?",
     "common": {
@@ -370,13 +415,25 @@
       "products": "Products",
       "view_detail": "View detail",
       "view_detail_full": "View order details →",
-      "view_details": "View details"
+      "view_details": "View details",
+      "not_available": "N/A"
     },
     "actions": {
       "request_cancel": "Request cancellation",
       "request_refund": "Request refund",
       "cancel_order": "Cancel order",
-      "confirm_reception": "Confirm reception"
+      "confirm_reception": "Confirm reception",
+      "grouped_cancel": "Grouped cancellation",
+      "grouped_refund": "Grouped return",
+      "cancel_line": "Cancel line",
+      "refund_line": "Return line"
+    },
+    "prompts": {
+      "group_cancel": "All eligible lines in this order will be sent for cancellation. Continue?",
+      "group_refund": "All eligible lines in this order will be sent for return. Continue?",
+      "line_cancel": "This line will be sent for cancellation. Continue?",
+      "line_refund": "This line will be sent for return. Continue?",
+      "confirm_reception": "Delivered lines will be confirmed as received. Continue?"
     },
     "index": {
       "title": "My orders",
@@ -386,6 +443,7 @@
     "show": {
       "back": "Back to orders",
       "items_title": "Items",
+      "subtitle": "Line-level detail with independent statuses, contextual actions, and a clear aggregated order state.",
       "status_desc": {
         "pendiente_pago": "We're waiting for payment to process your order.",
         "pagado": "Payment confirmed. We're preparing your order.",
@@ -401,6 +459,26 @@
         "devolucion_aprobada": "The return was approved.",
         "devolucion_rechazada": "The return was rejected."
       }
+    },
+    "detail": {
+      "subtitle": "Line-level detail with independent statuses, contextual actions, and a clear aggregated order state.",
+      "operational_summary": "Operational summary",
+      "operational_summary_body": "This view clearly separates the aggregated order state from the real state of each line. Group actions remain available as a secondary option.",
+      "lines_title": "Order lines",
+      "lines_subtitle": "Each line can manage its own cancellation or return when the current status allows it."
+    },
+    "line": {
+      "no_image": "No image",
+      "unit_price": "Unit price",
+      "subtotal": "Subtotal",
+      "cancellation_reason": "Cancellation reason",
+      "return_reason": "Return reason",
+      "notes": "Notes",
+      "refunded_at": "Refunded",
+      "technical_status": "Technical status",
+      "cancelled_by": "Cancelled by",
+      "cancelled_at": "Cancellation date",
+      "refund_reference": "Refund reference"
     },
     "product": {
       "category_missing": "No category",
@@ -1366,6 +1444,35 @@
     }
   },
   "admin": {
+    "orders_module": {
+      "title": "Order management",
+      "subtitle": "Operational view with order-line hierarchy and specific actions for partial cancellations and returns.",
+      "export_csv": "Export CSV",
+      "customer": "Customer",
+      "general_reason": "General reason",
+      "no_general_notes": "No general notes",
+      "actions_title": "Order actions",
+      "reason_placeholder": "Administrative reason",
+      "cancel_eligible": "Cancel eligible",
+      "ship_active": "Ship active",
+      "deliver_active": "Deliver active",
+      "approve_returns": "Approve returns",
+      "reject_returns": "Reject returns",
+      "process_refunds": "Process refunds",
+      "approve_item": "Approve",
+      "reject_item": "Reject",
+      "refund_item": "Refund line",
+      "prompts": {
+        "cancel_order": "Are you sure you want to cancel this order from admin?",
+        "approve_returns": "Approve the requested returns for this order?",
+        "reject_returns": "Reject the requested returns for this order?",
+        "process_refunds": "Process the approved refunds for this order?",
+        "cancel_line": "Cancel this line?",
+        "approve_item": "Approve the return for this line?",
+        "reject_item": "Reject the return for this line?",
+        "refund_item": "Process the refund for this line?"
+      }
+    },
     "products": {
       "title": "Product management",
       "columns": {

@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\OrderState;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class Order extends Model
 {
@@ -42,19 +44,17 @@ class Order extends Model
 
     public function isCancelable(): bool
     {
-        return in_array($this->status, ['pendiente_pago', 'pagado', 'pendiente_envio'], true);
+        return $this->statusSummary()['can_cancel_order'];
     }
 
     public function isRefundable(): bool
     {
-        return in_array($this->status, ['entregado', 'confirmado'], true);
+        return $this->statusSummary()['can_refund_order'];
     }
 
     public function canBeCancelled()
     {
-        return in_array($this->status, ['pendiente_pago', 'pagado', 'pendiente_envio'], true)
-            && !$this->cancelled_at
-            && !$this->isShipped();
+        return $this->statusSummary()['can_cancel_order'];
     }
 
     public function isShipped()
@@ -83,5 +83,30 @@ class Order extends Model
     public function scopeShipped($query)
     {
         return $query->whereIn('status', ['enviado', 'entregado', 'confirmado']);
+    }
+
+    public function statusSummary(): array
+    {
+        return OrderState::summarize($this->orderItemsCollection(), $this->status);
+    }
+
+    public function summaryStatus(): string
+    {
+        return $this->statusSummary()['summary_status'];
+    }
+
+    public function hasPartialCancellation(): bool
+    {
+        return $this->summaryStatus() === 'parcialmente_cancelado';
+    }
+
+    public function hasPartialRefund(): bool
+    {
+        return $this->summaryStatus() === 'parcialmente_reembolsado';
+    }
+
+    private function orderItemsCollection(): Collection
+    {
+        return $this->relationLoaded('items') ? $this->items : $this->items()->get();
     }
 }

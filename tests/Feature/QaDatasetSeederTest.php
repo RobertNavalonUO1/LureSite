@@ -48,6 +48,12 @@ class QaDatasetSeederTest extends TestCase
                 Order::query()->where('status', $status)->count(),
                 sprintf('El estado %s no llego al minimo esperado.', $status)
             );
+
+            $this->assertGreaterThanOrEqual(
+                50,
+                OrderItem::query()->where('status', $status)->count(),
+                sprintf('Las lineas QA no reflejan el estado %s esperado.', $status)
+            );
         }
 
         $qaUsers = User::query()

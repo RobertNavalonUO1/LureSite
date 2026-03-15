@@ -4,7 +4,8 @@ import { usePage, Head } from "@inertiajs/react";
 import Header from "@/Components/navigation/Header.jsx";
 import TopNavMenu from "@/Components/navigation/TopNavMenu.jsx";
 import SidebarBanners from "@/Components/marketing/SidebarBanners.jsx";
-import { ArrowUp, RefreshCcw, Search, X } from "lucide-react";
+import SpecialCategoryRail from "@/Components/catalog/SpecialCategoryRail.jsx";
+import { ArrowUp, RefreshCcw } from "lucide-react";
 import { formatCurrency, normalizePrice } from "@/utils/pricing";
 
 const getDiscountPercentage = (currentPrice, previousPrice) => {
@@ -15,7 +16,7 @@ const getDiscountPercentage = (currentPrice, previousPrice) => {
 };
 
 const SkeletonCard = () => (
-  <div className="w-full max-w-xs rounded-2xl bg-white/80 p-4 border border-orange-100 shadow-sm animate-pulse">
+  <div className="w-full rounded-2xl bg-white/80 p-4 border border-orange-100 shadow-sm animate-pulse">
     <div className="h-32 w-full rounded-xl bg-orange-100" />
     <div className="mt-5 h-4 w-3/4 bg-orange-100 rounded" />
     <div className="mt-3 h-3 w-1/2 bg-orange-100 rounded" />
@@ -32,7 +33,7 @@ const DealCard = ({ offer }) => {
     (offer.slug ? `/product/${offer.slug}` : offer.id ? `/product/${offer.id}` : "#");
 
   return (
-    <article className="group relative flex w-full max-w-xs flex-col rounded-2xl border border-orange-100 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-orange-200">
+    <article className="group relative flex h-full w-full min-w-0 flex-col rounded-2xl border border-orange-100 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-orange-200">
       <div className="relative mb-4 flex items-center justify-center rounded-xl bg-orange-50 p-4">
         <img
           src={offer.image || "/images/logo.png"}
@@ -84,9 +85,16 @@ export default function DealsToday() {
   const [offers, setOffers] = useState([]);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
-  const [minDiscount, setMinDiscount] = useState(0);
+  const [activeDiscount, setActiveDiscount] = useState("all");
   const controllerRef = useRef(null);
+
+  const discountOptions = ["20%+", "40%+"];
+
+  const discountValue = useMemo(() => {
+    if (activeDiscount === "20%+") return 20;
+    if (activeDiscount === "40%+") return 40;
+    return 0;
+  }, [activeDiscount]);
 
   const loadOffers = async () => {
     try {
@@ -157,17 +165,11 @@ export default function DealsToday() {
   }, [offers]);
 
   const filteredOffers = useMemo(() => {
-    const term = query.trim().toLowerCase();
     return offers.filter((offer) => {
       const discount = getDiscountPercentage(offer.price, offer.old_price) || 0;
-      if (minDiscount > 0 && discount < minDiscount) return false;
-
-      if (!term) return true;
-      const title = (offer.title || offer.name || "").toString().toLowerCase();
-      const category = (offer.category?.name || "").toString().toLowerCase();
-      return title.includes(term) || category.includes(term);
+      return discountValue === 0 || discount >= discountValue;
     });
-  }, [offers, query, minDiscount]);
+  }, [offers, discountValue]);
 
   const scrollToTop = () => {
     if (typeof window === "undefined") return;
@@ -180,101 +182,48 @@ export default function DealsToday() {
       <Header />
       <TopNavMenu />
 
-      <div
-        className="sticky z-30 border-b border-orange-100 bg-white/85 shadow-sm backdrop-blur"
+      <SpecialCategoryRail
+        categories={discountOptions}
+        activeCategory={activeDiscount}
+        onCategoryChange={setActiveDiscount}
+        theme="amber"
+        className="border-orange-200"
+        allLabel="Todas las ofertas"
+        eyebrowLabel="Refinar"
+        toggleLabel="Ver filtros"
+        badgeLabel="Descuento"
+        helperText="Acceso rápido al nivel de ahorro sin añadir ruido ni duplicar el buscador del header."
+        panelTitle="Filtrar ofertas del día"
+        panelDescription="Reduce el listado por tramo de descuento y mantén el catálogo visible y limpio."
+        countLabel="tramos"
         style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px) - var(--header-compact-offset-active, 0px))' }}
-      >
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={loadOffers}
-                className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
-              >
-                <RefreshCcw className="h-4 w-4" aria-hidden="true" />
-                Recargar
-              </button>
+        controls={
+          <>
+            <button
+              type="button"
+              onClick={loadOffers}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
+            >
+              <RefreshCcw className="h-4 w-4" aria-hidden="true" />
+              Recargar
+            </button>
+            <span className="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600">
+              {filteredOffers.length}/{offers.length}
+            </span>
+            <button
+              type="button"
+              onClick={scrollToTop}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2 text-sm font-semibold text-orange-700 shadow-sm transition hover:bg-orange-50"
+            >
+              <ArrowUp className="h-4 w-4" aria-hidden="true" />
+              Arriba
+            </button>
+          </>
+        }
+      />
 
-              <button
-                type="button"
-                onClick={() => setMinDiscount(0)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  minDiscount === 0
-                    ? "bg-orange-100 text-orange-700"
-                    : "bg-white text-slate-600 hover:bg-orange-50"
-                }`}
-              >
-                Todas
-              </button>
-              <button
-                type="button"
-                onClick={() => setMinDiscount(20)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  minDiscount === 20
-                    ? "bg-orange-100 text-orange-700"
-                    : "bg-white text-slate-600 hover:bg-orange-50"
-                }`}
-              >
-                20%+
-              </button>
-              <button
-                type="button"
-                onClick={() => setMinDiscount(40)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  minDiscount === 40
-                    ? "bg-orange-100 text-orange-700"
-                    : "bg-white text-slate-600 hover:bg-orange-50"
-                }`}
-              >
-                40%+
-              </button>
-
-              <span className="ml-1 rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600">
-                {filteredOffers.length}/{offers.length}
-              </span>
-            </div>
-
-            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:w-auto">
-              <div className="relative w-full sm:w-72">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  className="w-full rounded-full border border-orange-100 bg-white py-2 pl-11 pr-10 text-sm text-slate-700 shadow-sm focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                  placeholder="Buscar ofertas"
-                />
-                {(query || minDiscount) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuery("");
-                      setMinDiscount(0);
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500 transition hover:bg-slate-100"
-                    aria-label="Limpiar filtros"
-                  >
-                    <X className="h-4 w-4" aria-hidden="true" />
-                  </button>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={scrollToTop}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-orange-100 bg-white px-4 py-2 text-sm font-semibold text-orange-700 shadow-sm transition hover:bg-orange-50"
-              >
-                <ArrowUp className="h-4 w-4" aria-hidden="true" />
-                Arriba
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <main className="flex-grow px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 lg:grid-cols-[5fr_2fr]">
+      <main className="flex-grow px-3 py-8 sm:px-4 lg:px-5">
+        <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_18rem]">
           <section className="flex flex-col gap-6">
             <div className="overflow-hidden rounded-3xl border border-orange-100 bg-white/70 shadow-lg">
               <div className="bg-gradient-to-r from-orange-500 via-orange-400 to-amber-400 px-6 py-8 text-white sm:px-10">
@@ -324,7 +273,7 @@ export default function DealsToday() {
 
             <div aria-live="polite">
               {status === "loading" && (
-                <div className="flex flex-wrap justify-center gap-6">
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {Array.from({ length: 6 }).map((_, index) => (
                     <SkeletonCard key={index} />
                   ))}
@@ -364,7 +313,7 @@ export default function DealsToday() {
               )}
 
               {status === "ready" && filteredOffers.length > 0 && (
-                <div className="grid justify-center gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {filteredOffers.map((offer) => (
                     <DealCard key={offer.id || offer.title} offer={offer} />
                   ))}
@@ -377,13 +326,20 @@ export default function DealsToday() {
             </p>
           </section>
 
-          <aside className="space-y-6">
-            <div className="hidden h-full rounded-3xl border border-orange-100 bg-white/70 p-6 shadow-lg lg:block">
+          <aside className="space-y-6 xl:sticky xl:top-[calc(var(--header-sticky-height,0px)+var(--topnav-sticky-height,0px)-var(--header-compact-offset-active,0px)+6.5rem)] xl:self-start">
+            <div className="hidden rounded-3xl border border-orange-100 bg-white/70 p-6 shadow-lg xl:block">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-orange-500">Guía rápida</h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Filtra por ahorro cuando quieras decisión rápida y vuelve a todas las ofertas si prefieres más amplitud de catálogo.
+              </p>
+            </div>
+
+            <div className="hidden h-full rounded-3xl border border-orange-100 bg-white/70 p-6 shadow-lg xl:block">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-orange-500">Patrocinado</h2>
               <SidebarBanners banners={banners?.dealsToday || banners?.default || []} />
             </div>
 
-            <div className="block overflow-hidden rounded-3xl border border-orange-100 bg-white/70 shadow-lg lg:hidden">
+            <div className="block overflow-hidden rounded-3xl border border-orange-100 bg-white/70 shadow-lg xl:hidden">
               {banners?.dealsToday?.[0] && (
                 <img
                   src={banners.dealsToday[0].src}

@@ -5,19 +5,25 @@ namespace App\Http\Controllers;
 use App\Support\ProfileAvatar;
 use Illuminate\Http\Request;
 use App\Models\Order;
+use App\Services\ShoppingCartService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        private readonly ShoppingCartService $shoppingCartService,
+    ) {
+    }
+
     /**
      * Muestra el dashboard del usuario con sus datos y carrito (pero sin lógica de pedidos).
      */
     public function index()
     {
         $user = Auth::user();
-        $cart = session()->get('cart', []);
+        $cart = $this->shoppingCartService->itemsForRequest(request());
 
         $statusCounts = Order::query()
             ->byUser($user->id)

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
-import { useI18n } from '@/i18n';
+import { repairText, useI18n } from '@/i18n';
 
 const FALLBACK_BANNER_CONFIG = [
   { image: '/images/autumn-photo-02.jpg', link: '/seasonal', key: 'seasonal_accessories' },
@@ -35,9 +35,9 @@ const normalizeBanners = (banners, fallbackBanners) => {
 
     return {
       image: banner?.image ?? banner?.image_path ?? banner?.src ?? fallback.image,
-      alt: title,
+      alt: repairText(title),
       link,
-      cta: banner?.cta_label ?? banner?.button ?? fallback.cta,
+      cta: repairText(banner?.cta_label ?? banner?.button ?? fallback.cta),
       key: banner?.id ?? `${link}-${index}`,
     };
   });

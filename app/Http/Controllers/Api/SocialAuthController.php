@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\Concerns\RespondsWithApi;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\ProfileService;
+use App\Services\ShoppingCartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -11,7 +14,15 @@ use Laravel\Socialite\Facades\Socialite;
 
 class SocialAuthController extends Controller
 {
+    use RespondsWithApi;
+
     private const PROVIDERS = ['google', 'facebook'];
+
+    public function __construct(
+        private readonly ProfileService $profileService,
+        private readonly ShoppingCartService $shoppingCartService,
+    ) {
+    }
 
     private function normalizeProvider(string $provider): string
     {
@@ -32,6 +43,11 @@ class SocialAuthController extends Controller
         $validated = $request->validate([
             'provider' => ['required', 'string'],
             'access_token' => ['required', 'string'],
+            'device_name' => ['nullable', 'string', 'max:100'],
+            'cart' => ['sometimes', 'array'],
+            'cart.items' => ['sometimes', 'array'],
+            'cart.items.*.product_id' => ['required', 'integer'],
+            'cart.items.*.quantity' => ['required', 'integer', 'min:1'],
         ]);
 
         $provider = $this->ensureProvider($validated['provider']);
@@ -40,18 +56,24 @@ class SocialAuthController extends Controller
             $socialUser = Socialite::driver($provider)
                 ->stateless()
                 ->userFromToken($validated['access_token']);
-        } catch (\Throwable $e) {
-            report($e);
-            return response()->json(['error' => 'Token inválido'], 401);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return $this->error('Invalid social token.', 'invalid_social_token', 401);
         }
 
         $email = $socialUser->getEmail();
-        if (!$email) {
-            return response()->json(['error' => 'El proveedor no devolvió email'], 422);
+        if (! $email) {
+            return response()->json([
+                'message' => 'The social provider did not return an email.',
+                'errors' => [
+                    'email' => ['The social provider did not return an email.'],
+                ],
+            ], 422);
         }
 
         $user = User::where('email', $email)->first();
-        if (!$user) {
+        if (! $user) {
             $user = new User();
             $user->email = $email;
             $user->password = Hash::make(Str::random(32));
@@ -69,14 +91,17 @@ class SocialAuthController extends Controller
 
         $user->oauth_provider = $provider;
         $user->oauth_provider_id = (string) $socialUser->getId();
-
         $user->save();
 
-        $token = $user->createToken('mobile')->plainTextToken;
+        $warnings = $this->shoppingCartService->mergeSnapshot($user, $validated['cart']['items'] ?? []);
+        $token = $user->createToken($validated['device_name'] ?? 'android')->plainTextToken;
 
-        return response()->json([
+        return $this->success([
             'token' => $token,
-            'user' => $user,
+            'user' => $this->profileService->serializeUser($user->fresh()),
+        ], [
+            'provider' => $provider,
+            'merge_warnings' => $warnings,
         ]);
     }
 }

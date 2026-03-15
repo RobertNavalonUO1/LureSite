@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\ShoppingCartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -20,9 +21,14 @@ use Stripe\Stripe;
 
 class CheckoutController extends Controller
 {
-    public function index()
+    public function __construct(
+        private readonly ShoppingCartService $shoppingCartService,
+    ) {
+    }
+
+    public function index(Request $request)
     {
-        $cart = array_values(session()->get('cart', []));
+        $cart = array_values($this->shoppingCartService->itemsForRequest($request));
         $totals = $this->calculateTotals($cart);
         $user = Auth::user()?->load('addresses');
 
@@ -80,7 +86,7 @@ class CheckoutController extends Controller
 
     public function applyCoupon(Request $request)
     {
-        $cart = session()->get('cart', []);
+        $cart = $this->shoppingCartService->itemsForRequest($request);
         if (empty($cart)) {
             return back()->withErrors(['code' => 'Tu carrito esta vacio.']);
         }
@@ -123,7 +129,7 @@ class CheckoutController extends Controller
 
     public function updateShipping(Request $request)
     {
-        $cart = session()->get('cart', []);
+        $cart = $this->shoppingCartService->itemsForRequest($request);
         if (empty($cart)) {
             return back()->withErrors(['method' => 'Tu carrito está vacío.']);
         }
@@ -167,7 +173,7 @@ class CheckoutController extends Controller
             $user = $request->user()->loadMissing('addresses');
             $address = $this->resolveUserAddress($user, (int) $validated['address_id']);
 
-            $cart = array_values(session()->get('cart', []));
+            $cart = array_values($this->shoppingCartService->itemsForRequest($request));
             if (empty($cart)) {
                 return response()->json(['error' => 'Tu carrito está vacío.'], 400);
             }
@@ -245,7 +251,7 @@ class CheckoutController extends Controller
             $user = $request->user()->loadMissing('addresses');
             $address = $this->resolveUserAddress($user, (int) $validated['address_id']);
 
-            $cart = array_values(session()->get('cart', []));
+            $cart = array_values($this->shoppingCartService->itemsForRequest($request));
             if (empty($cart)) {
                 return response()->json(['error' => 'Tu carrito está vacío.'], 400);
             }
@@ -300,9 +306,9 @@ class CheckoutController extends Controller
         }
     }
 
-    public function success()
+    public function success(Request $request)
     {
-        $cart = array_values(session()->get('cart', []));
+        $cart = array_values($this->shoppingCartService->itemsForRequest($request));
         $address = session()->get('selected_address');
         $storedStripeSessionId = session()->get('stripe_session_id');
         $storedPaypalOrderId = session()->get('paypal_order_id');
@@ -361,6 +367,7 @@ class CheckoutController extends Controller
                     'product_id' => $item['id'],
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
+                    'status' => 'pagado',
                 ]);
             }
 
@@ -372,6 +379,9 @@ class CheckoutController extends Controller
             }
 
             $this->clearCouponSession();
+            if ($user) {
+                $this->shoppingCartService->clearUserCart($user);
+            }
 
             session()->forget([
                 'cart',
@@ -400,7 +410,7 @@ class CheckoutController extends Controller
 
     private function calculateTotals(?array $cart = null): array
     {
-        $cart ??= array_values(session()->get('cart', []));
+        $cart ??= array_values($this->shoppingCartService->itemsForRequest(request()));
 
         $subtotal = round(array_reduce($cart, fn ($sum, $item) => $sum + ($item['price'] * $item['quantity']), 0), 2);
 
@@ -651,8 +661,3 @@ class CheckoutController extends Controller
         return null;
     }
 }
-
-
-
-
-

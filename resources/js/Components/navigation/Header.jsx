@@ -58,6 +58,7 @@ const Header = ({ isCompact: isCompactProp }) => {
     rowPadding: isCompact ? 'py-2 md:py-2.5' : 'py-2.5 md:py-3',
     rowScale: isCompact ? 'scale-[0.98] md:scale-[0.96]' : 'scale-100',
     rowGap: isCompact ? 'gap-2 md:gap-3' : 'gap-3 md:gap-4',
+    rowWrap: isCompact ? 'flex-nowrap' : 'flex-wrap',
     sideGap: isCompact ? 'gap-2 md:gap-3' : 'gap-3 md:gap-4',
     loginButton: clsx(
       'inline-flex items-center rounded-full bg-indigo-600 text-white shadow-md transition hover:bg-indigo-700',
@@ -130,13 +131,14 @@ const Header = ({ isCompact: isCompactProp }) => {
         >
           <div
             className={clsx(
-              'flex h-full min-h-0 flex-wrap items-center justify-between transition-all duration-300 will-change-transform origin-top',
+              'flex h-full min-h-0 items-center justify-between transition-all duration-300 will-change-transform origin-top',
               styles.rowPadding,
               styles.rowGap,
+              styles.rowWrap,
               styles.rowScale
             )}
           >
-            <div className={clsx('flex items-center min-w-0', styles.sideGap)}>
+            <div className={clsx('flex min-w-0 shrink-0 items-center', styles.sideGap)}>
               <Brand isCompact={isCompact} brand={site.brand} />
               <QuickNav isCompact={isCompact} items={localizedNavigation} />
             </div>
@@ -150,7 +152,7 @@ const Header = ({ isCompact: isCompactProp }) => {
               submitLabel={t('header.search_submit')}
             />
 
-            <div className={clsx('flex items-center', styles.sideGap)}>
+            <div className={clsx('flex shrink-0 items-center', styles.sideGap)}>
               <CartDropdown />
 
               <select

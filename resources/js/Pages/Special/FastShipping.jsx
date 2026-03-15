@@ -4,6 +4,7 @@ import { usePage, Head } from "@inertiajs/react";
 import Header from "@/Components/navigation/Header.jsx";
 import TopNavMenu from "@/Components/navigation/TopNavMenu.jsx";
 import SidebarBanners from "@/Components/marketing/SidebarBanners.jsx";
+import SpecialCategoryRail from "@/Components/catalog/SpecialCategoryRail.jsx";
 import { formatCurrency, normalizePrice } from "@/utils/pricing";
 
 const deriveOriginalPrice = (product) => {
@@ -46,7 +47,7 @@ const ProductCard = ({ product, onQuickView }) => {
     (product.slug ? `/product/${product.slug}` : product.id ? `/product/${product.id}` : "#");
 
   return (
-    <article className="group relative flex w-full max-w-xs flex-col rounded-2xl border border-blue-100 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-blue-200">
+    <article className="group relative flex h-full w-full min-w-0 flex-col rounded-2xl border border-blue-100 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-blue-200">
       <div className="relative mb-4 flex items-center justify-center rounded-xl bg-blue-50 p-4">
         <img
           src={product.image_url || product.image || "/images/logo.png"}
@@ -172,7 +173,6 @@ const QuickViewModal = ({ product, onClose }) => {
 export default function FastShipping() {
   const { products: productsFromPage = [], banners } = usePage().props;
   const [quickViewProduct, setQuickViewProduct] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
 
   const products = Array.isArray(productsFromPage) ? productsFromPage : [];
@@ -185,23 +185,14 @@ export default function FastShipping() {
     return Array.from(set);
   }, [products]);
 
-  const filteredProducts = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    return products.filter((product) => {
-      const matchesCategory =
-        activeCategory === "all" || product.category?.name === activeCategory;
-      if (!matchesCategory) return false;
-
-      if (!term) return true;
-
-      const haystack = [product.name, product.category?.name, product.description]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      return haystack.includes(term);
-    });
-  }, [products, activeCategory, searchTerm]);
+  const filteredProducts = useMemo(
+    () =>
+      products.filter((product) => {
+        const categoryName = product.category?.name || product.category;
+        return activeCategory === "all" || categoryName === activeCategory;
+      }),
+    [products, activeCategory]
+  );
 
   const insights = useMemo(() => {
     const total = products.length;
@@ -228,55 +219,17 @@ export default function FastShipping() {
       <Header />
       <TopNavMenu />
 
-      <div
-        className="sticky z-30 border-b border-blue-100 bg-white/85 shadow-sm backdrop-blur"
+      <SpecialCategoryRail
+        categories={categories}
+        activeCategory={activeCategory}
+        onCategoryChange={setActiveCategory}
+        theme="blue"
+        className="border-blue-100"
         style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px) - var(--header-compact-offset-active, 0px))' }}
-      >
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-200">
-              <button
-                type="button"
-                onClick={() => setActiveCategory("all")}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  activeCategory === "all"
-                    ? "bg-blue-600 text-white shadow"
-                    : "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                }`}
-              >
-                Todas las categorías
-              </button>
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setActiveCategory(category)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    activeCategory === category
-                      ? "bg-blue-600 text-white shadow"
-                      : "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
+      />
 
-            <div className="relative w-full sm:w-72">
-              <input
-                type="search"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                className="w-full rounded-full border border-blue-100 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                placeholder="Buscar por producto o categoría"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <main className="flex-grow px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 lg:grid-cols-[5fr_2fr]">
+      <main className="flex-grow px-3 py-8 sm:px-4 lg:px-5">
+        <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_18rem]">
           <section className="flex flex-col gap-6">
             <div className="overflow-hidden rounded-3xl border border-blue-100 bg-white/70 shadow-lg">
               <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 px-6 py-8 text-white sm:px-10">
@@ -322,7 +275,7 @@ export default function FastShipping() {
                 </p>
               </div>
             ) : (
-              <div className="grid justify-center gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id || product.name}
@@ -334,13 +287,20 @@ export default function FastShipping() {
             )}
           </section>
 
-          <aside className="space-y-6">
-            <div className="hidden h-full rounded-3xl border border-blue-100 bg-white/70 p-6 shadow-lg lg:block">
+          <aside className="space-y-6 xl:sticky xl:top-[calc(var(--header-sticky-height,0px)+var(--topnav-sticky-height,0px)-var(--header-compact-offset-active,0px)+6.5rem)] xl:self-start">
+            <div className="hidden rounded-3xl border border-blue-100 bg-white/70 p-6 shadow-lg xl:block">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-blue-500">Guía rápida</h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Prioriza referencias con descuento y stock confirmado si buscas entrega inmediata sin sacrificar margen de ahorro.
+              </p>
+            </div>
+
+            <div className="hidden h-full rounded-3xl border border-blue-100 bg-white/70 p-6 shadow-lg xl:block">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-blue-500">Patrocinado</h2>
               <SidebarBanners banners={banners?.fastShipping || banners?.default || []} />
             </div>
 
-            <div className="block overflow-hidden rounded-3xl border border-blue-100 bg-white/70 shadow-lg lg:hidden">
+            <div className="block overflow-hidden rounded-3xl border border-blue-100 bg-white/70 shadow-lg xl:hidden">
               {banners?.fastShipping?.[0] && (
                 <img
                   src={banners.fastShipping[0].src}

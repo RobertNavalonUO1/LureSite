@@ -5,6 +5,7 @@ import { usePage, Head } from "@inertiajs/react";
 import Header from "@/Components/navigation/Header.jsx";
 import TopNavMenu from "@/Components/navigation/TopNavMenu.jsx";
 import SidebarBanners from "@/Components/marketing/SidebarBanners.jsx";
+import SpecialCategoryRail from "@/Components/catalog/SpecialCategoryRail.jsx";
 import LoginModal from "@/Components/auth/LoginModal.jsx";
 import RegisterModal from "@/Components/auth/RegisterModal.jsx";
 import ForgotPassword from "@/Components/auth/ForgotPassword.jsx";
@@ -43,7 +44,7 @@ const SeasonalCard = ({ product }) => {
     (product.slug ? `/product/${product.slug}` : product.id ? `/product/${product.id}` : "#");
 
   return (
-    <article className="group relative flex w-full max-w-xs flex-col rounded-2xl border border-lime-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-lime-200">
+    <article className="group relative flex h-full w-full min-w-0 flex-col rounded-2xl border border-lime-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg focus-within:ring-2 focus-within:ring-lime-200">
       <div className="relative mb-4 flex items-center justify-center rounded-xl bg-lime-50 p-4">
         <img
           src={product.image_url || product.image || "/images/logo.png"}
@@ -110,7 +111,6 @@ const SeasonalProducts = () => {
   const [error, setError] = useState("");
   const controllerRef = useRef(null);
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [sortOrder, setSortOrder] = useState("featured");
 
@@ -186,23 +186,14 @@ const SeasonalProducts = () => {
     return Array.from(set);
   }, [products]);
 
-  const filteredProducts = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    return products.filter((product) => {
-      const matchesCategory =
-        activeCategory === "all" || product.category?.name === activeCategory;
-      if (!matchesCategory) return false;
-
-      if (!term) return true;
-
-      const haystack = [product.name, product.title, product.category?.name, product.description]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      return haystack.includes(term);
-    });
-  }, [products, activeCategory, searchTerm]);
+  const filteredProducts = useMemo(
+    () =>
+      products.filter((product) => {
+        const categoryName = product.category?.name || product.category;
+        return activeCategory === "all" || categoryName === activeCategory;
+      }),
+    [products, activeCategory]
+  );
 
   const sortedProducts = useMemo(() => {
     const base = [...filteredProducts];
@@ -243,66 +234,28 @@ const SeasonalProducts = () => {
       <Header user={user} onLogout={handleLogout} />
       <TopNavMenu />
 
-      <div
-        className="sticky z-30 border-b border-lime-200 bg-white/85 shadow-sm backdrop-blur"
+      <SpecialCategoryRail
+        categories={categories}
+        activeCategory={activeCategory}
+        onCategoryChange={setActiveCategory}
+        theme="lime"
+        className="border-lime-200"
         style={{ top: 'calc(var(--header-sticky-height, 0px) + var(--topnav-sticky-height, 0px) - var(--header-compact-offset-active, 0px))' }}
-      >
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-200">
-              <button
-                type="button"
-                onClick={() => setActiveCategory("all")}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  activeCategory === "all"
-                    ? "bg-lime-600 text-white shadow"
-                    : "bg-lime-50 text-lime-700 hover:bg-lime-100"
-                }`}
-              >
-                Todas las categorías
-              </button>
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setActiveCategory(category)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    activeCategory === category
-                      ? "bg-lime-600 text-white shadow"
-                      : "bg-lime-50 text-lime-700 hover:bg-lime-100"
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
+        controls={
+          <select
+            value={sortOrder}
+            onChange={(event) => setSortOrder(event.target.value)}
+            className="rounded-full border border-lime-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm focus:border-lime-300 focus:outline-none focus:ring-2 focus:ring-lime-200"
+          >
+            <option value="featured">Destacados</option>
+            <option value="lowest-price">Precio mas bajo</option>
+            <option value="highest-discount">Mayor descuento</option>
+          </select>
+        }
+      />
 
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-              <div className="relative sm:w-64">
-                <input
-                  type="search"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  className="w-full rounded-full border border-lime-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-lime-300 focus:outline-none focus:ring-2 focus:ring-lime-200"
-                  placeholder="Buscar por nombre o categoría"
-                />
-              </div>
-              <select
-                value={sortOrder}
-                onChange={(event) => setSortOrder(event.target.value)}
-                className="rounded-full border border-lime-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm focus:border-lime-300 focus:outline-none focus:ring-2 focus:ring-lime-200"
-              >
-                <option value="featured">Destacados</option>
-                <option value="lowest-price">Precio mas bajo</option>
-                <option value="highest-discount">Mayor descuento</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <main className="flex-grow px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 lg:grid-cols-[5fr_2fr]">
+      <main className="flex-grow px-3 py-8 sm:px-4 lg:px-5">
+        <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_18rem]">
           <section className="flex flex-col gap-6">
             <div className="overflow-hidden rounded-3xl border border-lime-200 bg-white/70 shadow-lg">
               <div className="bg-gradient-to-r from-lime-600 via-emerald-500 to-green-500 px-6 py-8 text-white sm:px-10">
@@ -341,12 +294,9 @@ const SeasonalProducts = () => {
 
             <div aria-live="polite">
               {status === "loading" && (
-                <div className="flex flex-wrap justify-center gap-6">
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {Array.from({ length: 6 }).map((_, index) => (
-                    <div
-                      key={index}
-                      className="w-full max-w-xs rounded-2xl border border-lime-200 bg-white/80 p-4 shadow-sm animate-pulse"
-                    >
+                    <div key={index} className="w-full rounded-2xl border border-lime-200 bg-white/80 p-4 shadow-sm animate-pulse">
                       <div className="h-32 w-full rounded-xl bg-lime-100" />
                       <div className="mt-5 h-4 w-3/4 bg-lime-100 rounded" />
                       <div className="mt-3 h-3 w-1/2 bg-lime-100 rounded" />
@@ -380,7 +330,7 @@ const SeasonalProducts = () => {
               )}
 
               {status === "ready" && sortedProducts.length > 0 && (
-                <div className="grid justify-center gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   {sortedProducts.map((product) => (
                     <SeasonalCard key={product.id || product.name} product={product} />
                   ))}
@@ -393,13 +343,20 @@ const SeasonalProducts = () => {
             </p>
           </section>
 
-          <aside className="space-y-6">
-            <div className="hidden h-full rounded-3xl border border-lime-200 bg-white/70 p-6 shadow-lg lg:block">
+          <aside className="space-y-6 xl:sticky xl:top-[calc(var(--header-sticky-height,0px)+var(--topnav-sticky-height,0px)-var(--header-compact-offset-active,0px)+6.5rem)] xl:self-start">
+            <div className="hidden rounded-3xl border border-lime-200 bg-white/70 p-6 shadow-lg xl:block">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-lime-600">Guía rápida</h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Combina colecciones en tendencia con nuevas incorporaciones para mantener variedad sin perder relevancia estacional.
+              </p>
+            </div>
+
+            <div className="hidden h-full rounded-3xl border border-lime-200 bg-white/70 p-6 shadow-lg xl:block">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-lime-600">Patrocinado</h2>
               <SidebarBanners banners={banners?.seasonal || banners?.default || []} />
             </div>
 
-            <div className="block overflow-hidden rounded-3xl border border-lime-200 bg-white/70 shadow-lg lg:hidden">
+            <div className="block overflow-hidden rounded-3xl border border-lime-200 bg-white/70 shadow-lg xl:hidden">
               {banners?.seasonal?.[0] && (
                 <img
                   src={banners.seasonal[0].src}
