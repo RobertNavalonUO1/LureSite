@@ -428,33 +428,87 @@ class QaDatasetSeeder extends Seeder
     private function seedOrders(Collection $users, array $addressesByUser): Collection
     {
         $orders = collect();
+        $targetOrders = collect();
 
         foreach (self::ORDER_STATUSES as $statusIndex => $status) {
-            for ($index = 1; $index <= self::ORDERS_PER_STATUS; $index++) {
-                $user = $users[($statusIndex * self::ORDERS_PER_STATUS + $index - 1) % $users->count()];
-                $userAddresses = $addressesByUser[$user->id];
-                $address = $userAddresses[($index - 1) % count($userAddresses)];
-                $paymentMethod = $index % 2 === 0 ? 'stripe' : 'paypal';
-                $transactionId = sprintf('qa-%s-%04d', Str::slug($status, '-'), $index);
+            foreach ($users->values() as $userIndex => $user) {
+                $targetOrders->push([
+                    'user' => $user,
+                    'userAddresses' => $addressesByUser[$user->id],
+                    'status' => $status,
+                    'statusIndex' => $statusIndex,
+                    'sequence' => $userIndex + 1,
+                    'transaction_id' => sprintf('qa-%s-user-%03d', Str::slug($status, '-'), $userIndex + 1),
+                ]);
+            }
 
-                $order = Order::query()->updateOrCreate(
-                    ['transaction_id' => $transactionId],
-                    array_merge([
-                        'user_id' => $user->id,
-                        'name' => trim($user->name . ' ' . $user->lastname),
-                        'email' => $user->email,
-                        'address' => $this->formatAddress($address),
-                        'payment_method' => $paymentMethod,
-                        'total' => 0,
-                        'status' => $status,
-                    ], $this->orderStatePayload($status, $index, $paymentMethod))
-                );
+            if ($users->count() >= self::ORDERS_PER_STATUS) {
+                continue;
+            }
 
-                $orders->push($order->fresh());
+            for ($index = $users->count() + 1; $index <= self::ORDERS_PER_STATUS; $index++) {
+                $user = $users[($statusIndex + $index - 1) % $users->count()];
+
+                $targetOrders->push([
+                    'user' => $user,
+                    'userAddresses' => $addressesByUser[$user->id],
+                    'status' => $status,
+                    'statusIndex' => $statusIndex,
+                    'sequence' => $index,
+                    'transaction_id' => sprintf('qa-%s-extra-%03d', Str::slug($status, '-'), $index),
+                ]);
             }
         }
 
+        $targetTransactionIds = $targetOrders->pluck('transaction_id');
+
+        $obsoleteOrders = Order::query()
+            ->where('transaction_id', 'like', 'qa-%')
+            ->whereNotIn('transaction_id', $targetTransactionIds)
+            ->get();
+
+        if ($obsoleteOrders->isNotEmpty()) {
+            OrderItem::query()->whereIn('order_id', $obsoleteOrders->pluck('id'))->delete();
+            Order::query()->whereIn('id', $obsoleteOrders->pluck('id'))->delete();
+        }
+
+        foreach ($targetOrders as $definition) {
+            $orders->push($this->upsertQaOrder(
+                user: $definition['user'],
+                userAddresses: $definition['userAddresses'],
+                status: $definition['status'],
+                statusIndex: $definition['statusIndex'],
+                sequence: $definition['sequence'],
+                transactionId: $definition['transaction_id'],
+            ));
+        }
+
         return $orders;
+    }
+
+    private function upsertQaOrder(
+        User $user,
+        array $userAddresses,
+        string $status,
+        int $statusIndex,
+        int $sequence,
+        string $transactionId,
+    ): Order {
+        $address = $userAddresses[($statusIndex + $sequence - 1) % count($userAddresses)];
+        $paymentMethod = ($statusIndex + $sequence) % 2 === 0 ? 'stripe' : 'paypal';
+
+        return Order::query()->updateOrCreate(
+            ['transaction_id' => $transactionId],
+            array_merge([
+                'user_id' => $user->id,
+                'name' => trim($user->name . ' ' . $user->lastname),
+                'email' => $user->email,
+                'address' => $this->formatAddress($address),
+                'payment_method' => $paymentMethod,
+                'total' => 0,
+                'status' => $status,
+            ], $this->orderStatePayload($status, $sequence, $paymentMethod))
+        )->fresh();
     }
 
     private function orderStatePayload(string $status, int $index, string $paymentMethod): array

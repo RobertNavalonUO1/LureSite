@@ -49,5 +49,29 @@ class QaDatasetSeederTest extends TestCase
                 sprintf('El estado %s no llego al minimo esperado.', $status)
             );
         }
+
+        $qaUsers = User::query()
+            ->where('email', 'like', 'qa.user%@limoneo.test')
+            ->get();
+
+        foreach ($qaUsers as $user) {
+            $userStatuses = Order::query()
+                ->where('user_id', $user->id)
+                ->distinct()
+                ->pluck('status');
+
+            $this->assertCount(
+                count(QaDatasetSeeder::ORDER_STATUSES),
+                $userStatuses,
+                sprintf('El usuario QA %s no tiene cobertura completa de estados.', $user->email)
+            );
+
+            foreach (QaDatasetSeeder::ORDER_STATUSES as $status) {
+                $this->assertTrue(
+                    $userStatuses->contains($status),
+                    sprintf('El usuario QA %s no tiene pedidos en estado %s.', $user->email, $status)
+                );
+            }
+        }
     }
 }
