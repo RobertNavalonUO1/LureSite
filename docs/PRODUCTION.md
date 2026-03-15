@@ -66,12 +66,14 @@ Nota importante (Neon):
 
 - La rama operativa en servidor sigue siendo `mainbck`.
 - El backend ya incluye `api/mobile/v1` y carrito autenticado persistente compartido entre web y Android.
-- Producción actual no está en estado apto para `git pull` in-place:
-  - `/var/www/limoneo/current` está `ahead 3` y con worktree sucio.
-  - la estrategia recomendada pasa a ser **release limpio** en un directorio nuevo y swap controlado.
+- El deploy real del `2026-03-15` se ejecutó con **release limpio** y swap controlado de `/var/www/limoneo/current`.
+- El árbol git dirty y `ahead 3` de la release anterior quedó preservado en backup y dejó de ser base válida para despliegues directos.
 - Existe un smoke command para checkout móvil real:
   - `php artisan mobile:checkout-sandbox-smoke`
   - requiere `STRIPE_*` y/o `PAYPAL_*` configurados en el entorno objetivo.
+- Estado actual de proveedores en producción:
+  - Stripe: test
+  - PayPal: sandbox
 
 ---
 

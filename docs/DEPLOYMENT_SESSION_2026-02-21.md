@@ -44,6 +44,28 @@ Implicación operativa:
 
 - Para el siguiente deploy, usar release limpio en directorio nuevo, copiar `.env`, preservar `storage/` y hacer swap controlado.
 
+## Addendum 2026-03-15 - despliegue ejecutado
+
+Resultado del deploy real:
+
+- Commit desplegado: `5728dfa`
+- Estrategia: release limpio por archivo empaquetado + swap de `/var/www/limoneo/current`
+- Release activo: `/var/www/limoneo/current`
+- Backup inmediato del arbol anterior: `/var/www/limoneo/backup-20260315-205913`
+- Verificaciones completadas:
+  - `php artisan route:list --path=api/mobile/v1` OK (`34` rutas)
+  - `php artisan mobile:checkout-sandbox-smoke` OK
+  - `https://limoneo.com` responde `HTTP 200`
+  - `https://limoneo.com/api/mobile/v1/home` responde `HTTP 200`
+
+Estado operativo observado tras el deploy:
+
+- `APP_ENV=production`
+- Stripe configurado con claves de test
+- PayPal configurado en `sandbox`
+
+Esto significa que la app esta desplegada en produccion, pero la pasarela sigue en modo seguro/no-live. El siguiente paso externo al codigo es decidir cuando cambiar a credenciales live.
+
 ## Línea temporal (high level)
 
 1. Diagnóstico Cloudflare `521` (origin sin 443/cert).

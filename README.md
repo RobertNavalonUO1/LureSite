@@ -39,6 +39,10 @@ Ya se avanzó en la infraestructura base. Resumen:
     - SSL: requerido (`sslmode=require`)
 - Cloudflare: activo para `limoneo.com`.
 - Origin (VPS): Nginx + Let's Encrypt + PHP-FPM 8.3 (Laravel) sirviendo correctamente.
+- Despliegue limpio ejecutado el `2026-03-15` mediante release swap en `/var/www/limoneo/current`.
+- Estado actual de pagos en producción:
+    - Stripe: claves de test
+    - PayPal: `sandbox`
 
 Runbook detallado: [docs/PRODUCTION.md](docs/PRODUCTION.md).
 

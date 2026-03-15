@@ -72,7 +72,11 @@ Este documento es un **handoff accionable** para implementar el siguiente bloque
 ### Estado operativo que no debe ignorarse
 
 - El worktree local es amplio: hay trabajo vivo en admin, pedidos por línea, storefront, i18n y docs. No asumir repo limpio.
-- En producción, `/var/www/limoneo/current` estaba `ahead 3` y dirty; no hacer `git pull` directo sin decidir primero estrategia de release/swap.
+- En producción ya se ejecutó un release limpio con swap el `2026-03-15`.
+- El árbol anterior, que estaba `ahead 3` y dirty, quedó en `/var/www/limoneo/backup-20260315-205913`; no usarlo como base para `git pull`.
+- La producción sigue con pagos no-live:
+  - Stripe test
+  - PayPal sandbox
 
 ### Qué no está completamente cerrado todavía
 
@@ -179,10 +183,10 @@ Gotchas conocidos:
 ### Qué revisar primero
 
 1. Producción y sandbox:
-  - desplegar por release limpio si `/var/www/limoneo/current` sigue dirty,
-  - fijar secretos `STRIPE_*` y `PAYPAL_*` por entorno,
-  - ejecutar `php artisan mobile:checkout-sandbox-smoke`,
-  - verificar `api/mobile/v1` y carrito compartido en el entorno real.
+  - mantener el patrón de release limpio en siguientes despliegues,
+  - decidir cuándo pasar `STRIPE_*` y `PAYPAL_*` a live en producción,
+  - repetir `php artisan mobile:checkout-sandbox-smoke` o equivalente de validación cuando cambie la configuración,
+  - verificar `api/mobile/v1` y carrito compartido en el entorno real tras cada release.
 2. Residuos legacy admin:
   - buscar pantallas duplicadas o antiguas del admin que no se hayan barrido aún,
   - revisar formularios o acciones que sigan fuera del patrón Inertia ya adoptado,
@@ -202,7 +206,7 @@ Gotchas conocidos:
 ### Definition of Done
 
 - Producción puede desplegarse sin depender de `git pull` in-place sobre un worktree sucio.
-- El smoke real de checkout móvil queda ejecutado al menos contra un proveedor sandbox.
+- El smoke real de checkout móvil queda ejecutado contra Stripe test y PayPal sandbox.
 - La app no comunica `reembolsado` sin base operativa clara.
 - No quedan consumidores activos del contrato admin antiguo.
 - La cobertura del bloque sigue verde.

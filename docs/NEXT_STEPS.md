@@ -69,8 +69,8 @@ Esto vuelve a mover la prioridad del proyecto: la base crítica de postventa y l
 El siguiente tramo debe consolidar lo que ya está implementado en backend antes de abrir otra ola de UI o tooling.
 
 Orden recomendado:
-1. cerrar deploy limpio y estrategia de release en producción,
-2. configurar secretos sandbox/live y ejecutar smoke real de checkout móvil,
+1. decidir cuándo pasar producción de Stripe test / PayPal sandbox a credenciales live,
+2. mantener deploy por release limpio y repetir smoke real tras cada cambio de entorno,
 3. reescribir copy/i18n residual del storefront,
 4. alinear cualquier pantalla admin o flujo legacy que todavía no use el contrato REST nuevo,
 5. endurecer la operativa del refund real,
@@ -89,13 +89,13 @@ Actualmente hay seis líneas vivas, con prioridad distinta.
 
 ### 3.1. Fase inmediata — Release limpio y pagos reales
 
-La prioridad inmediata ya no es diseñar otra API móvil, sino validar la que existe y desplegar sin arrastrar deuda operativa del servidor actual.
+La prioridad inmediata ya no es diseñar otra API móvil, sino cerrar la transición de pagos no-live a live cuando negocio lo autorice y mantener el release limpio ya implantado.
 
 Pendiente revisar:
-- estrategia de release porque `/var/www/limoneo/current` no es seguro para `git pull`,
-- secretos reales/sandbox de Stripe y PayPal por entorno,
-- smoke de `php artisan mobile:checkout-sandbox-smoke`,
-- verificación de `api/mobile/v1` y carrito compartido en entorno real.
+- paso planificado de Stripe test / PayPal sandbox a live,
+- repetición de `php artisan mobile:checkout-sandbox-smoke` o validación equivalente cuando cambien secretos,
+- verificación de `api/mobile/v1` y carrito compartido en entorno real tras cada release,
+- monitorización básica post-deploy.
 
 Ya cerrado en esta línea:
 - `FAQ`, `Terms`, `Privacy` y `Contact` reescritas con contexto operativo real,
