@@ -59,7 +59,7 @@ class MobileCheckoutService
                 'country' => $address->country,
             ],
             'quote' => [
-                'currency' => 'USD',
+                'currency' => 'EUR',
                 'items_count' => $lines->sum('quantity'),
                 'subtotal' => $subtotal,
                 'discount' => $discount,
@@ -176,7 +176,7 @@ class MobileCheckoutService
     {
         $products = Product::query()
             ->with(['category'])
-            ->withAvg('reviews as average_rating', 'rating')
+            ->withAvg('reviews as reviews_average_rating', 'rating')
             ->withCount('reviews')
             ->whereIn('id', array_keys($normalized))
             ->get()
@@ -241,7 +241,7 @@ class MobileCheckoutService
         $blueprint = [
             'standard' => [
                 'label' => 'Envio estandar',
-                'description' => 'Gratis en pedidos superiores a $50',
+                'description' => 'Gratis en pedidos superiores a 50 EUR',
                 'eta' => '3-5 dias habiles',
                 'cost' => 4.99,
                 'free_over' => 50,
@@ -297,7 +297,7 @@ class MobileCheckoutService
             'payment_method_types' => ['card'],
             'line_items' => [[
                 'price_data' => [
-                    'currency' => 'usd',
+                    'currency' => 'eur',
                     'product_data' => [
                         'name' => config('app.name', 'Limoneo'),
                         'description' => sprintf(
@@ -342,7 +342,7 @@ class MobileCheckoutService
             'intent' => 'CAPTURE',
             'purchase_units' => [[
                 'amount' => [
-                    'currency_code' => 'USD',
+                    'currency_code' => 'EUR',
                     'value' => number_format((float) $context['quote']['total'], 2, '.', ''),
                 ],
             ]],

@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../../AndroidStudioProjects/Limoneo/app/src/main/java/com"
+		}
+	],
+	"settings": {
+		"workbench.browser.enableChatTools": true
+	}
+}

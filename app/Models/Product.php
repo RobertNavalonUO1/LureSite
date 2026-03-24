@@ -3,6 +3,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -44,7 +45,15 @@ class Product extends Model
     // Generates the fully qualified image URL
     public function getImageUrlFullAttribute()
     {
-        return url('storage/' . $this->image_url);
+        if (!$this->image_url) {
+            return null;
+        }
+
+        if (Str::startsWith($this->image_url, ['http://', 'https://', '//'])) {
+            return $this->image_url;
+        }
+
+        return url('storage/' . ltrim($this->image_url, '/'));
     }
 
     public function details()

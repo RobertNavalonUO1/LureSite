@@ -1,5 +1,5 @@
 const STORE_LOCALE = "es-ES";
-const STORE_CURRENCY = "USD";
+const STORE_CURRENCY = "EUR";
 
 const defaultCurrencyFormatter = new Intl.NumberFormat(STORE_LOCALE, {
   style: "currency",

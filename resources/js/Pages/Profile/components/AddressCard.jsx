@@ -8,11 +8,13 @@ export default function AddressCard({
   onSetDefault,
   isBusy = false,
   isSettingDefault = false,
+  selected = false,
+  onSelect = null,
 }) {
   const { t } = useI18n();
 
   return (
-    <article className="flex h-full flex-col rounded-[24px] border border-slate-200 bg-slate-50 p-5 transition hover:border-slate-300 hover:bg-white">
+    <article className={`flex h-full flex-col rounded-[24px] border p-5 transition ${selected ? 'border-sky-300 bg-sky-50/70 ring-2 ring-sky-100' : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -35,6 +37,18 @@ export default function AddressCard({
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
+        {onSelect ? (
+          <button
+            type="button"
+            onClick={onSelect}
+            disabled={isBusy}
+            className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${selected ? 'border border-sky-200 bg-sky-600 text-white hover:bg-sky-700' : 'border border-sky-200 bg-sky-50 text-sky-800 hover:bg-sky-100'}`}
+          >
+            <Check className="h-4 w-4" />
+            {selected ? 'Seleccionada para este pedido' : 'Usar esta direccion'}
+          </button>
+        ) : null}
+
         <button
           type="button"
           onClick={onEdit}

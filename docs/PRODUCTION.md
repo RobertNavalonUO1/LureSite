@@ -1,898 +1,198 @@
-# Estrategia de paso a producción y despliegue (Limoneo)
+# Production Runbook
 
-Última actualización: 2026-03-15
+Last updated: 2026-03-23
 
-Este documento describe una estrategia completa —práctica y realista— para pasar el proyecto a producción y alojarlo públicamente.
+This is the operational source of truth for Limoneo production.
 
-Checklist corto de pendientes: ver [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md).
+## Current production snapshot
 
-## Estado actual (lo ya hecho)
+Host:
 
-Hasta ahora, ya está creada la base de infraestructura. En orden lógico:
+- domain: `https://limoneo.com`
+- server: `limoneo-prod-1`
+- IPv4: `46.224.207.157`
+- app path: `/var/www/limoneo/current`
 
-### Dominio (Dynadot)
+Database:
 
-- Se compró `limoneo.com` en Dynadot.
+- provider: Neon Postgres
+- SSL required
 
-### VPS (Hetzner Cloud)
+Payments:
 
-- Servidor creado:
-  - Plan: CX23 (Shared Resources)
-  - Recursos: 2 vCPU, 4 GB RAM, 40 GB disco
-  - Nombre: `limoneo-prod-1`
-  - Ubicación: Nuremberg (Alemania)
-  - IP pública IPv4: `46.224.207.157`
+- Stripe: test
+- PayPal: sandbox
 
-### Acceso SSH (Windows → VPS)
+OAuth:
 
-- Se generó una clave SSH en Windows:
-  - Privada: `C:\Users\TZL\.ssh\id_ed25519` (NO se comparte)
-  - Pública: `C:\Users\TZL\.ssh\id_ed25519.pub`
-- Se añadió la clave pública a Hetzner (corrigiendo el formato a una sola línea).
+- mobile browser OAuth routes are deployed and return provider redirects
+- Facebook data deletion endpoints are deployed
+- end-to-end provider login still needs manual validation on production
 
-### Base de datos (Neon / Postgres)
+Mobile/API:
 
-- Proyecto creado/configurado en Neon, región Frankfurt (`eu-central-1`).
-- DB: `neondb`
-- Usuario/rol: `neondb_owner`
-- Endpoints (recomendación práctica):
-  - **Directo (sin pooler)**: úsalo para migraciones/DDL
-    - Host: `ep-round-unit-alr8cr3l.c-3.eu-central-1.aws.neon.tech`
-    - SSL requerido: `sslmode=require`
-  - **Pooler**: útil para tráfico web (opcional)
-    - Host: `ep-round-unit-alr8cr3l-pooler.c-3.eu-central-1.aws.neon.tech`
-    - SSL requerido: `sslmode=require`
+- canonical mobile API: `api/mobile/v1`
+- product list endpoint fixed on 2026-03-17
+- mobile checkout sandbox smoke passes on production
+- checkout/order metadata and checkout UI refresh deployed on 2026-03-23
 
-Nota importante (Neon):
+## Verified on 2026-03-23
 
-- Para tareas de **DDL/migraciones** (`php artisan migrate`) se ha comprobado que es más robusto usar el **endpoint directo** (sin `-pooler`).
-- El pooler es útil para tráfico web, pero puede dar problemas con determinadas migraciones/alteraciones.
+The following checks were executed successfully:
 
-### Cloudflare (activo)
+- `php artisan migrate --force`
+  - applied `2026_04_12_000000_add_shipping_coupon_fields_to_orders_table`
+- `php -l app/Http/Controllers/Api/MobileV1/CatalogController.php`
+- `php -l app/Http/Controllers/Auth/SocialAuthController.php`
+- `php -l app/Http/Controllers/CheckoutController.php`
+- `php -l app/Http/Controllers/OrderController.php`
+- `php -l app/Models/Order.php`
+- `php -l app/Models/Product.php`
+- `https://limoneo.com/api/mobile/v1/home` -> `200`
+- `https://limoneo.com/api/mobile/v1/products?sort=rating` -> `200`
+- `https://limoneo.com/auth/mobile/google/redirect` -> `302`
+- `https://limoneo.com/auth/mobile/facebook/redirect` -> `302`
+- `https://limoneo.com/facebook/data-deletion` -> `200`
+- `php artisan route:list --path=auth/mobile`
+- `php artisan route:list --path=auth/facebook/data-deletion`
+- `php artisan route:list --path=checkout`
 
-- Cloudflare está activo para `limoneo.com`.
-- HTTPS vía Cloudflare responde sin errores.
+Important note:
 
-### Origin (VPS) sirviendo HTTPS
+- provider redirects are now generated on production for both Google and Facebook
+- this confirms server-side provider credentials are present, but it does not replace a real end-to-end login validation
+- Facebook may still require Meta-side live-mode or app-review confirmation for real users
 
-- Nginx configurado con Let's Encrypt (certbot) en el origin.
-- PHP-FPM 8.3 instalado y configurado para Laravel.
+## Recent backend hotfix deployed on 2026-03-17
 
-### Bitácora
+Production received these backend changes:
 
-- Detalle completo de comandos/problemas/resoluciones: ver [docs/DEPLOYMENT_SESSION_2026-02-21.md](docs/DEPLOYMENT_SESSION_2026-02-21.md).
+- fixed Postgres ambiguity in mobile catalog sorting by rating
+- fixed `image_url_full` so absolute image URLs are no longer broken
+- deployed mobile browser OAuth routes for Google/Facebook callback flow
+- aligned mobile catalog/search/checkpoint code paths with the current product rating alias
 
-### Estado operativo adicional (2026-03-15)
+Backups created during this hotfix:
 
-- La rama operativa en servidor sigue siendo `mainbck`.
-- El backend ya incluye `api/mobile/v1` y carrito autenticado persistente compartido entre web y Android.
-- El deploy real del `2026-03-15` se ejecutó con **release limpio** y swap controlado de `/var/www/limoneo/current`.
-- El árbol git dirty y `ahead 3` de la release anterior quedó preservado en backup y dejó de ser base válida para despliegues directos.
-- Existe un smoke command para checkout móvil real:
-  - `php artisan mobile:checkout-sandbox-smoke`
-  - requiere `STRIPE_*` y/o `PAYPAL_*` configurados en el entorno objetivo.
-- Estado actual de proveedores en producción:
-  - Stripe: test
-  - PayPal: sandbox
+- `/var/www/limoneo/backup-20260317-201738-hotfix`
+- `/var/www/limoneo/backup-20260317-201919-hotfix`
 
----
+Previous major backup already present:
 
-## Lo que falta (siguiente bloque)
+- `/var/www/limoneo/backup-20260315-205913`
 
-Pendiente (operativo) para dar por “cerrado” el ciclo dev → staging → prod:
+## Recent checkout and order release deployed on 2026-03-23
 
-- **Staging real**: levantar `staging.limoneo.com` (vhost + HTTPS + deploy separado) con DB separada (ideal: branch Neon).
-- **Secrets definitivos en servidor**:
-  - Stripe (test en staging, live en prod)
-  - PayPal (sandbox en staging, live en prod)
-  - Socialite (OAuth Google/Facebook) en `.env` (`GOOGLE_*`, `FACEBOOK_*`)
-- **Secrets para el smoke móvil de pagos**:
-  - `STRIPE_KEY`, `STRIPE_SECRET`
-  - `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
-- **Decidir colas/scheduler**:
-  - Si `QUEUE_CONNECTION=sync` → no necesitas worker.
-  - Si `QUEUE_CONNECTION=database|redis` → necesitas `queue:work` como servicio.
-  - Si usas `schedule()` en Laravel → necesitas cron (Paso 16).
-- **Observabilidad/backups**:
-  - Rotación de logs + alertas (Sentry recomendado)
-  - Backups DB (Neon) y de `storage/app` si hay ficheros.
+Production received these backend and storefront changes:
 
-Está escrito para este repo: **Laravel 11 + Inertia.js + React + Vite**, con:
+- added order columns for `shipping_method`, shipping labels/descriptions, `shipping_cost`, `coupon_id`, `coupon_code`, and `discount`
+- persisted shipping, coupon, discount, and payment metadata when checkout creates an order
+- exposed shipping, coupon, and payment metadata on order detail views
+- refreshed the checkout page to reuse the profile address-book flow
+- updated checkout shipping selection so the selected method and total react immediately in the UI
+- deployed the public Facebook data deletion instructions page
 
-- Carrito invitado en **session** y carrito autenticado persistente en `cart_items`
-- Auth actual con Google/Facebook vía **Socialite** (web + API móvil con Sanctum)
-- Checkout con **Stripe** y **PayPal**
-- Endpoints JSON `/api/*` consumidos desde páginas React y contrato móvil canónico en `/api/mobile/v1/*`
+Backup created during this release:
 
-Guía de arranque del siguiente bloque (features): [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md).
+- `/var/www/limoneo/backup-20260323-000542-checkout-order-social`
 
-> Alcance
->
-+> - “Producción” aquí significa: `APP_ENV=production`, `APP_DEBUG=false`, assets compilados con Vite, servidor web (Nginx/Apache) apuntando a `public/`, procesos de colas/scheduler gestionados, secretos fuera de git, y observabilidad básica.
-+> - Este documento no asume un proveedor concreto, pero incluye recetas listas para:
-+>   - VPS (Nginx + PHP-FPM)
-+>   - Laravel Forge / Ploi (sobre VPS)
-+>   - PaaS tipo Render/Fly.io (con matices)
+## Standard deployment procedure
 
----
+The server is not operated as a clean git checkout. Do not rely on `git pull` inside `/var/www/limoneo/current`.
 
-## 0) Resumen ejecutivo (lo que hay que hacer)
+Use this sequence instead:
 
-1. Crear **staging** idéntico a producción (misma clase de infraestructura).
+1. validate locally
+2. back up the exact production files or the whole current tree
+3. upload the changed release files
+4. rebuild Laravel caches
+5. verify the public routes that matter
 
-  - Gestión de `.env` por entorno (switch rápido): ver [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md).
-2. Definir **secrets**/variables de entorno (Stripe/PayPal/Socialite/DB/etc.).
-3. Montar CI/CD con pasos: **build** → **deploy** → **migrate** → **cache**.
-4. En producción, evitar `git pull` sobre `/var/www/limoneo/current` si el worktree está dirty; desplegar por release limpio y swap.
-5. Activar HTTPS, hardening básico y logging seguro.
-6. Ensayar rollback.
-7. Abrir producción y monitorizar.
-
----
-
-## 0.1) Runbook (comandos) para crear la plataforma de producción
-
-Los pasos abajo están pensados para un VPS Ubuntu típico en Hetzner.
-Si no estás seguro de la versión, primero ejecuta:
+Minimal post-upload commands:
 
 ```bash
-cat /etc/os-release
-```
-
-### Paso 1 — Entrar por SSH
-
-Desde Windows (PowerShell):
-
-```powershell
-ssh -i $env:USERPROFILE\.ssh\id_ed25519 root@46.224.207.157
-```
-
-Si te pide confirmar fingerprint, acepta una vez.
-
-### Paso 2 — Actualizar el sistema
-
-```bash
-apt update
-apt -y upgrade
-apt -y install unzip git ca-certificates curl ufw
-```
-
-### Paso 3 — Firewall básico (UFW)
-
-Permite SSH + HTTP/HTTPS:
-
-```bash
-ufw allow OpenSSH
-ufw allow 80/tcp
-ufw allow 443/tcp
-ufw --force enable
-ufw status
-```
-
-### Paso 4 — Crear usuario de deploy (recomendado)
-
-```bash
-adduser deploy
-usermod -aG sudo deploy
-```
-
-Opcional: permitir que `deploy` use SSH (copiando authorized_keys de root):
-
-```bash
-rsync --archive --chown=deploy:deploy /root/.ssh /home/deploy/
-```
-
-### Paso 5 — Instalar Nginx + PHP-FPM + extensiones
-
-Laravel suele necesitar estas extensiones:
-
-```bash
-apt -y install nginx
-apt -y install php-fpm php-cli php-mbstring php-xml php-curl php-zip php-gd php-bcmath
-apt -y install php-pgsql
-systemctl enable --now nginx
-systemctl enable --now php*-fpm
-```
-
-Confirma versión PHP:
-
-```bash
-php -v
-```
-
-### Paso 6 — Instalar Composer (si no está)
-
-```bash
-command -v composer || (
-  curl -sS https://getcomposer.org/installer | php
-  mv composer.phar /usr/local/bin/composer
-)
-composer --version
-```
-
-### Paso 7 — Preparar carpeta del sitio
-
-Usaremos el path recomendado del doc:
-
-```bash
-mkdir -p /var/www/limoneo
-chown -R deploy:deploy /var/www/limoneo
-```
-
-### Paso 8 — Obtener el código (2 opciones)
-
-**Opción A (recomendada): usar GitHub Deploy Key**
-
-1) En el VPS, como `deploy`, genera una clave:
-
-```bash
-sudo -iu deploy
-ssh-keygen -t ed25519 -C "deploy@limoneo" -f ~/.ssh/id_ed25519
-cat ~/.ssh/id_ed25519.pub
-```
-
-2) Añade esa pública como *Deploy key* (read-only) en GitHub.
-
-3) Clona el repo:
-
-```bash
-cd /var/www/limoneo
-git clone git@github.com:RobertNavalonUO1/LureSite.git current
-cd current
-git checkout main
-```
-
-**Opción B: descargar un zip release (sin git)**
-
-- Útil si el repo es privado y no quieres configurar keys. Subes el zip y descomprimes en `/var/www/limoneo/current`.
-
-### Paso 9 — Instalar dependencias (producción)
-
-En el VPS (como `deploy` dentro de `/var/www/limoneo/current`):
-
-```bash
-composer install --no-dev --optimize-autoloader
-```
-
-### Paso 10 — `.env` de producción (Neon + App)
-
-Crear `.env` (no lo subas a git):
-
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-Config mínimo recomendado (ejemplo).
-
-Recomendación: usa `DB_URL` y el **endpoint directo** (sin `-pooler`) para ejecutar migraciones.
-
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://limoneo.com
-
-DB_CONNECTION=pgsql
-DB_URL=postgresql://neondb_owner:***@ep-round-unit-alr8cr3l.c-3.eu-central-1.aws.neon.tech:5432/neondb?sslmode=require
-```
-
-Notas:
-
-- Neon exige SSL. Mantén `sslmode=require`.
-- En producción, evita `SESSION_DRIVER=database`. Recomendación: Redis (Upstash u otro).
-
-### Paso 11 — Permisos Laravel
-
-```bash
-sudo chown -R www-data:www-data storage bootstrap/cache
-sudo chmod -R 775 storage bootstrap/cache
-```
-
-### Paso 12 — Nginx server block
-
-Crear `/etc/nginx/sites-available/limoneo`:
-
-```nginx
-server {
-  listen 80;
-  server_name limoneo.com www.limoneo.com;
-
-  root /var/www/limoneo/current/public;
-  index index.php;
-
-  location / {
-    try_files $uri $uri/ /index.php?$query_string;
-  }
-
-  location ~ \.php$ {
-    include snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/run/php/php8.3-fpm.sock;
-  }
-}
-```
-
-Habilitar y recargar:
-
-```bash
-ln -s /etc/nginx/sites-available/limoneo /etc/nginx/sites-enabled/limoneo
-nginx -t
-systemctl reload nginx
-```
-
-Si tu socket PHP-FPM no coincide, ajústalo con `ls /run/php/`.
-
-### Paso 13 — Migraciones + caches
-
-```bash
-php artisan migrate --force
+cd /var/www/limoneo/current
+php artisan optimize:clear
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
 
-### Paso 14 — SSL (cuando DNS ya apunte al VPS)
-
-**Let’s Encrypt (certbot)**:
+When PHP code changes are significant, also validate syntax on the server:
 
 ```bash
-apt -y install certbot python3-certbot-nginx
-certbot --nginx -d limoneo.com -d www.limoneo.com
+php -l app/Http/Controllers/Api/MobileV1/CatalogController.php
+php -l app/Http/Controllers/Auth/SocialAuthController.php
+php -l app/Models/Product.php
 ```
 
-En Cloudflare:
+## Required post-deploy checks
 
-- SSL/TLS mode: `Full (strict)`
-
-### Paso 15 — Queue worker (systemd)
-
-Crear `/etc/systemd/system/limoneo-queue.service`:
-
-```ini
-[Unit]
-Description=Limoneo Queue Worker
-After=network.target
-
-[Service]
-User=www-data
-Group=www-data
-WorkingDirectory=/var/www/limoneo/current
-ExecStart=/usr/bin/php artisan queue:work --tries=1
-Restart=always
-RestartSec=3
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Activar:
+Run these after every backend release:
 
 ```bash
-systemctl daemon-reload
-systemctl enable --now limoneo-queue
-systemctl status limoneo-queue --no-pager
+curl -I https://limoneo.com
+curl -I https://limoneo.com/api/mobile/v1/home
+curl -I "https://limoneo.com/api/mobile/v1/products?sort=rating"
+curl -I https://limoneo.com/api/mobile/v1/products/1
+php artisan route:list --path=api/mobile/v1
 ```
 
-### Paso 16 — Scheduler (cron)
+When payment code changes or secrets change:
 
 ```bash
-crontab -u www-data -e
+php artisan mobile:checkout-sandbox-smoke
 ```
 
-Añadir:
-
-```cron
-* * * * * cd /var/www/limoneo/current && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
-```
-
----
-
-## 0.2) Cloudflare: DNS mínimo recomendado
-
-Con Cloudflare activo, el DNS mínimo recomendado es:
-
-- `A` @ → `46.224.207.157`
-- `A` www → `46.224.207.157`
-
-Opcional:
-
-- En Cloudflare, proxied (nube naranja) para `@` y `www`.
-- Ajustar TTL a auto.
-
----
-
-## 1) Arquitectura objetivo
-
-### 1.1 Componentes
-
-- **Reverse proxy / web server**: Nginx (recomendado) o Apache.
-- **PHP runtime**: PHP-FPM (con Nginx) o Apache + PHP.
-- **App**: Laravel (código del repo).
-- **Assets**: Vite compila a `public/build/`.
-- **DB**: MySQL o PostgreSQL recomendados en prod.
-- **Cache/Queue**: Redis recomendado.
-- **Storage**: `storage/` con permisos; `public/storage` vía `storage:link`.
-
-### 1.2 Flujo de petición
-
-- **Páginas Inertia**: servidor responde `Inertia::render(...)` → frontend React se resuelve por Vite.
-- **APIs JSON**: `/api/*` se consumen desde páginas Special y otros módulos.
-- **Auth Socialite**:
-  - Web: redirect/callback (sesión Laravel).
-  - API móvil: exchange de `access_token` a token Sanctum.
-
----
-
-## 2) Requisitos de producción (checklist)
-
-### 2.1 Variables críticas `.env`
-
-Asegura:
-
-- `APP_ENV=production`
-- `APP_DEBUG=false`
-- `APP_URL=https://tudominio.com`
-- `APP_KEY=...` (generada una vez; secreto)
-- (Opcional) `LANDING_ONLY=true` para servir solo una página “en construcción” (ver [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)).
-
-**DB** (recomendado: MySQL/Postgres):
-
-- `DB_CONNECTION=mysql` (o `pgsql`)
-- Para Neon, se recomienda usar `DB_URL` (incluye `sslmode=require`).
-- Alternativa válida: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`.
-
-Nota Neon: para migraciones/DDL suele ser mejor el endpoint directo (sin `-pooler`).
-
----
-
-## Deploys: cómo actualizar staging/prod
-
-Procedimiento recomendado (misma idea para staging y producción):
-
-1) Build en tu máquina/CI:
+When social auth changes:
 
 ```bash
-npm ci
-npm run build
-composer install --no-dev --optimize-autoloader
+curl -I https://limoneo.com/auth/mobile/google/redirect
+curl -I https://limoneo.com/auth/mobile/facebook/redirect
+curl -I https://limoneo.com/facebook/data-deletion
 ```
 
-2) Subir el release al VPS (zip/tar o git). Si usas el layout con symlink `current`:
-
-- Descomprimir en `releases/<timestamp>`
-- Apuntar `current` al nuevo release
-
-3) En el VPS, dentro del nuevo `current`:
+When checkout or order persistence changes:
 
 ```bash
-php artisan migrate --force
+php artisan route:list --path=checkout
+curl -I https://limoneo.com
+```
+
+## What is still not complete in production
+
+These items are not code blockers anymore, but they are still operational blockers:
+
+1. Google OAuth must still be validated end to end against the live domain.
+2. Facebook OAuth must still be validated end to end, and Meta-side live-mode restrictions may still apply.
+3. Stripe is still using test keys.
+4. PayPal is still using sandbox mode.
+5. Web checkout manual smoke for address selection, shipping update, and order metadata should still be run on production.
+6. Android device smoke still needs to be run against the live server.
+
+Because of that, production is functional for web/mobile backend flows and sandbox payments, but not yet fully closed for real provider login and live payments.
+
+## Rollback
+
+If a hotfix must be reverted quickly:
+
+1. restore the backed-up files from the latest backup directory
+2. run:
+
+```bash
+cd /var/www/limoneo/current
+php artisan optimize:clear
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
 
-4) Reiniciar procesos (según aplique):
-
-```bash
-systemctl reload php8.3-fpm
-systemctl reload nginx
-systemctl restart limoneo-queue || true
-```
-
-Si no usas queue worker, no necesitas el `limoneo-queue`.
-
----
-
-## Workers/procesos: qué necesitas realmente
-
-- **Siempre**: `nginx` + `php8.3-fpm`
-- **Solo si usas colas asíncronas** (`QUEUE_CONNECTION` distinto de `sync`):
-  - `php artisan queue:work` como service (systemd)
-- **Solo si tu app usa scheduler** (`app/Console/Kernel.php` tiene tareas):
-  - cron `* * * * * php artisan schedule:run`
-
-**Stripe**:
-
-- `STRIPE_KEY=...`
-- `STRIPE_SECRET=...`
-
-**PayPal**:
-
-- `PAYPAL_CLIENT_ID=...`
-- `PAYPAL_CLIENT_SECRET=...`
-
-**Socialite (OAuth)**:
-
-- Variables en `.env`:
-  - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
-  - `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI`
-- Redirect URIs típicos:
-  - `https://tudominio.com/auth/google/callback`
-  - `https://tudominio.com/auth/facebook/callback`
-- Links completos para conseguir credenciales:
-  - Google: https://console.cloud.google.com/apis/credentials
-  - Google consent screen: https://console.cloud.google.com/apis/credentials/consent
-  - Facebook Apps: https://developers.facebook.com/apps/
-
-**Sesiones/colas/cache** (recomendado):
-
-- `SESSION_DRIVER=redis`
-- `QUEUE_CONNECTION=redis`
-- `CACHE_STORE=redis`
-
-> Nota: en `.env.example` el proyecto usa `database` para sesión/colas/cache. Funciona, pero en producción Redis suele ser más robusto.
-
-### 2.2 Permisos
-
-- `storage/` y `bootstrap/cache/` deben ser escribibles por el usuario del proceso PHP.
-
-### 2.3 Seguridad (mínimo)
-
-- TLS/HTTPS con Let’s Encrypt.
-- `APP_DEBUG=false`.
-- Rate limiting en endpoints sensibles (login, checkout).
-- No loguear tokens, sesiones completas o PII innecesaria.
-- Configurar CORS solo si se sirve desde dominios diferentes.
-
----
-
-## 3) Estrategia de entornos: dev → staging → prod
-
-### 3.1 Desarrollo
-
-- Vite en `:5173`
-- Laravel en `:8000`
-- `.env` local
-
-### 3.2 Staging (obligatorio si hay pagos/auth)
-
-Objetivo: reproducir producción lo más posible.
-
-- Dominio: `staging.tudominio.com`
-- HTTPS activo
-- DB separada de prod
-- Stripe/PayPal en modo **sandbox/test**
-- Socialite (Google/Facebook) configurado con credenciales y redirect URIs de `staging.*`
-
-Staging en VPS (layout recomendado):
-
-- Webroot: `/var/www/limoneo-staging/current/public`
-- Nginx vhost: `/etc/nginx/sites-available/limoneo-staging`
-- SSL (una vez el DNS apunte al VPS): `certbot --nginx -d staging.limoneo.com`
-
-Ejemplo de vhost **HTTP** para staging (antes de tener DNS/SSL):
-
-```nginx
-server {
-  listen 80;
-  listen [::]:80;
-
-  server_name staging.limoneo.com;
-
-  root /var/www/limoneo-staging/current/public;
-  index index.php;
-
-  # ACME challenge (certbot)
-  location ^~ /.well-known/acme-challenge/ {
-    allow all;
-    default_type text/plain;
-    root /var/www/limoneo-staging/current/public;
-  }
-
-  location / {
-    try_files $uri $uri/ /index.php?$query_string;
-  }
-
-  location ~ \.php$ {
-    include snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/run/php/php8.3-fpm.sock;
-  }
-
-  location ~ /\. {
-    deny all;
-  }
-}
-```
-
-Validación rápida (en el VPS, sin DNS):
-
-```bash
-nginx -t && systemctl reload nginx
-curl -I -H 'Host: staging.limoneo.com' http://127.0.0.1/
-```
-
-Nota Windows/PowerShell: si envías configs por SSH pegando un heredoc desde PowerShell, **PowerShell expande** variables tipo `$uri`. Usa comillas simples alrededor del comando remoto o (más robusto) sube el archivo con `scp`/WinSCP.
-
-En este repo hay un helper para evitar el problema de expansión y aplicar el vhost por `scp`:
-
-```powershell
-./scripts/vps/push-staging-nginx.ps1
-```
-
-Si en algún momento el SSH al VPS empieza a dar `Connection reset` / `kex_exchange_identification`, suele ser por rate-limit/ban (UFW/F2B). En ese caso, entra por consola (Hetzner) y revisa/desbanea:
-
-```bash
-fail2ban-client status
-fail2ban-client status sshd
-fail2ban-client set sshd unbanip <TU_IP_PUBLICA>
-ufw status numbered
-```
-
-### 3.3 Producción
-
-- Dominio final
-- Configuración LIVE de pagos
-- Observabilidad activa
-- Backups automáticos
-
----
-
-## 4) Pipeline CI/CD recomendado
-
-### 4.1 Fases
-
-**Fase A — Build (CI)**
-
-1) Instalar deps PHP:
-
-```bash
-composer install --no-dev --optimize-autoloader
-```
-
-2) Instalar deps Node:
-
-```bash
-npm ci
-```
-
-3) Build Vite:
-
-```bash
-npm run build
-```
-
-4) (Opcional) Checks:
-
-- `php artisan test`
-- `npm run lint` (si lo añadís)
-
-**Fase B — Deploy (CD)**
-
-- Subir release a servidor
-- Escribir `.env` desde secrets
-- Migraciones:
-
-```bash
-php artisan migrate --force
-```
-
-- Optimización:
-
-```bash
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-```
-
-- Reinicio:
-  - recarga PHP-FPM
-  - (si aplica) reinicio queue workers
-
-### 4.2 Releases y rollback
-
-Recomendación: estrategia “releases” (tipo Capistrano / Deployer):
-
-- `releases/<timestamp>`
-- symlink `current` apunta al release activo
-
-Rollback:
-
-- cambiar symlink `current` al release anterior
-- recargar PHP-FPM
-
-**Importante**: las migraciones deben ser backward-compatible si quieres rollback rápido.
-
----
-
-## 5) Opción 1: VPS con Nginx + PHP-FPM (receta)
-
-### 5.1 Paquetes base (Ubuntu ejemplo)
-
-- Nginx
-- PHP 8.3 + extensiones típicas (pdo, mbstring, curl, openssl, xml, sqlite/mysql/pgsql)
-- Composer
-- Node (solo si compilas en el servidor; recomendado compilar en CI)
-- Redis (si lo usas)
-
-### 5.2 Config Nginx (ejemplo)
-
-Archivo `/etc/nginx/sites-available/limoneo`:
-
-```nginx
-server {
-  listen 80;
-  server_name tudominio.com;
-
-  root /var/www/limoneo/current/public;
-  index index.php;
-
-  location / {
-    try_files $uri $uri/ /index.php?$query_string;
-  }
-
-  location ~ \.php$ {
-    include snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/run/php/php8.3-fpm.sock;
-  }
-
-  location ~* \.(?:css|js|jpg|jpeg|gif|png|svg|ico|webp)$ {
-    expires 30d;
-    access_log off;
-    add_header Cache-Control "public";
-  }
-}
-```
-
-Luego habilitar site y recargar:
-
-```bash
-ln -s /etc/nginx/sites-available/limoneo /etc/nginx/sites-enabled/limoneo
-nginx -t
-systemctl reload nginx
-```
-
-### 5.3 HTTPS
-
-Con certbot:
-
-```bash
-certbot --nginx -d tudominio.com -d www.tudominio.com
-```
-
----
-
-## 6) Opción 2: Laravel Forge / Ploi
-
-Recomendado si quieres ir rápido y mantener buenas prácticas sin montar todo a mano.
-
-- Provisiona servidor
-- Configura Nginx, PHP-FPM, SSL
-- Gestiona deploy desde GitHub
-- Configura queue workers
-
-Checklist:
-
-- Build assets en CI o en el propio Forge (preferible CI si el proyecto crece)
-- Variables `.env` como secrets
-- Hook post-deploy:
-  - `php artisan migrate --force`
-  - `php artisan optimize` (o caches por separado)
-
----
-
-## 7) Opción 3: PaaS (Render/Fly.io)
-
-Puede funcionar, pero hay que asegurar:
-
-- Persistencia de `storage/` (volúmenes) o usar S3.
-- Workers para queue.
-- Scheduler (cron) o equivalente.
-
-Para este tipo de app, Forge+VPS suele ser el camino más simple.
-
----
-
-## 8) Operación: colas, scheduler, logs y backups
-
-### 8.1 Queue worker
-
-Ejemplo con systemd:
-
-- Servicio `limoneo-queue.service`:
-
-```ini
-[Unit]
-Description=Limoneo Queue Worker
-After=network.target
-
-[Service]
-User=www-data
-Group=www-data
-WorkingDirectory=/var/www/limoneo/current
-ExecStart=/usr/bin/php artisan queue:work --tries=1
-Restart=always
-RestartSec=3
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### 8.2 Scheduler
-
-Cron:
-
-```cron
-* * * * * cd /var/www/limoneo/current && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
-```
-
-### 8.3 Logs
-
-- Centralizar errores (Sentry recomendado).
-- Rotación de logs.
-
-### 8.4 Backups
-
-- Backups DB automáticos.
-- Backups de `storage/app` si hay archivos de usuario.
-
----
-
-## 9) Consideraciones específicas del proyecto
-
-### 9.1 Auth Socialite
-
-- Asegurar variables OAuth en `.env` (ver sección 2.1):
-  - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
-  - `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI`
-- Hardening recomendado:
-  - Rate limit en rutas `/auth/*` y `POST /api/auth/social`.
-  - No registrar tokens OAuth ni headers `Authorization` en logs.
-
-### 9.2 Checkout Stripe / PayPal
-
-- Staging usa Stripe test + PayPal sandbox.
-- Producción usa credenciales live.
-- Validar callbacks/redirects (success/cancel) contra `APP_URL` correcto.
-
-### 9.3 Session driver
-
-- En dev puede ser `database`.
-- En prod: `redis` para evitar cuellos de botella y mejorar fiabilidad.
-
----
-
-## 10) Plan de migración a producción (pasos)
-
-1) Elegir hosting (recomendado: VPS + Forge).
-2) Provisionar staging (HTTPS + DB + Redis).
-3) Configurar CI (build) + CD (deploy).
-4) Configurar secrets `.env` y credenciales.
-5) Deploy a staging.
-6) QA:
-  - Login Socialite (Google/Facebook)
-   - Home + categorías sticky
-   - Special pages (DealsToday/SuperDeal)
-   - Checkout Stripe/PayPal (test)
-7) Deploy a producción.
-8) Verificación post-release:
-   - Logs de errores
-   - Compra real mínima (importe pequeño)
-   - Performance básico
-
----
-
-## 11) Apéndice: comandos útiles
-
-### 11.1 Modo producción local (simulación)
-
-```bash
-npm run build
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan serve
-```
-
-### 11.2 Diagnóstico
-
-- `php artisan about`
-- `php artisan env`
-- `php artisan optimize:clear`
-
----
-
-## 12) Próximas mejoras recomendadas (opcional)
-
-- Añadir rate-limiting explícito para login Socialite y endpoints de checkout.
-- Añadir Sentry.
-- Mover assets de imágenes a S3 si se espera volumen.
-- Revisar `PythonScriptController` para ejecutar el Python embebido de forma explícita.
+3. re-check the public endpoints
+
+## Related docs
+
+- [../README.md](../README.md)
+- [./ENVIRONMENTS.md](./ENVIRONMENTS.md)
+- [./NEXT_STEPS.md](./NEXT_STEPS.md)
+- [./GUIDE_NEXT_AGENT.md](./GUIDE_NEXT_AGENT.md)
+- [./legacy/DEPLOYMENT_SESSION_2026-02-21.md](./legacy/DEPLOYMENT_SESSION_2026-02-21.md)

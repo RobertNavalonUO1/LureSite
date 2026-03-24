@@ -83,7 +83,7 @@ export default function Coupons({ coupons }) {
           onChange={(event) => createForm.setData('type', event.target.value)}
         >
           <option value="percent">%</option>
-          <option value="fixed">USD</option>
+          <option value="fixed">EUR</option>
         </select>
         <input
           name="expires_at"
@@ -144,7 +144,7 @@ export default function Coupons({ coupons }) {
           <input name="discount" value={form.discount} onChange={e => setForm({ ...form, discount: e.target.value })} className="border px-2 py-1 mr-2" />
           <select name="type" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="border px-2 py-1 mr-2">
             <option value="percent">%</option>
-            <option value="fixed">USD</option>
+            <option value="fixed">EUR</option>
           </select>
           <input name="expires_at" type="date" value={form.expires_at || ''} onChange={e => setForm({ ...form, expires_at: e.target.value })} className="border px-2 py-1 mr-2" />
           <input name="usage_limit" value={form.usage_limit || ''} onChange={e => setForm({ ...form, usage_limit: e.target.value })} className="border px-2 py-1 mr-2" />

@@ -29,10 +29,16 @@ for p in candidate_paths:
 # ==============================================
 
 # Forzar carga de la librería de red (WinSock en Windows)
-try:
-    ctypes.WinDLL("ws2_32.dll")
-except Exception as e:
-    print("[ERROR] No se pudo cargar ws2_32.dll:", e)
+# En Linux/macOS no es necesario y provoca ImportError/WinDLL.
+if sys.platform.startswith("win"):
+    try:
+        ctypes.WinDLL("ws2_32.dll")
+        safe_print = lambda label, result: print(f"{label} {result}")
+    except Exception as e:
+        print("[ERROR] No se pudo cargar ws2_32.dll:", e)
+else:
+    print("[INFO] No se requiere ws2_32.dll en este sistema operativo.")
+
 
 def safe_print(label, result):
     """Imprime mensajes manejando errores de codificación."""

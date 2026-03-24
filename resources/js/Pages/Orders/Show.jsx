@@ -71,6 +71,25 @@ const OrderShow = ({ order }) => {
               </div>
             </div>
 
+            <div className="grid gap-4 border-b border-slate-200 pb-4 pt-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Método de envío</div>
+                <div className="mt-1 text-sm text-slate-700">{order.shipping_label ?? order.shipping_method ?? '-'}</div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Cupón</div>
+                <div className="mt-1 text-sm text-slate-700">{order.coupon_code ? `${order.coupon_code} (-${formatCurrency(order.discount, locale)})` : 'Ninguno'}</div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Costo de envío</div>
+                <div className="mt-1 text-sm text-slate-700">{formatCurrency(order.shipping_cost, locale)}</div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Método de pago</div>
+                <div className="mt-1 text-sm text-slate-700">{order.payment_method?.toUpperCase() ?? '-'}</div>
+              </div>
+            </div>
+
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <SummaryMetric label={t('orders.module.summary.active_lines')} value={order.line_counts.active} help={t('orders.module.summary.active_lines_help')} />
               <SummaryMetric label={t('orders.module.summary.cancelled_lines')} value={order.line_counts.cancelled} help={t('orders.module.summary.cancelled_lines_help')} />

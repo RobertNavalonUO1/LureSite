@@ -162,7 +162,7 @@ const Dashboard = () => {
   const formatCurrency = (amount) =>
     new Intl.NumberFormat(INTL_LOCALE[locale] || INTL_LOCALE.es, {
       style: 'currency',
-      currency: 'USD',
+      currency: 'EUR',
       minimumFractionDigits: 2,
     }).format(Number(amount) || 0);
 

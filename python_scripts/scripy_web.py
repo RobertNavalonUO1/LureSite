@@ -3,9 +3,15 @@ import sys
 import json
 import argparse
 import copy
+import io
 import subprocess
+import re
+import tempfile
 from urllib.parse import urlsplit, urlunsplit
 from bs4 import BeautifulSoup
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 # =========================
 # Utilidades
@@ -16,7 +22,12 @@ def limpiar_texto(texto: str) -> str:
     return " ".join(texto.replace("\xa0", " ").split())
 
 def absolutizar_src(src: str) -> str:
-    return src.strip() if src else ""
+    if not src:
+        return ""
+    src = src.strip()
+    if src.startswith("//"):
+        return "https:" + src
+    return src
 
 def normalizar_titulo(t: str) -> str:
     return limpiar_texto(t).lower() if t else ""
@@ -31,10 +42,10 @@ def quitar_query_fragment(url: str) -> str:
     return urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
 
 def normalizar_url_producto(href: str) -> str:
-    return quitar_query_fragment(href)
+    return quitar_query_fragment(absolutizar_src(href))
 
 def normalizar_url_imagen(url: str) -> str:
-    return quitar_query_fragment(url)
+    return quitar_query_fragment(absolutizar_src(url))
 
 def dedupe_imagenes(lista):
     seen = set()
@@ -49,6 +60,209 @@ def dedupe_imagenes(lista):
 def merge_imagenes(existing, new_items):
     return dedupe_imagenes((existing or []) + (new_items or []))
 
+
+def parece_precio(texto: str) -> bool:
+    if not texto:
+        return False
+    return bool(re.search(r"\d[\d\.,]*\s*(?:€|\$|£)", texto))
+
+
+def parsear_precio_float(texto: str):
+    if not texto:
+        return None
+
+    limpio = limpiar_texto(texto)
+    limpio = re.sub(r"[^0-9,\.\-]", "", limpio)
+    if not limpio:
+        return None
+
+    if "," in limpio and "." in limpio:
+        limpio = limpio.replace(".", "").replace(",", ".")
+    elif "," in limpio:
+        limpio = limpio.replace(",", ".")
+
+    try:
+        return float(limpio)
+    except ValueError:
+        return None
+
+
+def extraer_titulo_anchor(anchor) -> str:
+    selectores = [
+        "h3",
+        "[role='heading'] h3",
+        "[class*='title'] h3",
+        "[class*='title']",
+        "[title]",
+        "[aria-label]",
+    ]
+
+    for selector in selectores:
+        for elemento in anchor.select(selector):
+            texto = ""
+            if elemento.has_attr("title"):
+                texto = limpiar_texto(elemento.get("title"))
+            if not texto and elemento.has_attr("aria-label") and not parece_precio(elemento.get("aria-label")):
+                texto = limpiar_texto(elemento.get("aria-label"))
+            if not texto:
+                texto = limpiar_texto(elemento.get_text(" ", strip=True))
+            if len(texto) >= 8 and not parece_precio(texto):
+                return texto
+
+    for img in anchor.select("img[alt]"):
+        alt = limpiar_texto(img.get("alt"))
+        if len(alt) >= 8:
+            return alt
+
+    return ""
+
+
+def extraer_precio_anchor(anchor) -> str:
+    candidatos = []
+
+    for selector in [
+        "[aria-label*='€']",
+        "[aria-label*='$']",
+        "[aria-label*='£']",
+        ".price",
+        ".precio",
+        "[class*='price']",
+    ]:
+        for elemento in anchor.select(selector):
+            aria_label = limpiar_texto(elemento.get("aria-label", ""))
+            texto = aria_label if parece_precio(aria_label) else limpiar_texto(elemento.get_text("", strip=True))
+            if parece_precio(texto):
+                candidatos.append(texto)
+
+    if not candidatos:
+        texto_anchor = limpiar_texto(anchor.get_text(" ", strip=True))
+        encontrados = re.findall(r"\d[\d\.,]*\s*(?:€|\$|£)", texto_anchor)
+        candidatos.extend(encontrados)
+
+    return limpiar_texto(candidatos[0]) if candidatos else ""
+
+
+def extraer_precio_original_anchor(anchor) -> str:
+    for elemento in anchor.select("[style*='line-through'], s, del, strike"):
+        texto = limpiar_texto(elemento.get_text("", strip=True))
+        if parece_precio(texto):
+            return texto
+    return ""
+
+
+def extraer_imagenes_anchor(anchor):
+    imagenes = []
+    for img in anchor.select("img"):
+        src = img.get("src") or img.get("data-src") or img.get("data-lazy-src")
+        if not src:
+            continue
+        src_norm = normalizar_url_imagen(src)
+        if not src_norm:
+            continue
+        if not any(host in src_norm for host in ("aliexpress-media.com", "alicdn.com", "aliexpress.com")):
+            continue
+        if any(bloqueado in src_norm.lower() for bloqueado in ("/45x60.", "/48x48.", "/60x60.", "/154x64.", "/166x64.", "/702x72.")):
+            continue
+        imagenes.append(src_norm)
+    return dedupe_imagenes(imagenes)
+
+
+def extraer_producto_desde_anchor(anchor):
+    href = anchor.get("href") if anchor and anchor.has_attr("href") else ""
+    url = normalizar_url_producto(href)
+    titulo = extraer_titulo_anchor(anchor)
+    precio = extraer_precio_anchor(anchor)
+    precio_original = extraer_precio_original_anchor(anchor)
+    imagenes = extraer_imagenes_anchor(anchor)
+    imagen = imagenes[0] if imagenes else ""
+
+    if not titulo and not precio and not imagen:
+        return None
+
+    return {
+        "titulo": titulo,
+        "url": url,
+        "imagen": imagen,
+        "precio": precio,
+        "precio_original": precio_original,
+        "imagenes": imagenes,
+        "videos": []
+    }
+
+
+def serializar_producto_detectado(producto):
+    imagenes = dedupe_imagenes(producto.get("imagenes", []))
+    imagen_principal = normalizar_url_imagen(producto.get("imagen") or "")
+    if imagen_principal and imagen_principal not in imagenes:
+        imagenes = [imagen_principal] + imagenes
+
+    return {
+        "title": limpiar_texto(producto.get("titulo") or ""),
+        "price_text": limpiar_texto(producto.get("precio") or ""),
+        "original_price_text": limpiar_texto(producto.get("precio_original") or ""),
+        "image_url": imagen_principal or (imagenes[0] if imagenes else ""),
+        "images": imagenes,
+        "product_url": normalizar_url_producto(producto.get("url") or ""),
+    }
+
+
+def construir_producto_importable(producto):
+    detectado = serializar_producto_detectado(producto)
+    precio = parsear_precio_float(detectado.get("price_text") or "")
+
+    if not detectado["title"] or precio is None or not detectado["image_url"]:
+        return None
+
+    return {
+        "title": detectado["title"],
+        "price": precio,
+        "image_url": detectado["image_url"],
+        "images": detectado["images"],
+        "seo_title": None,
+        "seo_description": None,
+        "product_url": detectado["product_url"] or None,
+    }
+
+
+def construir_payload_salida(resultado, hubo_cambios_locales):
+    productos_detectados = resultado.get("productos_detectados", []) or []
+    detectados = [serializar_producto_detectado(producto) for producto in productos_detectados]
+
+    importables = []
+    omitidos_no_importables = 0
+    for producto in productos_detectados:
+        importable = construir_producto_importable(producto)
+        if importable is None:
+            omitidos_no_importables += 1
+            continue
+        importables.append(importable)
+
+    extraidos = resultado.get("extraidos", 0)
+    if extraidos == 0:
+        summary_text = "No se detectaron productos validos en el HTML recibido."
+    else:
+        summary_text = (
+            f"Se detectaron {extraidos} productos. "
+            f"Listos para migrar: {len(importables)}. "
+            f"Cambios locales: {'si' if hubo_cambios_locales else 'no'}."
+        )
+
+    return {
+        "summary_text": summary_text,
+        "stats": {
+            "detected": extraidos,
+            "ready_to_import": len(importables),
+            "new": resultado.get("nuevos", 0),
+            "updated": resultado.get("actualizados", 0),
+            "unchanged": resultado.get("sin_cambios", 0),
+            "skipped_without_title": resultado.get("omitidos_sin_titulo", 0),
+            "skipped_not_importable": omitidos_no_importables,
+            "local_changes": hubo_cambios_locales,
+        },
+        "detected_products": detectados,
+        "products": importables,
+    }
+
 # =========================
 # IO productos.json / HTML
 # =========================
@@ -59,11 +273,48 @@ def cargar_productos(out_dir: str):
             return json.load(f), productos_path
     return [], productos_path
 
+def resolver_directorio_salida(out_dir: str):
+    candidatos = []
+
+    if out_dir:
+        candidatos.append(out_dir)
+
+    candidatos.append(tempfile.gettempdir())
+
+    for candidato in candidatos:
+        if not candidato:
+            continue
+        try:
+            os.makedirs(candidato, exist_ok=True)
+            if os.access(candidato, os.W_OK):
+                return candidato
+        except OSError:
+            continue
+
+    raise PermissionError("No hay un directorio de salida escribible disponible.")
+
 def guardar_productos(productos, out_dir: str):
-    productos_path = os.path.join(out_dir, "productos.json")
+    output_dir = resolver_directorio_salida(out_dir)
+    productos_path = os.path.join(output_dir, "productos.json")
     with open(productos_path, "w", encoding="utf-8") as f:
         json.dump(productos, f, ensure_ascii=False, indent=2)
     return productos_path
+
+def guardar_lote_importacion(productos, out_dir: str):
+    tmp_dir = out_dir if out_dir and os.path.isdir(out_dir) else None
+    fd, temp_path = tempfile.mkstemp(prefix="productos_import_", suffix=".json", dir=tmp_dir, text=True)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(productos, f, ensure_ascii=False, indent=2)
+        return temp_path
+    except Exception:
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+        raise
 
 def regenerar_html(productos, out_dir: str):
     # Opcional: genera un HTML de resumen, puedes omitir si no lo usas
@@ -85,6 +336,10 @@ def preguntar_subida_bd() -> bool:
         if opcion in ("s", "si", "sí", "y", "yes"):
             return True
         print("[WARN] Opción no válida. Responde s o n.")
+
+
+def es_interactivo() -> bool:
+    return bool(getattr(sys.stdin, "isatty", lambda: False)())
 
 
 def subir_productos_a_bd(json_path: str) -> bool:
@@ -116,11 +371,13 @@ def subir_productos_a_bd(json_path: str) -> bool:
                 check=False,
             )
         except FileNotFoundError:
-            print("[ERROR] No se encontró el comando 'php' en el PATH.")
-            return False
+            mensaje = "[ERROR] No se encontró el comando 'php' en el PATH."
+            print(mensaje)
+            return {"ok": False, "message": mensaje}
         except Exception as exc:
-            print(f"[ERROR] Falló la ejecución del comando de importación: {exc}")
-            return False
+            mensaje = f"[ERROR] Falló la ejecución del comando de importación: {exc}"
+            print(mensaje)
+            return {"ok": False, "message": mensaje}
 
         if result.stdout:
             print(result.stdout.strip())
@@ -128,14 +385,27 @@ def subir_productos_a_bd(json_path: str) -> bool:
             print(result.stderr.strip())
 
         if result.returncode != 0:
-            print(f"[ERROR] La importación terminó con código {result.returncode}.")
-            return False
+            mensaje = f"[ERROR] La importación terminó con código {result.returncode}."
+            print(mensaje)
+            return {
+                "ok": False,
+                "message": mensaje,
+                "stdout": result.stdout.strip(),
+                "stderr": result.stderr.strip(),
+                "returncode": result.returncode,
+            }
 
         print("[OK] Productos subidos a la base de datos temporal.")
-        return True
+        return {
+            "ok": True,
+            "stdout": result.stdout.strip(),
+            "stderr": result.stderr.strip(),
+            "returncode": result.returncode,
+        }
     except Exception as exc:
-        print(f"[ERROR] Error inesperado durante la subida a BD: {exc}")
-        return False
+        mensaje = f"[ERROR] Error inesperado durante la subida a BD: {exc}"
+        print(mensaje)
+        return {"ok": False, "message": mensaje}
 
 # =========================
 # Extracción de datos
@@ -143,6 +413,7 @@ def subir_productos_a_bd(json_path: str) -> bool:
 def extraer_datos_listado(html):
     soup = BeautifulSoup(html, "html.parser")
     productos = []
+
     for prod in soup.select(".product-card, .producto, .item"):
         titulo = limpiar_texto(prod.select_one(".title, .titulo, h2, h3").get_text() if prod.select_one(".title, .titulo, h2, h3") else "")
         url = prod.select_one("a")
@@ -158,7 +429,27 @@ def extraer_datos_listado(html):
             "imagenes": [normalizar_url_imagen(imagen)] if imagen else [],
             "videos": []
         })
-    return productos
+
+    anchors = soup.select("a[href*='/item/']")
+    for anchor in anchors:
+        producto = extraer_producto_desde_anchor(anchor)
+        if producto:
+            productos.append(producto)
+
+    vistos = set()
+    unicos = []
+    for producto in productos:
+        key = (
+            normalizar_url_producto(producto.get("url") or ""),
+            normalizar_titulo(producto.get("titulo") or "")
+        )
+        if key in vistos:
+            continue
+        if not key[0] and not key[1]:
+            continue
+        vistos.add(key)
+        unicos.append(producto)
+    return unicos
 
 def extraer_media_galeria(html, page_url=None):
     soup = BeautifulSoup(html, "html.parser")
@@ -202,10 +493,15 @@ def ejecutar_modo_listado_web(args, productos):
 
     productos_extraidos = extraer_datos_listado(html)
     cambios = False
+    nuevos = 0
+    actualizados = 0
+    sin_cambios = 0
+    omitidos_sin_titulo = 0
 
     for nuevo in productos_extraidos:
         key_nuevo = normalizar_titulo(nuevo.get("titulo"))
         if not key_nuevo:
+            omitidos_sin_titulo += 1
             continue
         idx = None
         for i, existente in enumerate(productos):
@@ -215,6 +511,7 @@ def ejecutar_modo_listado_web(args, productos):
         if idx is None:
             productos.append(nuevo)
             cambios = True
+            nuevos += 1
         else:
             p = productos[idx]
             before = json.dumps(p, ensure_ascii=False, sort_keys=True)
@@ -229,6 +526,9 @@ def ejecutar_modo_listado_web(args, productos):
             after = json.dumps(p, ensure_ascii=False, sort_keys=True)
             if before != after:
                 cambios = True
+                actualizados += 1
+            else:
+                sin_cambios += 1
 
     page_url_for_media = None
     urls_en_html = list({p.get("url") for p in productos_extraidos if p.get("url")})
@@ -257,7 +557,12 @@ def ejecutar_modo_listado_web(args, productos):
         "ok": True,
         "cambios": cambios,
         "extraidos": len(productos_extraidos),
-        "fusion": fusion_ok
+        "fusion": fusion_ok,
+        "nuevos": nuevos,
+        "actualizados": actualizados,
+        "sin_cambios": sin_cambios,
+        "omitidos_sin_titulo": omitidos_sin_titulo,
+        "productos_detectados": productos_extraidos,
     }
 
 def ejecutar_modo_detalle_web(args, productos):
@@ -324,7 +629,8 @@ def main():
     parser.add_argument("--title", help="Título EXACTO para asociar la galería cuando sea necesario.")
     args = parser.parse_args()
 
-    productos, _ = cargar_productos(args.out)
+    output_dir = resolver_directorio_salida(args.out)
+    productos, _ = cargar_productos(output_dir)
     estado_inicial = copy.deepcopy(productos)
 
     if args.modo == "detalle":
@@ -340,18 +646,16 @@ def main():
             sys.exit(1)
         return
 
-    if productos == estado_inicial:
-        print("[INFO] No se detectaron cambios en los productos.")
-        return
+    hubo_cambios_locales = productos != estado_inicial
+    extraidos = resultado.get("extraidos", 0)
+    payload = construir_payload_salida(resultado, hubo_cambios_locales)
+    payload["state_path"] = os.path.join(output_dir, "productos.json")
 
-    json_path = guardar_productos(productos, args.out)
-    # regenerar_html(productos, args.out)  # Si quieres generar HTML resumen
-    print(f"[INFO] Productos guardados: {len(productos)}")
+    if hubo_cambios_locales:
+        guardar_productos(productos, output_dir)
 
-    if preguntar_subida_bd():
-        subir_productos_a_bd(json_path)
-    else:
-        print("[INFO] Subida a BD omitida por el usuario.")
+    print(payload["summary_text"])
+    print(json.dumps(payload, ensure_ascii=False))
 
 if __name__ == "__main__":
     main()

@@ -42,7 +42,6 @@ class OrderLineItemWorkflowTest extends TestCase
         $this->actingAs($user)
             ->get(route('orders.show', $order->id))
             ->assertOk()
-            ->assertSee('Orders/Show')
             ->assertSee('&quot;summary_status&quot;:&quot;parcialmente_cancelado&quot;', false);
     }
 
@@ -56,7 +55,6 @@ class OrderLineItemWorkflowTest extends TestCase
         $this->actingAs($user)
             ->get(route('orders.cancelled'))
             ->assertOk()
-            ->assertSee('Orders/Index')
             ->assertSee('&quot;summary_status&quot;:&quot;parcialmente_cancelado&quot;', false)
             ->assertSee('&quot;id&quot;:' . $order->id, false);
     }

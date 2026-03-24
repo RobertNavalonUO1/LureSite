@@ -28,7 +28,7 @@ class SearchController extends Controller
 
         $builder = Product::query()
             ->with(['category:id,name,slug', 'details:id,product_id,specifications'])
-            ->withAvg('reviews as average_rating', 'rating');
+            ->withAvg('reviews as reviews_average_rating', 'rating');
 
         if ($term = $filters['query'] ?? null) {
             $builder->where(function ($query) use ($term) {
@@ -59,9 +59,9 @@ class SearchController extends Controller
         match ($filters['sort'] ?? 'relevance') {
             'price_asc'  => $builder->orderBy('price'),
             'price_desc' => $builder->orderByDesc('price'),
-            'recent'     => $builder->latest(),
-            'rating'     => $builder->orderByDesc('average_rating'),
-            default      => $builder->orderByDesc('average_rating')->orderByDesc('created_at'),
+            'recent'     => $builder->latest('products.created_at'),
+            'rating'     => $builder->orderByDesc('reviews_average_rating')->orderByDesc('products.created_at'),
+            default      => $builder->orderByDesc('reviews_average_rating')->orderByDesc('products.created_at'),
         };
 
         $perPage = $filters['per_page'] ?? 12;
@@ -69,7 +69,7 @@ class SearchController extends Controller
         $products = $builder->paginate($perPage)->withQueryString()->through(function ($product) use ($catalogLocalizer) {
             return $catalogLocalizer->productPayload($product, [
                 'discount'       => $product->discount,
-                'average_rating' => round($product->average_rating ?? 0, 1),
+                'average_rating' => round($product->reviews_average_rating ?? $product->average_rating ?? 0, 1),
                 'reviews_count'  => $product->reviews()->count(),
                 'tags'           => [
                     'featured'     => $product->is_featured,

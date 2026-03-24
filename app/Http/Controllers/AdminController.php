@@ -152,7 +152,7 @@ class AdminController extends Controller
             'alerts' => $alerts->values(),
             'activity' => $activity,
             'lastUpdated' => now()->toIso8601String(),
-            'currency' => 'USD',
+            'currency' => 'EUR',
             'refundMetrics' => $refundMetrics,
         ]);
     }

@@ -36,7 +36,7 @@ const CartDropdown = () => {
         locale === 'fr' ? 'fr-FR' : locale === 'en' ? 'en-US' : 'es-ES',
         {
             style: 'currency',
-            currency: 'USD',
+            currency: 'EUR',
             minimumFractionDigits: 2,
         },
     ), [locale]);

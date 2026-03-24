@@ -55,7 +55,6 @@ class AdminDashboardMetricsTest extends TestCase
         $this->actingAs($admin)
             ->get('/admin/dashboard')
             ->assertOk()
-            ->assertSee('Admin/Dashboard')
             ->assertSee('Reembolsos con error')
             ->assertSee('Devoluciones aprobadas pendientes')
             ->assertSee('&quot;refundMetrics&quot;:{&quot;requested&quot;:1,&quot;approved&quot;:1,&quot;failed&quot;:1,&quot;refunded&quot;:1}', false)

@@ -1,6 +1,6 @@
 # Limoneo Mobile API Android Spec
 
-Last updated: 2026-03-15
+Last updated: 2026-03-17
 
 ## 1. Purpose
 
@@ -8,7 +8,7 @@ This document defines the canonical mobile API contract required for an Android 
 
 It is intentionally based on the current Laravel web application as the source of truth. The existing `MobileApiController` is considered legacy and partial. It is documented here only to explain what must not become the new contract.
 
-This document is both the canonical contract and the implementation reference as of 2026-03-15. Public mobile API routes live in `api/mobile/v1`.
+This document is both the canonical contract and the implementation reference as of 2026-03-17. Public mobile API routes live in `api/mobile/v1`.
 
 ## 2. Source of truth and explicit exclusions
 
@@ -48,6 +48,7 @@ Backend sources of truth already present in the repo:
   - `App\Support\OrderState`
 - Auth:
   - `App\Http\Controllers\Api\SocialAuthController`
+  - `App\Http\Controllers\Auth\SocialAuthController`
   - Sanctum token model from Laravel
 
 Explicitly out of scope for mobile v1:
@@ -63,6 +64,9 @@ Current canonical status:
 
 - `api/mobile/v1` is implemented and routable in the backend.
 - `POST /api/auth/social` remains the reusable social auth exception outside the prefix.
+- Browser-based mobile OAuth support also exists through:
+  - `GET /auth/mobile/{provider}/redirect`
+  - `GET /auth/mobile/{provider}/callback`
 - The old `/api/mobile/*` routes still exist, but they are legacy partial endpoints and must not be used as the Android source of truth.
 
 The following routes exist today, but they are not the target contract:
@@ -87,6 +91,9 @@ Rule: do not extend `MobileApiController` as the basis of the new mobile API if 
 
 - Canonical mobile API prefix: `api/mobile/v1`
 - Existing exception kept as reusable: `POST /api/auth/social`
+- Supported browser-based mobile OAuth routes:
+  - `GET /auth/mobile/{provider}/redirect`
+  - `GET /auth/mobile/{provider}/callback`
 
 ### 4.2 Transport and headers
 
@@ -120,7 +127,7 @@ Rules:
 
 ### 4.3 Currency, dates, identifiers
 
-- Visible currency for mobile v1: `USD`
+- Visible currency for mobile v1: `EUR`
 - Monetary values: decimal numbers with two decimals
 - Dates: ISO 8601 strings
 - Primary IDs: integers unless explicitly documented otherwise
@@ -297,7 +304,7 @@ Source of truth:
   "price": 29.99,
   "original_price": 39.99,
   "discount": 25,
-  "currency": "USD",
+  "currency": "EUR",
   "stock": 14,
   "image_url": "products/lemon-lamp.jpg",
   "image_url_full": "https://limoneo.com/storage/products/lemon-lamp.jpg",
@@ -325,7 +332,7 @@ Notes:
 
 - `original_price` is nullable.
 - `discount` is an integer percentage.
-- `currency` is always `USD` in v1.
+- `currency` is always `EUR` in v1.
 
 ### 5.6 ReviewSummary
 
@@ -357,7 +364,7 @@ Source of truth:
   "price": 29.99,
   "original_price": 39.99,
   "discount": 25,
-  "currency": "USD",
+  "currency": "EUR",
   "stock": 14,
   "image_url": "products/lemon-lamp.jpg",
   "image_url_full": "https://limoneo.com/storage/products/lemon-lamp.jpg",
@@ -413,7 +420,7 @@ For v1, the cart supports one line per product. `id` is therefore the same as `p
     "price": 29.99,
     "original_price": 39.99,
     "discount": 25,
-    "currency": "USD",
+    "currency": "EUR",
     "stock": 14,
     "image_url": "products/lemon-lamp.jpg",
     "image_url_full": "https://limoneo.com/storage/products/lemon-lamp.jpg",
@@ -448,7 +455,7 @@ Source of truth:
 {
   "value": "standard",
   "label": "Envio estandar",
-  "description": "Gratis en pedidos superiores a $50",
+  "description": "Gratis en pedidos superiores a 50 EUR",
   "eta": "3-5 dias habiles",
   "cost": 4.99,
   "badge": "Popular"
@@ -461,7 +468,7 @@ The same shape is returned by `GET /cart`, `PUT /cart`, and all checkout quote e
 
 ```json
 {
-  "currency": "USD",
+  "currency": "EUR",
   "items_count": 2,
   "subtotal": 59.98,
   "discount": 5.00,
@@ -475,7 +482,7 @@ The same shape is returned by `GET /cart`, `PUT /cart`, and all checkout quote e
   "shipping_method": {
     "value": "standard",
     "label": "Envio estandar",
-    "description": "Gratis en pedidos superiores a $50",
+    "description": "Gratis en pedidos superiores a 50 EUR",
     "eta": "3-5 dias habiles",
     "cost": 4.99,
     "badge": "Popular"
@@ -999,7 +1006,7 @@ Response:
     "price": 29.99,
     "original_price": 39.99,
     "discount": 25,
-    "currency": "USD",
+    "currency": "EUR",
     "stock": 14,
     "image_url": "products/lemon-lamp.jpg",
     "image_url_full": "https://limoneo.com/storage/products/lemon-lamp.jpg",
@@ -1187,7 +1194,7 @@ Response:
 ```json
 {
   "data": {
-    "currency": "USD",
+    "currency": "EUR",
     "items_count": 2,
     "subtotal": 59.98,
     "discount": 0.00,
@@ -1246,7 +1253,7 @@ Response:
 ```json
 {
   "data": {
-    "currency": "USD",
+    "currency": "EUR",
     "items_count": 3,
     "subtotal": 89.97,
     "discount": 0.00,
@@ -1295,7 +1302,7 @@ Response:
 ```json
 {
   "data": {
-    "currency": "USD",
+    "currency": "EUR",
     "items_count": 2,
     "subtotal": 59.98,
     "discount": 0.00,
@@ -1341,7 +1348,7 @@ Response:
 ```json
 {
   "data": {
-    "currency": "USD",
+    "currency": "EUR",
     "items_count": 3,
     "subtotal": 89.97,
     "discount": 0.00,
@@ -1380,7 +1387,7 @@ Response:
 ```json
 {
   "data": {
-    "currency": "USD",
+    "currency": "EUR",
     "items_count": 1,
     "subtotal": 29.99,
     "discount": 0.00,
@@ -1638,7 +1645,7 @@ Response:
 ```json
 {
   "data": {
-    "currency": "USD",
+    "currency": "EUR",
     "items_count": 2,
     "subtotal": 59.98,
     "discount": 5.00,
@@ -1652,7 +1659,7 @@ Response:
     "shipping_method": {
       "value": "standard",
       "label": "Envio estandar",
-      "description": "Gratis en pedidos superiores a $50",
+      "description": "Gratis en pedidos superiores a 50 EUR",
       "eta": "3-5 dias habiles",
       "cost": 4.99,
       "badge": "Popular"
@@ -1713,7 +1720,7 @@ Response:
 ```json
 {
   "data": {
-    "currency": "USD",
+    "currency": "EUR",
     "items_count": 2,
     "subtotal": 59.98,
     "discount": 5.00,
@@ -1727,7 +1734,7 @@ Response:
     "shipping_method": {
       "value": "standard",
       "label": "Envio estandar",
-      "description": "Gratis en pedidos superiores a $50",
+      "description": "Gratis en pedidos superiores a 50 EUR",
       "eta": "3-5 dias habiles",
       "cost": 4.99,
       "badge": "Popular"
@@ -1778,7 +1785,7 @@ Response:
 ```json
 {
   "data": {
-    "currency": "USD",
+    "currency": "EUR",
     "items_count": 2,
     "subtotal": 59.98,
     "discount": 5.00,
@@ -1862,7 +1869,7 @@ Response:
       "expires_at": "2026-03-15T18:00:00Z"
     },
     "quote": {
-      "currency": "USD",
+      "currency": "EUR",
       "items_count": 2,
       "subtotal": 59.98,
       "discount": 5.00,
@@ -1876,7 +1883,7 @@ Response:
       "shipping_method": {
         "value": "standard",
         "label": "Envio estandar",
-        "description": "Gratis en pedidos superiores a $50",
+        "description": "Gratis en pedidos superiores a 50 EUR",
         "eta": "3-5 dias habiles",
         "cost": 4.99,
         "badge": "Popular"
@@ -2209,7 +2216,7 @@ The implementation of this API should be considered aligned only if:
 
 1. Mobile auth returns the same user shape across register, login, social login, and `GET /me`.
 2. Address payloads match the structured web contract exactly.
-3. Product list and product detail use localized category names and `USD`.
+3. Product list and product detail use localized category names and `EUR`.
 4. Order endpoints expose the same line state semantics as the current web UI.
 5. Mobile API does not recreate the old `placeOrder` shortcut.
 6. Payment success always flows through backend verification before order creation.

@@ -1,496 +1,129 @@
-# Limoneo (Laravel + Inertia + React)
-
-Última actualización: 2026-03-15
-
-Aplicación web tipo e-commerce construida con **Laravel 11** + **Inertia.js** + **React** (Vite). El backend sirve páginas Inertia y APIs JSON, y el frontend vive en `resources/js`.
-
-Documentación adicional:
-
-- Guía extendida de producción y alojamiento: [docs/PRODUCTION.md](docs/PRODUCTION.md)
-- Guía para alternar entornos (dev/staging/prod): [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md)
-- Dataset QA masivo para pruebas manuales y smoke tests: [docs/QA_DATASET.md](docs/QA_DATASET.md)
-- Checklist manual para recorrer storefront, cliente y admin sobre el dataset QA: [docs/QA_MANUAL_CHECKLIST.md](docs/QA_MANUAL_CHECKLIST.md)
-- Checklist corto de pendientes: [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)
-- Guía de arranque (próximo bloque con otro agente): [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)
-- Landing temporal “universo + limón” (modo mantenimiento): [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)
-- API móvil canónica para Android: [docs/MOBILE_API_ANDROID_SPEC.md](docs/MOBILE_API_ANDROID_SPEC.md)
-- Prompt operativo para generar la app Android: [docs/ANDROID_APP_BASE_PROMPT.md](docs/ANDROID_APP_BASE_PROMPT.md)
-- Guía de contexto para prompts Android: [docs/ANDROID_APP_PROMPT_GUIDE.md](docs/ANDROID_APP_PROMPT_GUIDE.md)
-- i18n frontend (diccionarios + hook): [resources/js/i18n/README.md](resources/js/i18n/README.md)
-
-## Estado actual (infra / producción)
-
-Ya se avanzó en la infraestructura base. Resumen:
-
-- Dominio: `limoneo.com` comprado en Dynadot.
-- VPS: Hetzner Cloud
-    - Plan: CX23 (2 vCPU, 4GB RAM, 40GB)
-    - Nombre: `limoneo-prod-1`
-    - Región: Nuremberg (Alemania)
-    - IPv4 pública: `46.224.207.157`
-- SSH (Windows): clave generada y añadida a Hetzner.
-    - Privada: `C:\Users\TZL\.ssh\id_ed25519` (NO se comparte)
-    - Pública: `C:\Users\TZL\.ssh\id_ed25519.pub`
-- Base de datos (Neon / Postgres): proyecto en Frankfurt (`eu-central-1`)
-    - DB: `neondb`
-    - Rol: `neondb_owner`
-    - Endpoint directo (sin pooler, recomendado para migraciones): `ep-round-unit-alr8cr3l.c-3.eu-central-1.aws.neon.tech`
-    - Pooler (opcional, útil para tráfico web): `ep-round-unit-alr8cr3l-pooler.c-3.eu-central-1.aws.neon.tech`
-    - SSL: requerido (`sslmode=require`)
-- Cloudflare: activo para `limoneo.com`.
-- Origin (VPS): Nginx + Let's Encrypt + PHP-FPM 8.3 (Laravel) sirviendo correctamente.
-- Despliegue limpio ejecutado el `2026-03-15` mediante release swap en `/var/www/limoneo/current`.
-- Estado actual de pagos en producción:
-    - Stripe: claves de test
-    - PayPal: `sandbox`
-
-Runbook detallado: [docs/PRODUCTION.md](docs/PRODUCTION.md).
-
-## URLs / comprobación rápida
-
-- Producción: `https://limoneo.com`
-- Modo mantenimiento (solo producción): `LANDING_ONLY=true` sirve una sola página (ver [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)).
-- Staging: `https://staging.limoneo.com`
-    - Si ves `DNS_PROBE_FINISHED_NXDOMAIN`, falta crear el registro DNS en Cloudflare (ver [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)).
-    - Mientras no haya DNS, la verificación real se hace desde el VPS con `curl -I -H 'Host: staging.limoneo.com' http://127.0.0.1/`.
-- Local (dev): `http://127.0.0.1:8000`
-    - Activar entorno: `composer env:dev`
-    - Backend: `php artisan serve --host=127.0.0.1 --port=8000`
-    - Frontend: `npm run dev`
-
-Nota Windows/PowerShell: `curl` suele ser un alias de `Invoke-WebRequest`. Si necesitas sintaxis estilo Linux (`-I`, `-H`), usa `curl.exe`.
-
-## QA local rapido
-
-Para poblar una base local con datos de prueba amplios y consistentes para storefront, perfil, admin, pedidos, devoluciones y herramientas internas:
-
-- Refrescar toda la base con dataset QA: `composer qa:refresh`
-- Reinyectar dataset QA sobre una base ya migrada: `composer seed:qa`
-- Verificar el seeder QA: `composer test:qa-dataset`
-- Ejecutar la suite focalizada principal: `composer test:critical`
-- Validar la API móvil: `php artisan test --filter=MobileApiV1Test`
-- Ver rutas móviles: `php artisan route:list --path=api/mobile/v1`
-- Probar checkout móvil sandbox cuando haya secretos: `php artisan mobile:checkout-sandbox-smoke`
-
-Credenciales QA documentadas y coberturas del dataset: ver [docs/QA_DATASET.md](docs/QA_DATASET.md).
-
-Checklist manual recomendada para smoke completo: ver [docs/QA_MANUAL_CHECKLIST.md](docs/QA_MANUAL_CHECKLIST.md).
-
-Este README está escrito pensando en un handoff real: explica **cómo funciona** el proyecto, **cómo ejecutarlo** (desarrollo vs producción) y **dónde está cada cosa importante**.
-
-> Nota sobre “explicar cada archivo”
->
-> Este repo contiene dependencias y artefactos generados (por ejemplo `vendor/`, `node_modules/`, `public/build/`, `storage/`). Documentarlos “archivo por archivo” no aporta valor y además cambia según versiones.
-> En su lugar, este README desglosa **todos los módulos propios** (rutas, controladores, servicios, modelos y componentes/páginas React) y los **archivos de configuración** que gobiernan el comportamiento.
-
-## Arquitectura (vista general)
-
-- Backend: Laravel (rutas web + controladores + modelos Eloquent + servicios).
-- Frontend: Inertia + React (páginas y componentes) empaquetado con Vite.
-- Estado de carrito:
-    - invitado: `session('cart')`
-    - autenticado: persistente en `cart_items`, compartido entre web y `api/mobile/v1` a través de `ShoppingCartService`
-- Auth: login web con **Laravel Socialite** (Google/Facebook) + flujo móvil con **Sanctum** y API canónica `api/mobile/v1` (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)).
-- Pagos: Stripe Checkout + PayPal (SDK).
-- Extra: ejecución de scripts Python desde backend (uso interno/herramientas).
-
-## Estado actual (app)
-
-- Responsive móvil: aplicada una primera tanda de ajustes en checkout, carrito, grids y sticky stack storefront.
-- Landing-only en producción: `LANDING_ONLY=true` sirve solo la landing (ver [docs/LANDING_UNIVERSE.md](docs/LANDING_UNIVERSE.md)).
-- Seguridad de rutas y ownership: se cerró una pasada de endurecimiento en `routes/web.php`, checkout, pedidos, perfil/direcciones y administración.
-- Admin/postventa: las mutaciones destructivas usan ya semántica REST (`DELETE`/`PATCH`), se retiró el componente admin huérfano que seguía hablando con el contrato antiguo y el reembolso admin ya intenta ejecutarse contra Stripe o PayPal antes de marcar el pedido como `reembolsado`.
-- Trazabilidad de refund: `orders` conserva referencia de pago, referencia de refund, fecha efectiva y último error de proveedor si falla el reembolso.
-- Operativa de refund: ya existe una primera capa de idempotencia, validación de modo PayPal y logging de intentos/resultado para soporte.
-- API móvil canónica implementada en `api/mobile/v1` para auth, catálogo, carrito, checkout, direcciones y pedidos, con locale stateless vía `Accept-Language`.
-- Carrito autenticado compartido entre web y móvil; login, registro y social login fusionan el snapshot local del cliente con el carrito persistente del usuario.
-- Validación móvil dedicada disponible en `tests/Feature/MobileApiV1Test.php`.
-- Smoke command de pagos sandbox disponible en `php artisan mobile:checkout-sandbox-smoke` para Stripe/PayPal cuando el entorno tenga secretos configurados.
-- Cobertura focalizada: la suite de regresión del bloque crítico está verde con `24 tests` y `104 assertions`.
-- Importación de productos: pipeline temporal (`temporary_products`) + migración a `products` y scripts Python (ver [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)).
-- Pendiente principal: rematar los restos admin menos relevantes, decidir si exponer más visibilidad operativa del refund y después retomar la deuda técnica de importación Python.
-
-Flujo típico de una página Inertia:
-
-1) Navegador pide una ruta web (ej. `/`).
-2) Laravel responde con `Inertia::render('Shop/Home', props...)`.
-3) Inertia monta React y resuelve el componente `resources/js/Pages/Shop/Home.jsx`.
-4) Cambios de página posteriores se hacen con navegación Inertia (sin recarga completa).
-
-## Mapa rápido del proyecto
-
-### Entradas y configuración
-
-- Frontend bootstrap: [resources/js/app.jsx](resources/js/app.jsx)
-    - Monta Inertia con `createInertiaApp` y resuelve páginas con `import.meta.glob('./Pages/**/*.jsx')`.
-- Vista raíz Inertia: [resources/views/app.blade.php](resources/views/app.blade.php)
-    - Inyecta Ziggy (`@routes`) y los assets Vite (`@vite([...])`).
-- Config Vite: [vite.config.js](vite.config.js)
-    - Punto de entrada: `resources/js/app.jsx`.
-
-### Rutas (backend)
-
-- Rutas web + endpoints JSON: [routes/web.php](routes/web.php)
-    - **Páginas públicas**: `/`, `/about`, `/contact`, `/faq`, `/terms`, `/privacy`, y páginas especiales (`/deals/today`, `/superdeal`, etc.).
-    - **APIs públicas JSON**: `/api/deals-today`, `/api/superdeals`, `/api/fast-shipping`, `/api/search/suggestions`, `/banners`.
-    - **Auth Socialite (web)**:
-        - `GET /auth/{provider}/redirect`
-        - `GET /auth/{provider}/callback`
-    - **Locale**: `POST /locale` (cookie + sesión).
-    - **Carrito/checkout**: `/cart/*`, `/checkout/*`.
-    - **API móvil canónica**: `/api/mobile/v1/*` con Sanctum y locale stateless por header.
-    - **API móvil legacy**: `/api/mobile/*` se mantiene solo por compatibilidad parcial y no define el contrato nuevo.
-    - **Pedidos autenticados**: ownership reforzado en `/orders/{order}` y workflow de devolución separado del reembolso final.
-    - **Admin**: mutaciones destructivas y de estado normalizadas a `DELETE` / `PATCH`, incluyendo devolución aprobada, rechazada y reembolso administrativo.
-    - **Inertia share**: comparte carrito, total, csrf, etc.
-
-### Shared props (Inertia)
-
-- Middleware Inertia: [app/Http/Middleware/HandleInertiaRequests.php](app/Http/Middleware/HandleInertiaRequests.php)
-    - Inyecta `auth.user` (saneado) + snapshot de carrito (`cartItems`, `cartCount`, `total`) resuelto por `ShoppingCartService` + mensajes flash.
-
-## Frontend (Inertia + React)
-
-### Cómo se resuelven páginas
-
-Las rutas Laravel llaman a `Inertia::render('<Folder/Page>')` y se resuelve a:
-
-- `Inertia::render('Shop/Home')` → [resources/js/Pages/Shop/Home.jsx](resources/js/Pages/Shop/Home.jsx)
-- `Inertia::render('Special/DealsToday')` → [resources/js/Pages/Special/DealsToday.jsx](resources/js/Pages/Special/DealsToday.jsx)
-- `Inertia::render('Special/SuperDeal')` → [resources/js/Pages/Special/SuperDeal.jsx](resources/js/Pages/Special/SuperDeal.jsx)
-
-El resolver está en [resources/js/app.jsx](resources/js/app.jsx).
-
-### Navegación / Header / Sticky stack
-
-- Layout compartido de storefront: [resources/js/Layouts/StorefrontLayout.jsx](resources/js/Layouts/StorefrontLayout.jsx)
-    - Calcula una sola vez el estado compacto con `useScrollCompact()`.
-    - Entrega `isCompact` a `Header` y `TopNavMenu` para que ambos usen la misma referencia visual.
-
-- Header principal: [resources/js/Components/navigation/Header.jsx](resources/js/Components/navigation/Header.jsx)
-    - Es `sticky top-0` con jerarquía `z-50`, por encima del resto del contenido.
-    - Cuando cambia entre modo expandido y compacto, actualiza `--header-sticky-height` con la altura real activa (`expanded` o `compact`).
-    - Mantiene `--header-compact-offset-active` en `0px`, de modo que el resto del stack sticky no reste una altura fantasma.
-
-- Menú superior de secciones: [resources/js/Components/navigation/TopNavMenu.jsx](resources/js/Components/navigation/TopNavMenu.jsx)
-    - También es sticky y se ancla justo debajo del header con `top: calc(var(--header-sticky-height, 0px) - var(--header-compact-offset-active, 0px))`.
-    - Usa `z-40`, por debajo del header pero por encima de raíles y asides de catálogo.
-
-- Hook de compactación: [resources/js/hooks/useScrollCompact.js](resources/js/hooks/useScrollCompact.js)
-    - Sustituye al esquema anterior basado en dataset/eventos globales.
-    - El estado compacto ya no se publica en `<html>` ni depende de listeners personalizados.
-
-**Concepto “sticky stack”**
-
-La jerarquía correcta ahora es:
-
-1. Header
-2. Top nav
-3. Railes de categorías, filtros sticky y asides
-
-En catálogo se usan tokens explícitos en `resources/js/config/catalogLayout.js`:
-
-- `CATALOG_STICKY_TOP`: para sidebars o railes sticky bajo header + topnav.
-- `CATALOG_STICKY_TOP_WITH_RAIL`: para bloques sticky que además deben respetar la altura reservada del rail de categorías de Home.
-- Regla de composición: el filtro es el único sticky dominante del aside; banners y promos quedan en flujo normal para no competir por el mismo anclaje.
-
-Nota operativa: evitar `z-index` propios en el aside derecho de Home salvo necesidad real, porque rompen la jerarquía anterior.
-
-### Home (Shop)
-
-- Página: [resources/js/Pages/Shop/Home.jsx](resources/js/Pages/Shop/Home.jsx)
-    - Recibe `categories`, `products`, `campaign`, `auth` desde backend.
-    - Filtros en cliente: búsqueda, categoría, precio min/max, orden.
-    - Patrón visual de filtros del catálogo:
-        - Desktop: `CatalogFilterPanel` persistente y sticky.
-        - Mobile: el mismo `CatalogFilterPanel` en modo inline expandible, sin overlays ni drawers.
-        - En Home el sticky del filtro respeta `CategoryIconBar` mediante `CATALOG_STICKY_TOP_WITH_RAIL`.
-    - **Swap de categorías según header**:
-        - Normal: grid grande con `CategoryCards`.
-        - Compacto: barra minimal con `CategoryIconBar`.
-    - Aside enriquecido con banners y módulos rápidos, pero sin stickies promocionales compitiendo con el filtro.
-
-### Sistema de filtros de catálogo
-
-- Componente compartido: `resources/js/Components/catalog/CatalogFilterPanel.jsx`
-    - Centraliza estructura, lenguaje visual y modo `aside`/`inline`.
-    - Recibe setters/control state desde cada página para no acoplar lógica de negocio.
-- Chips/resumen activos: `resources/js/Components/catalog/ActiveFilters.jsx`
-    - Soporta búsqueda, categoría, precio y etiquetas adicionales.
-- Páginas unificadas:
-    - `resources/js/Pages/Shop/Home.jsx`
-    - `resources/js/Pages/Search/Results.jsx`
-    - `resources/js/Pages/Shop/CategoryPage.jsx`
-
-- Barra de categorías compacta: [resources/js/Components/catalog/CategoryIconBar.jsx](resources/js/Components/catalog/CategoryIconBar.jsx)
-    - Iconos por heurística del nombre (mapa local) + dropdowns “todas”/“más”.
-    - Usa `renderDropdown` para renderizar el dropdown como overlay.
-
-- Banners laterales (carousel): [resources/js/Components/marketing/SidebarBanners.jsx](resources/js/Components/marketing/SidebarBanners.jsx)
-    - Normaliza datos (tolerante a `banners` no-array) para evitar crashes.
-    - Rotación automática + dots/thumbs (sin librerías).
-
-### Páginas especiales (Special)
-
-- Ofertas del día: [resources/js/Pages/Special/DealsToday.jsx](resources/js/Pages/Special/DealsToday.jsx)
-    - Carga datos con `fetch('/api/deals-today')`.
-    - Barra sticky de acciones/filtros bajo header+topnav:
-        - Recargar
-        - Filtros rápidos `minDiscount` (0/20/40)
-        - Búsqueda con limpiar
-        - Botón “Arriba”
-    - Renderiza `filteredOffers` y muestra empty state “Sin coincidencias”.
-
-- SuperDeal: [resources/js/Pages/Special/SuperDeal.jsx](resources/js/Pages/Special/SuperDeal.jsx)
-    - Carga datos con `fetch('/api/superdeals')`.
-    - Misma barra sticky de acciones/filtros.
-    - Separa `featured` vs `regular` a partir de los productos filtrados.
-
-## Backend (Laravel)
-
-### Rutas y páginas Inertia
-
-La mayor parte del enrutado está en [routes/web.php](routes/web.php). Puntos clave:
-
-- Páginas Inertia (`Inertia::render(...)`) para Shop/Static/Special.
-- APIs JSON públicas para “deals/superdeals/fast shipping” y sugerencias de búsqueda.
-- API móvil canónica en `routes/api.php` bajo `api/mobile/v1`.
-- Carrito híbrido: session para invitado y persistente para usuario autenticado.
-
-### Modelos (datos)
-
-- Producto: [app/Models/Product.php](app/Models/Product.php)
-    - Campos fillable incluyendo flags: `is_featured`, `is_superdeal`, `is_fast_shipping`, `is_new_arrival`, `is_seasonal`, `discount`.
-    - Relación `belongsTo(Category)`.
-    - Accesor `image_url_full`.
-
-- Categoría: [app/Models/Category.php](app/Models/Category.php)
-    - `hasMany(Product)`.
-
-### Carrito (guest + authenticated shared cart)
-
-- Controlador: [app/Http/Controllers/CartController.php](app/Http/Controllers/CartController.php)
-    - Usa `ShoppingCartService` para resolver carrito invitado y autenticado.
-    - Mantiene respuestas HTML (redirect) y JSON (`expectsJson`).
-    - Expone snapshot `cartItems`, `cartCount`, `total`.
-- Servicio: [app/Services/ShoppingCartService.php](app/Services/ShoppingCartService.php)
-    - Lee y escribe `session('cart')` para invitados.
-    - Persiste carrito autenticado en `cart_items` mediante [app/Models/CartItem.php](app/Models/CartItem.php).
-    - Fusiona snapshots locales tras login, registro o social login.
-
-### Checkout + Pagos (Stripe / PayPal)
-
-- Controlador: [app/Http/Controllers/CheckoutController.php](app/Http/Controllers/CheckoutController.php)
-    - Render de checkout con totales, opciones de envío y direcciones.
-    - Stripe: crea una sesión de checkout usando `STRIPE_SECRET` y devuelve `sessionId` + `STRIPE_KEY`.
-    - PayPal (sandbox): crea orden y devuelve `approvalLink`.
-    - `success()` finaliza creando `Order` y `OrderItem` (persistencia).
-
-Variables de entorno esperadas (resumen):
-
-- `STRIPE_KEY`, `STRIPE_SECRET`
-- `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
-
-### Auth social (Google/Facebook) (Socialite + Sanctum)
-
-Flujo **web** (sesión Laravel):
-
-1) El usuario pulsa “Continuar con Google/Facebook”.
-2) Frontend redirige a `GET /auth/{provider}/redirect`.
-3) Socialite hace el OAuth handshake.
-4) Callback en `GET /auth/{provider}/callback`:
-    - crea/actualiza usuario local
-    - hace `auth()->login(...)` y regenera sesión
-    - redirige al home.
-
-Flujo **móvil** (token Sanctum):
-
-1) La app móvil obtiene un `access_token` del proveedor (Google/Facebook).
-2) La app llama `POST /api/auth/social` con JSON:
-
-```json
-{ "provider": "google", "access_token": "..." }
+# Limoneo
+
+Last updated: 2026-03-23
+
+Limoneo is an ecommerce project built with Laravel 11, Inertia.js, React, Vite, Sanctum, Stripe, PayPal, and Socialite.
+
+This repository currently contains:
+
+- the public web storefront
+- the authenticated customer area
+- the admin area
+- the canonical mobile API under `api/mobile/v1`
+- the backend support required by the Android app
+
+## Current status
+
+As of 2026-03-23:
+
+- production is live at `https://limoneo.com`
+- `api/mobile/v1/products` is fixed and returns real products from the production database again
+- product payloads now return valid `image_url_full` values for both local and absolute image URLs
+- mobile checkout sandbox smoke works on production for Stripe test and PayPal sandbox
+- mobile browser OAuth routes are deployed:
+  - `/auth/mobile/{provider}/redirect`
+  - `/auth/mobile/{provider}/callback`
+- the production server now returns provider redirects for both Google and Facebook mobile OAuth routes
+- Facebook data deletion endpoints and the public instructions page are deployed on production
+- order shipping, coupon, discount, and payment metadata are now persisted in orders
+- the production checkout UI has been refreshed with the profile address-book flow and live shipping total feedback
+- order cancellation and refund workflows are covered by backend tests
+
+Still pending in production:
+
+- Google and Facebook redirects are operational, but end-to-end provider login still needs manual validation in production
+- Facebook live-mode or app-review restrictions may still block real-user login until Meta-side configuration is confirmed
+- payments are still not in live mode
+- end-to-end device smoke for Android checkout callback still needs to be run manually
+
+## Main docs
+
+- Production runbook: [docs/PRODUCTION.md](docs/PRODUCTION.md)
+- Environment setup: [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md)
+- Next priorities: [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)
+- Handoff guide: [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)
+- Android mobile API contract: [docs/MOBILE_API_ANDROID_SPEC.md](docs/MOBILE_API_ANDROID_SPEC.md)
+- Android prompt overview: [docs/ANDROID_APP_PROMPT_GUIDE.md](docs/ANDROID_APP_PROMPT_GUIDE.md)
+- Android base prompt: [docs/ANDROID_APP_BASE_PROMPT.md](docs/ANDROID_APP_BASE_PROMPT.md)
+- QA dataset: [docs/QA_DATASET.md](docs/QA_DATASET.md)
+- QA manual checklist: [docs/QA_MANUAL_CHECKLIST.md](docs/QA_MANUAL_CHECKLIST.md)
+- Legacy and historical docs: [docs/legacy/README.md](docs/legacy/README.md)
+
+## Local development
+
+Requirements:
+
+- PHP 8.2+
+- Node.js 18+
+- Composer
+- SQLite for local dev, or Postgres if you prefer
+
+Typical setup:
+
+```bash
+composer install
+npm install
+composer env:dev
+php artisan key:generate
+php artisan migrate
+php artisan storage:link
 ```
 
-3) Backend valida el token con Socialite (`userFromToken`) y devuelve:
-    - `token` (Sanctum)
-    - `user`
-    - fusión de carrito opcional si la app envía un snapshot local
+Run locally:
 
-### API móvil canónica (`api/mobile/v1`)
+```bash
+php artisan serve --host=127.0.0.1 --port=8000
+npm run dev
+```
 
-- Controladores: `app/Http/Controllers/Api/MobileV1/*`
-- Middleware: `app/Http/Middleware/SetApiLocale.php`
-- Contrato: [docs/MOBILE_API_ANDROID_SPEC.md](docs/MOBILE_API_ANDROID_SPEC.md)
-- Tests: [tests/Feature/MobileApiV1Test.php](tests/Feature/MobileApiV1Test.php)
-- Scope actual:
-    - auth: login, register, logout, `GET/PATCH /me`
-    - catálogo: home, products, product detail, categories, search suggestions, special collections
-    - carrito: `GET/PUT /cart`, `POST/PATCH/DELETE /cart/items`
-    - checkout: quote, coupon, shipping, payment session, return, cancel
-    - direcciones: CRUD + default
-    - pedidos: listado, detalle, cancelación y refund a nivel pedido y línea
+Recommended one-command dev mode:
 
-Enlaces oficiales para crear credenciales OAuth:
+```bash
+composer run dev
+```
 
-- Google Cloud Console (Credenciales): https://console.cloud.google.com/apis/credentials
-- Google (Pantalla de consentimiento OAuth): https://console.cloud.google.com/apis/credentials/consent
-- Facebook Developers (Apps): https://developers.facebook.com/apps/
-- Docs Facebook Login (Web): https://developers.facebook.com/docs/facebook-login/web/
+## QA and validation
 
-### Scripts Python (herramientas)
+Local QA dataset:
 
-- Endpoint JSON: [app/Http/Controllers/PythonScriptController.php](app/Http/Controllers/PythonScriptController.php)
-    - Recibe `script`, `input` y opciones.
-    - Crea un archivo temporal HTML en `storage/app/`.
-    - Ejecuta el script con `Symfony\Component\Process\Process`.
+```bash
+composer qa:refresh
+composer test:qa-dataset
+```
 
-Notas operativas:
+Critical backend suites:
 
-- Hay un Python embebido en `python_embed/`.
-- El controlador define `$pythonBinary`, pero actualmente ejecuta el comando `python` (depende del PATH). Si quieres forzar el embebido, habría que pasar el binario explícito (tarea futura).
+```bash
+php artisan test tests/Feature/MobileApiV1Test.php tests/Feature/PublicCatalogApiTest.php tests/Feature/OrderAuthorizationTest.php tests/Feature/OrderLineItemWorkflowTest.php tests/Feature/AddressManagementTest.php
+php artisan test tests/Feature/AdminRestWorkflowTest.php tests/Feature/AdminDashboardMetricsTest.php tests/Feature/RouteSecurityTest.php tests/Feature/OrderAuthorizationTest.php tests/Feature/AddressManagementTest.php tests/Feature/PublicCatalogApiTest.php
+```
 
-## Ejecutar en desarrollo (estado actual)
+Useful API checks:
 
-### Prerrequisitos
+```bash
+php artisan route:list --path=api/mobile/v1
+php artisan mobile:checkout-sandbox-smoke
+```
 
-- PHP >= 8.2
-- Composer
-- Node.js (recomendado 18+)
+## Architecture notes
 
-### Setup inicial
+- Guest cart uses session on web and Room on Android.
+- Authenticated cart is persisted in `cart_items` and shared between web and mobile.
+- Mobile locale is stateless through `Accept-Language: es|en|fr`.
+- The canonical mobile contract is `api/mobile/v1`.
+- The old `/api/mobile/*` endpoints are legacy only.
 
-1) Instalar dependencias PHP:
+## Production notes
 
-`composer install`
+Production currently runs with:
 
-2) Instalar dependencias Node:
+- Stripe test keys
+- PayPal sandbox
+- product catalog endpoint fixed and verified
+- checkout sandbox smoke verified on the server
 
-`npm install`
+Before declaring the platform fully finished, these last operational gaps must be closed:
 
-3) Variables de entorno:
-
-- Recomendado: activar entorno de desarrollo con el switcher:
-
-`composer env:dev`
-
-- Generar `APP_KEY`:
-
-`php artisan key:generate`
-
-4) Base de datos y tablas:
-
-Por defecto `.env.example` usa SQLite + `SESSION_DRIVER=database` + `QUEUE_CONNECTION=database` + `CACHE_STORE=database`.
-
-- Asegúrate de tener `database/database.sqlite`.
-- Ejecuta migraciones:
-
-`php artisan migrate`
-
-Tip: para inspeccionar la SQLite en VS Code (tablas/datos), ver [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md) → “Ver SQLite local en VS Code (desarrollo)”.
-
-5) Storage link (imágenes en `storage/`):
-
-`php artisan storage:link`
-
-### Pruebas (tests)
-
-- Ejecutar test suite:
-
-`php artisan test`
-
-o (atajo):
-
-`composer test`
-
-Notas:
-
-- Los tests fuerzan `APP_ENV=testing` y DB SQLite en memoria (ver `phpunit.xml`) para que sean reproducibles.
-- Si notas comportamiento raro tras cambiar `.env`, usa:
-
-`php artisan optimize:clear`
-
-### Arranque (2 terminales)
-
-- Backend:
-
-`php artisan serve --host=127.0.0.1 --port=8000`
-
-- Frontend:
-
-`npm run dev -- --host 127.0.0.1 --port 5173`
-
-URLs:
-
-- Laravel: http://127.0.0.1:8000
-- Vite: http://127.0.0.1:5173
-
-### Arranque (modo recomendado 1 comando)
-
-`composer run dev`
-
-Esto levanta en paralelo:
-
-- `php artisan serve`
-- `php artisan queue:listen`
-- `php artisan pail`
-- `npm run dev`
-
-## Despliegue en producción (runbook)
-
-### Compilar assets
-
-En CI o en tu máquina de build:
-
-- `npm ci`
-- `npm run build`
-
-Los assets generados se escriben en `public/build/` (ver plugin `laravel-vite-plugin`).
-
-### Instalar dependencias PHP
-
-- `composer install --no-dev --optimize-autoloader`
-
-### Configuración de entorno
-
-- `APP_ENV=production`
-- `APP_DEBUG=false`
-- `APP_KEY` configurada
-- Configurar DB real (MySQL/Postgres) o SQLite con permisos correctos
-- Configurar:
-    - Stripe: `STRIPE_KEY`, `STRIPE_SECRET`
-    - PayPal: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`
-    - Socialite:
-        - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
-        - `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`, `FACEBOOK_REDIRECT_URI`
-
-### Migraciones y caches
-
-- `php artisan migrate --force`
-- `php artisan config:cache`
-- `php artisan route:cache`
-- `php artisan view:cache`
-
-### Workers
-
-Si usas colas:
-
-- `php artisan queue:work --tries=1`
-
-En producción normalmente conviene `redis` para colas/cache/sesión.
-
-## Ficheros “clave” (referencia)
-
-- [routes/web.php](routes/web.php): rutas web + APIs + share.
-- [resources/js/app.jsx](resources/js/app.jsx): bootstrap Inertia/React.
-- [resources/views/app.blade.php](resources/views/app.blade.php): root view Inertia + Vite.
-- [app/Http/Middleware/HandleInertiaRequests.php](app/Http/Middleware/HandleInertiaRequests.php): shared props globales.
-- [resources/js/Components/navigation/Header.jsx](resources/js/Components/navigation/Header.jsx): header sticky + compacto.
-- [resources/js/Components/navigation/TopNavMenu.jsx](resources/js/Components/navigation/TopNavMenu.jsx): sticky debajo de header.
-- [resources/js/Pages/Shop/Home.jsx](resources/js/Pages/Shop/Home.jsx): home + filtros + aside.
-- [app/Http/Controllers/CartController.php](app/Http/Controllers/CartController.php): carrito en session.
-- [app/Http/Controllers/CheckoutController.php](app/Http/Controllers/CheckoutController.php): checkout + pagos.
-- [app/Http/Controllers/Auth/SocialAuthController.php](app/Http/Controllers/Auth/SocialAuthController.php): login web Socialite (redirect/callback).
-- [app/Http/Controllers/Api/SocialAuthController.php](app/Http/Controllers/Api/SocialAuthController.php): exchange móvil (access_token → token Sanctum).
-- [app/Http/Controllers/LocaleController.php](app/Http/Controllers/LocaleController.php): cambio de idioma (cookie + sesión).
-- [app/Http/Middleware/SetLocale.php](app/Http/Middleware/SetLocale.php): aplica locale a cada request.
+1. validate Google and Facebook login end to end on production
+2. run manual device smoke for Android login, product list, cart sync, checkout return, and order refresh
+3. decide and execute the switch from sandbox/test payments to live payments

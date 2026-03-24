@@ -6,6 +6,7 @@ use App\Models\Address;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Product;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -231,7 +232,7 @@ class MobileApiV1Test extends TestCase
             'shipping_method' => 'standard',
         ])
             ->assertOk()
-            ->assertJsonPath('data.currency', 'USD')
+            ->assertJsonPath('data.currency', 'EUR')
             ->assertJsonPath('data.items_count', 2)
             ->assertJsonPath('data.subtotal', 40)
             ->assertJsonPath('data.discount', 4)
@@ -240,6 +241,54 @@ class MobileApiV1Test extends TestCase
             ->assertJsonPath('data.coupon.code', 'SAVE10')
             ->assertJsonPath('data.shipping_method.value', 'standard')
             ->assertJsonCount(3, 'data.shipping_options');
+    }
+
+    public function test_mobile_products_supports_rating_sort_when_products_table_has_average_rating_column(): void
+    {
+        $category = $this->createCategory([
+            'slug' => 'featured-accessories',
+        ]);
+
+        $higherRated = $this->createProduct($category, [
+            'name' => 'Higher Rated',
+            'average_rating' => 1.2,
+            'created_at' => now()->subDay(),
+        ]);
+        $lowerRated = $this->createProduct($category, [
+            'name' => 'Lower Rated',
+            'average_rating' => 4.8,
+            'created_at' => now(),
+            'image_url' => 'https://cdn.example.test/lower-rated.png',
+        ]);
+
+        Review::create([
+            'product_id' => $higherRated->id,
+            'author' => 'Alice',
+            'rating' => 5,
+            'comment' => 'Great',
+        ]);
+        Review::create([
+            'product_id' => $higherRated->id,
+            'author' => 'Bob',
+            'rating' => 4,
+            'comment' => 'Solid',
+        ]);
+        Review::create([
+            'product_id' => $lowerRated->id,
+            'author' => 'Charlie',
+            'rating' => 2,
+            'comment' => 'Okay',
+        ]);
+
+        $this->getJson('/api/mobile/v1/products?sort=rating')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $higherRated->id)
+            ->assertJsonPath('data.0.average_rating', 4.5)
+            ->assertJsonPath('data.0.reviews_count', 2)
+            ->assertJsonPath('data.1.id', $lowerRated->id)
+            ->assertJsonPath('data.1.image_url_full', 'https://cdn.example.test/lower-rated.png')
+            ->assertJsonPath('data.1.average_rating', 2)
+            ->assertJsonPath('meta.filters.sort', 'rating');
     }
 
     private function createCategory(array $overrides = []): Category
@@ -253,7 +302,8 @@ class MobileApiV1Test extends TestCase
 
     private function createProduct(Category $category, array $overrides = []): Product
     {
-        return Product::create(array_merge([
+        $product = new Product();
+        $product->forceFill(array_merge([
             'name' => 'Sample Product',
             'description' => 'Sample product description',
             'price' => 12.50,
@@ -268,7 +318,11 @@ class MobileApiV1Test extends TestCase
             'is_new_arrival' => false,
             'is_seasonal' => false,
             'discount' => 0,
+            'average_rating' => 0,
         ], $overrides));
+        $product->save();
+
+        return $product->fresh();
     }
 
     private function createAddress(User $user, array $overrides = []): Address

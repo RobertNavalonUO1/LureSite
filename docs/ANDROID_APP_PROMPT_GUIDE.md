@@ -1,6 +1,6 @@
 # Limoneo - Documento base para generar la app Android mediante prompts
 
-Ultima actualizacion: 2026-03-15
+Ultima actualizacion: 2026-03-17
 
 ## 1. Objetivo de este documento
 
@@ -26,8 +26,8 @@ Fuentes principales revisadas:
 - `docs/GUIDE_NEXT_AGENT.md`
 - `docs/ENVIRONMENTS.md`
 - `docs/i18n.md`
-- `docs/WEB_ROUTES_FORENSIC_AUDIT.md`
-- `docs/WEB_ROUTES_REMEDIATION_2026-03-14.md`
+- `legacy/WEB_ROUTES_FORENSIC_AUDIT.md`
+- `legacy/WEB_ROUTES_REMEDIATION_2026-03-14.md`
 - `routes/web.php`
 - `routes/api.php`
 - `app/Http/Controllers/CheckoutController.php`
@@ -68,6 +68,8 @@ Fuentes principales revisadas:
 API real detectada:
 
 - `POST /api/auth/social`
+- `GET /auth/mobile/{provider}/redirect`
+- `GET /auth/mobile/{provider}/callback`
 - `POST /api/mobile/v1/auth/register`
 - `POST /api/mobile/v1/auth/login`
 - `POST /api/mobile/v1/auth/logout`
@@ -308,7 +310,7 @@ Cuando generes la app, la IA debe saber esto:
 3. El checkout web y los servicios moviles actuales son mas correctos que `MobileApiController`.
 4. La app no debe implementar guest checkout.
 5. La app debe usar `es`, `en`, `fr`.
-6. La moneda visible actual esta alineada a `USD`.
+6. La moneda visible actual esta alineada a `EUR`.
 7. El pedido no debe marcarse como confirmado sin pago verificado.
 8. La app debe soportar login tradicional y social.
 9. Aunque el backend ya expone la API movil, la app debe poder arrancar con mocks si el entorno objetivo aun no tiene todos los secretos/proveedores listos.
@@ -328,7 +330,7 @@ Contexto del backend:
 - Hay login tradicional y login social.
 - Para movil usamos Sanctum.
 - Idiomas soportados: es, en, fr.
-- Moneda visible actual: USD.
+- Moneda visible actual: EUR.
 - El checkout real requiere usuario autenticado.
 - El pedido no debe crearse como pagado o confirmado sin validacion real del proveedor de pago.
 

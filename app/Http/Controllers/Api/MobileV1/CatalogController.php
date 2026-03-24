@@ -137,7 +137,7 @@ class CatalogController extends Controller
 
         $builder = Product::query()
             ->with(['category:id,name,slug'])
-            ->withAvg('reviews as average_rating', 'rating')
+            ->withAvg('reviews as reviews_average_rating', 'rating')
             ->withCount('reviews');
 
         if (!empty($data['query'])) {
@@ -164,9 +164,9 @@ class CatalogController extends Controller
         match ($data['sort'] ?? 'relevance') {
             'price_asc' => $builder->orderBy('price'),
             'price_desc' => $builder->orderByDesc('price'),
-            'recent' => $builder->latest(),
-            'rating' => $builder->orderByDesc('average_rating'),
-            default => $builder->orderByDesc('average_rating')->orderByDesc('created_at'),
+            'recent' => $builder->latest('products.created_at'),
+            'rating' => $builder->orderByDesc('reviews_average_rating')->orderByDesc('products.created_at'),
+            default => $builder->orderByDesc('reviews_average_rating')->orderByDesc('products.created_at'),
         };
 
         $paginator = $builder->paginate($data['per_page'] ?? 12)->withQueryString();
@@ -190,7 +190,7 @@ class CatalogController extends Controller
     {
         $product = Product::query()
             ->with(['category:id,name,slug', 'details', 'images', 'reviews'])
-            ->withAvg('reviews as average_rating', 'rating')
+            ->withAvg('reviews as reviews_average_rating', 'rating')
             ->withCount('reviews')
             ->findOrFail($id);
 
@@ -239,15 +239,15 @@ class CatalogController extends Controller
 
         $builder = $category->products()
             ->with('category:id,name,slug')
-            ->withAvg('reviews as average_rating', 'rating')
+            ->withAvg('reviews as reviews_average_rating', 'rating')
             ->withCount('reviews');
 
         match ($request->string('sort')->toString() ?: 'relevance') {
             'price_asc' => $builder->orderBy('price'),
             'price_desc' => $builder->orderByDesc('price'),
-            'recent' => $builder->latest(),
-            'rating' => $builder->orderByDesc('average_rating'),
-            default => $builder->latest(),
+            'recent' => $builder->latest('products.created_at'),
+            'rating' => $builder->orderByDesc('reviews_average_rating')->orderByDesc('products.created_at'),
+            default => $builder->latest('products.created_at'),
         };
 
         $paginator = $builder->paginate($request->integer('per_page', 12))->withQueryString();

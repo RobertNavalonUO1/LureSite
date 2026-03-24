@@ -160,7 +160,7 @@ class OrderRefundService
         $request->body = [
             'amount' => [
                 'value' => number_format($amount, 2, '.', ''),
-                'currency_code' => 'USD',
+                'currency_code' => 'EUR',
             ],
             'note_to_payer' => isset($metadata['order_item_id'])
                 ? 'Reembolso parcial por linea de pedido.'

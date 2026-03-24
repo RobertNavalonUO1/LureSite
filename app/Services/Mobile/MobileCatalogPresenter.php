@@ -36,7 +36,7 @@ class MobileCatalogPresenter
     {
         $base = $this->catalogDataLocalizer->productPayload($product);
         $description = trim((string) ($product->description ?? ''));
-        $averageRating = $product->average_rating ?? $product->averageRating ?? null;
+        $averageRating = $product->reviews_average_rating ?? $product->average_rating ?? $product->averageRating ?? null;
         $reviewsCount = $product->reviews_count ?? null;
 
         if ($reviewsCount === null && $product->relationLoaded('reviews')) {
@@ -49,7 +49,7 @@ class MobileCatalogPresenter
             'price' => (float) $product->price,
             'original_price' => $this->originalPrice($product),
             'discount' => (int) ($product->discount ?? 0),
-            'currency' => 'USD',
+            'currency' => 'EUR',
             'stock' => (int) $product->stock,
             'image_url' => $base['image_url'] ?? $product->image_url,
             'image_url_full' => $product->image_url_full ?? null,

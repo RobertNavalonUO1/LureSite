@@ -130,7 +130,7 @@ export function getOrderStatusMeta(status) {
 export function formatCurrency(amount, locale = 'es') {
   return new Intl.NumberFormat(INTL_LOCALE[locale] || INTL_LOCALE.es, {
     style: 'currency',
-    currency: 'USD',
+    currency: 'EUR',
     minimumFractionDigits: 2,
   }).format(Number(amount) || 0);
 }

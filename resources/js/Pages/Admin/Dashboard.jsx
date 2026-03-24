@@ -46,7 +46,7 @@ export default function Dashboard({
   alerts = [],
   activity = [],
   lastUpdated = null,
-  currency = 'USD',
+  currency = 'EUR',
   refundMetrics = { requested: 0, approved: 0, failed: 0, refunded: 0 },
 }) {
   const formattedDate = lastUpdated

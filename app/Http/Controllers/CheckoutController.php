@@ -68,7 +68,7 @@ class CheckoutController extends Controller
                 'label' => $totals['coupon_label'],
                 'amount' => $totals['discount'],
             ],
-            'currency' => 'USD',
+            'currency' => 'EUR',
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
@@ -131,7 +131,7 @@ class CheckoutController extends Controller
     {
         $cart = $this->shoppingCartService->itemsForRequest($request);
         if (empty($cart)) {
-            return back()->withErrors(['method' => 'Tu carrito está vacío.']);
+            return $this->shippingUpdateErrorResponse($request, 'Tu carrito está vacío.');
         }
 
         $data = $request->validate([
@@ -142,7 +142,7 @@ class CheckoutController extends Controller
         $options = $this->shippingOptionsForSubtotal($subtotal);
 
         if (!array_key_exists($data['method'], $options)) {
-            return back()->withErrors(['method' => 'Método de envío no disponible.']);
+            return $this->shippingUpdateErrorResponse($request, 'Método de envío no disponible.');
         }
 
         $selected = $options[$data['method']];
@@ -153,7 +153,27 @@ class CheckoutController extends Controller
         session()->put('checkout.shipping_description', $selected['description']);
         session()->put('checkout.shipping_eta', $selected['eta']);
 
-        $this->calculateTotals($cart);
+        $totals = $this->calculateTotals($cart);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Método de envío actualizado.',
+                'totals' => [
+                    'subtotal' => $totals['subtotal'],
+                    'discount' => $totals['discount'],
+                    'shipping' => $totals['shipping_cost'],
+                    'total' => $totals['total'],
+                ],
+                'shipping' => [
+                    'method' => $totals['shipping_method'],
+                    'label' => $totals['shipping_label'],
+                    'description' => $totals['shipping_description'],
+                    'eta' => $totals['shipping_eta'],
+                    'cost' => $totals['shipping_cost'],
+                ],
+                'shippingOptions' => array_values($this->shippingOptionsForSubtotal($totals['subtotal'])),
+            ]);
+        }
 
         return back()->with('success', 'Método de envío actualizado.');
     }
@@ -196,7 +216,7 @@ class CheckoutController extends Controller
 
             $lineItems = [[
                 'price_data' => [
-                    'currency' => 'usd',
+                    'currency' => 'eur',
                     'product_data' => [
                         'name' => config('app.name', 'Limoneo'),
                         'description' => implode(' · ', $descriptionParts),
@@ -269,15 +289,15 @@ class CheckoutController extends Controller
                 'intent' => 'CAPTURE',
                 'purchase_units' => [[
                     'amount' => [
-                        'currency_code' => 'USD',
+                        'currency_code' => 'EUR',
                         'value' => number_format($totals['total'], 2, '.', ''),
                         'breakdown' => [
                             'item_total' => [
-                                'currency_code' => 'USD',
+                                'currency_code' => 'EUR',
                                 'value' => number_format(max($totals['subtotal'] - $totals['discount'], 0), 2, '.', ''),
                             ],
                             'shipping' => [
-                                'currency_code' => 'USD',
+                                'currency_code' => 'EUR',
                                 'value' => number_format($totals['shipping_cost'], 2, '.', ''),
                             ],
                         ],
@@ -352,6 +372,14 @@ class CheckoutController extends Controller
             $order->name = trim(implode(' ', array_filter([$user?->name, $user?->lastname])));
             $order->email = $user?->email;
             $order->address = $this->formatAddress($address);
+            $order->shipping_method = session('checkout.shipping_method');
+            $order->shipping_label = session('checkout.shipping_label');
+            $order->shipping_description = session('checkout.shipping_description');
+            $order->shipping_eta = session('checkout.shipping_eta');
+            $order->shipping_cost = $totals['shipping_cost'] ?? 0;
+            $order->coupon_id = session('checkout.coupon_id');
+            $order->coupon_code = $totals['coupon_code'] ?? null;
+            $order->discount = $totals['discount'] ?? 0;
             $order->payment_method = $provider;
             $order->total = $totals['total'];
             $order->transaction_id = $provider === 'stripe' ? $stripeSessionId : $paypalOrderId;
@@ -463,7 +491,7 @@ class CheckoutController extends Controller
         return [
             'standard' => [
                 'label' => 'Envío estándar',
-                'description' => 'Gratis en pedidos superiores a $50',
+                'description' => 'Gratis en pedidos superiores a 50 EUR',
                 'eta' => '3-5 días hábiles',
                 'cost' => 4.99,
                 'free_over' => 50,
@@ -506,6 +534,20 @@ class CheckoutController extends Controller
         }
 
         return $options;
+    }
+
+    private function shippingUpdateErrorResponse(Request $request, string $message)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'errors' => [
+                    'method' => [$message],
+                ],
+            ], 422);
+        }
+
+        return back()->withErrors(['method' => $message]);
     }
 
     private function resolveCouponForSubtotal(float $subtotal): ?array

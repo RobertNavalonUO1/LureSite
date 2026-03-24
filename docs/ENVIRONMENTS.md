@@ -1,123 +1,170 @@
-# Entornos (development / staging / production)
+# Environments
 
-Objetivo: que puedas cambiar rápido entre entornos sin tocar a mano `.env` ni cometer secretos en git.
+Last updated: 2026-03-23
 
-Este repo incluye **plantillas**:
+This document explains how Limoneo is expected to run in development, staging, and production.
 
-- `.env.development.example`
-- `.env.staging.example`
-- `.env.production.example`
+## Environment files
 
-Y un switcher cross-platform:
+Recommended local files:
+
+- `.env.development`
+- `.env.staging`
+- `.env.production`
+
+The repo includes the switch script:
 
 - `scripts/switch-env.php`
 
-## Flujo recomendado
+Convenience commands:
 
-1) Crea tus archivos reales (con secretos) a partir de las plantillas:
+```bash
+composer env:dev
+composer env:staging
+composer env:prod
+```
 
-- `.env.development` (local)
-- `.env.staging` (preproducción)
-- `.env.production` (solo si quieres simular producción localmente)
+Each command copies the selected environment into `.env` and clears Laravel config/cache.
 
-Estos archivos están ignorados por git (ver `.gitignore`).
+## Development
 
-2) Cambia el entorno activo copiando el correspondiente a `.env`:
+Recommended local baseline:
 
-- `composer env:dev`
-- `composer env:staging`
-- `composer env:prod`
+- `APP_ENV=local`
+- `APP_DEBUG=true`
+- SQLite local database or local Postgres
+- Stripe test
+- PayPal sandbox
+- dummy or dev OAuth config
 
-El script hace backup de tu `.env` actual como `.env.backup-YYYYMMDD-HHMMSS`.
+Useful commands:
 
-3) Arranca normalmente:
+```bash
+php artisan serve --host=127.0.0.1 --port=8000
+npm run dev
+composer qa:refresh
+php artisan test
+```
 
-- Backend: `php artisan serve --host=127.0.0.1 --port=8000`
-- Frontend: `npm run dev`
+## Staging
 
-## Notas prácticas
+Staging should match production behavior as closely as possible, except for live credentials.
 
-- Laravel **solo lee** `.env` por defecto. Por eso el switcher copia al archivo `.env`.
-- Tras cambiar de `.env`, conviene limpiar caches. Los comandos `composer env:*` ya ejecutan `php artisan config:clear` y `php artisan cache:clear`.
+Recommended staging rules:
 
-## Staging (cómo usarlo)
+- `APP_ENV=staging`
+- `APP_DEBUG=false`
+- separate database branch or separate staging database
+- Stripe test
+- PayPal sandbox
+- real Google/Facebook app credentials for the staging domain
 
-- En staging usa `APP_ENV=staging` y `APP_DEBUG=false`.
-- Para DB (Neon): usa el **endpoint directo** (sin `-pooler`) para migraciones/DDL.
-- Si quieres separar datos, lo más cómodo es crear una **branch DB** en Neon para staging (misma app, otra URL/DB).
+If staging is not publicly resolving yet, that is still an infrastructure gap, not a code gap.
 
-## Vite (modo staging opcional)
+## Production
 
-Si quieres que Vite cargue variables específicas para staging con su mecanismo de `mode`:
+Current production status on 2026-03-23:
 
-- `npm run build:staging`
-- `npm run dev:staging`
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+- mobile API `api/mobile/v1` deployed
+- mobile product list fixed and verified
+- Stripe test keys present
+- PayPal sandbox credentials present
+- Google/Facebook mobile routes deployed
+- Google/Facebook provider redirects return `302` on production
+- Facebook data deletion endpoints and public instructions page are deployed
+- checkout/order shipping, coupon, and payment metadata release is deployed
+- checkout UI refresh is deployed
 
-Esto hace que Vite busque `.env.staging*` (solo para variables `VITE_*`). No afecta a Laravel; Laravel sigue leyendo `.env`.
+## Critical variables by feature
 
-## Tests
+### App and database
 
-- Ejecutar tests:
-	- `php artisan test`
-	- o `composer test`
-	- suite focalizada principal: `composer test:critical`
-	- verificación del dataset QA: `composer test:qa-dataset`
-	- validación de API móvil: `php artisan test --filter=MobileApiV1Test`
+- `APP_ENV`
+- `APP_DEBUG`
+- `APP_URL`
+- `APP_KEY`
+- `DB_CONNECTION`
+- `DB_URL` or `DB_HOST` / `DB_PORT` / `DB_DATABASE` / `DB_USERNAME` / `DB_PASSWORD`
 
-## API móvil y pagos por entorno
+### Payments
 
-- La API móvil canónica vive en `api/mobile/v1`.
-- Las peticiones móviles usan `Authorization: Bearer <sanctum_token>` y locale stateless vía `Accept-Language: es|en|fr`.
-- Comandos útiles de verificación:
-  - `php artisan route:list --path=api/mobile/v1`
-  - `php artisan test --filter=MobileApiV1Test`
-  - `php artisan mobile:checkout-sandbox-smoke`
-- Secretos mínimos a revisar por entorno:
-  - `STRIPE_KEY`
-  - `STRIPE_SECRET`
-  - `PAYPAL_CLIENT_ID`
-  - `PAYPAL_CLIENT_SECRET`
-  - `GOOGLE_CLIENT_ID`
-  - `GOOGLE_CLIENT_SECRET`
-  - `FACEBOOK_CLIENT_ID`
-  - `FACEBOOK_CLIENT_SECRET`
+- `STRIPE_KEY`
+- `STRIPE_SECRET`
+- `PAYPAL_CLIENT_ID`
+- `PAYPAL_CLIENT_SECRET`
+- `PAYPAL_MODE`
 
-## Dataset QA local
+### Social auth
 
-Para preparar un entorno local con datos amplios para pruebas manuales:
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI`
+- `FACEBOOK_CLIENT_ID`
+- `FACEBOOK_CLIENT_SECRET`
+- `FACEBOOK_REDIRECT_URI`
 
-- `composer qa:refresh`
-  - hace `migrate:fresh` y carga el seeder `Database\\Seeders\\QaDatasetSeeder`
-- `composer seed:qa`
-  - reinyecta el dataset QA sobre una base ya migrada
+### Mobile/API behavior
 
-El dataset QA está pensado para desarrollo/local y deja usuarios, direcciones, catálogo, staging temporal, cupones, banners, pedidos por estado, devoluciones y transacciones fallidas con volumen suficiente para validar flujos reales.
+- `APP_URL`
+- any mobile deep-link fallback URLs if configured in app clients
 
-Detalle y credenciales: ver [docs/QA_DATASET.md](docs/QA_DATASET.md).
+## Mobile-specific notes
 
-## Ver SQLite local en VS Code (desarrollo)
+The canonical mobile contract is:
 
-En local (dev) este proyecto usa SQLite por defecto.
-El fichero es:
+- `api/mobile/v1`
 
-- `database/database.sqlite`
+Mobile auth currently supports:
 
-### Opción A (recomendada): SQLTools
+- `POST /api/auth/social`
+- browser-based mobile OAuth routes:
+  - `/auth/mobile/{provider}/redirect`
+  - `/auth/mobile/{provider}/callback`
 
-1) Instala extensiones:
+Mobile locale is stateless:
 
-- `SQLTools`
-- `SQLTools SQLite` (driver)
+- request header: `Accept-Language: es|en|fr`
+- response header: `Content-Language`
 
-2) Crea una conexión SQLite apuntando a:
+Authenticated cart is shared between web and mobile through `cart_items`.
 
-- `${workspaceFolder}/database/database.sqlite`
+## Validation commands by environment
 
-Nota: esto funciona bien si abres como workspace la carpeta raíz del proyecto (la que contiene `artisan`, `app/`, `database/`).
+General backend:
 
-### Opción B: Database Client (ruta absoluta)
+```bash
+php artisan route:list --path=api/mobile/v1
+php artisan test --filter=MobileApiV1Test
+php artisan test --filter=PublicCatalogApiTest
+```
 
-Algunas extensiones tipo “Database Client” no expanden `${workspaceFolder}` dentro del path de SQLite.
-Si ves errores donde intenta abrir literalmente `${workspaceFolder}/...`, usa una ruta absoluta al archivo, por ejemplo:
+Payments:
 
-- `C:\Users\<TU_USUARIO>\Desktop\webdrop\All\database\database.sqlite`
+```bash
+php artisan mobile:checkout-sandbox-smoke
+```
+
+OAuth route presence:
+
+```bash
+php artisan route:list --path=auth/mobile
+```
+
+## Current production gaps to resolve
+
+Before calling production fully finalized, these environment tasks must still be completed:
+
+1. validate Google OAuth callback flow end to end
+2. validate Facebook OAuth callback flow end to end and confirm Meta-side live-mode readiness
+4. switch Stripe from test to live when business is ready
+5. switch PayPal from sandbox to live when business is ready
+6. run manual production checkout smoke for address selection, shipping update, and order detail metadata
+
+## Related docs
+
+- [../README.md](../README.md)
+- [./PRODUCTION.md](./PRODUCTION.md)
+- [./NEXT_STEPS.md](./NEXT_STEPS.md)
+- [./QA_DATASET.md](./QA_DATASET.md)

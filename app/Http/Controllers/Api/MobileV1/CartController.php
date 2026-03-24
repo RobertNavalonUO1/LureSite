@@ -92,7 +92,7 @@ class CartController extends Controller
         $subtotal = round($items->sum('subtotal'), 2);
 
         return [
-            'currency' => 'USD',
+            'currency' => 'EUR',
             'items_count' => $items->sum('quantity'),
             'subtotal' => $subtotal,
             'discount' => 0.0,

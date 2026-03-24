@@ -55,7 +55,7 @@ Non-negotiable business rules:
 - The backend verifies the payment provider callback first, creates the order, and then redirects back into the app.
 - Do not use WebView as the primary payment approach.
 - Supported locales are only `es`, `en`, and `fr`.
-- Currency visible in v1 is `USD`.
+- Currency visible in v1 is `EUR`.
 
 Technical stack:
 - Kotlin
