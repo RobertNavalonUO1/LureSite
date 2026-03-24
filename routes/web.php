@@ -25,6 +25,7 @@ use App\Http\Controllers\{
     CategoryController,
     ReviewController
 };
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Services\CampaignBannerResolver;
 use App\Services\ShoppingCartService;
 use App\Support\CatalogDataLocalizer;
@@ -72,6 +73,11 @@ Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update
 */
 Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('auth.social.redirect');
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('auth.social.callback');
+Route::get('/auth/mobile/{provider}/redirect', [SocialAuthController::class, 'mobileRedirect'])->name('auth.social.mobile.redirect');
+Route::get('/auth/mobile/{provider}/callback', [SocialAuthController::class, 'mobileCallback'])->name('auth.social.mobile.callback');
+Route::post('/auth/facebook/deauthorize', [SocialAuthController::class, 'facebookDeauthorize'])->name('auth.social.facebook.deauthorize');
+Route::post('/auth/facebook/data-deletion', [SocialAuthController::class, 'facebookDataDeletion'])->name('auth.social.facebook.data-deletion');
+Route::get('/auth/facebook/data-deletion/{confirmationCode}', [SocialAuthController::class, 'facebookDataDeletionStatus'])->name('auth.social.facebook.data-deletion.status');
 
 // (Firebase debug route removed)
 
@@ -113,9 +119,10 @@ Route::get('/faq', fn () => Inertia::render('Static/Faq'))->name('faq');
 Route::get('/terms', fn () => Inertia::render('Static/Terms'))->name('terms');
 Route::get('/privacy', fn () => Inertia::render('Static/Privacy'))->name('privacy');
 Route::get('/cookies', fn () => Inertia::render('Static/Cookies'))->name('cookies');
+Route::get('/facebook/data-deletion', fn () => Inertia::render('Static/FacebookDataDeletion'))->name('facebook.data-deletion.instructions');
 Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/agregador-enlaces', fn () => Inertia::render('Tools/LinkAggregator'));
-    Route::get('/link-aggregator', fn () => Inertia::render('Tools/LinkAggregator'));
+    Route::get('/agregador-enlaces', fn () => Inertia::render('Tools/LinkAggregator'))->name('tools.link-aggregator');
+    Route::get('/link-aggregator', fn () => Inertia::render('Tools/LinkAggregator'))->name('tools.link-aggregator.alias');
 });
 Route::get('/deals/today', fn () => Inertia::render('Special/DealsToday'))->name('deals.today');
 Route::get('/superdeal', fn () => Inertia::render('Special/SuperDeal'))->name('superdeal');
@@ -270,10 +277,10 @@ Route::middleware(['auth', 'admin'])
         Route::patch('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('users.toggle');
 
         // Productos (listado + alta rÃ¡pida)
-        Route::get('/products', [AdminController::class, 'products'])->name('products.index');
+        Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
         Route::get('/products/create', [AddProdukController::class, 'create'])->name('products.create');
         Route::post('/products', [AddProdukController::class, 'store'])->name('products.store');
-        Route::delete('/products/{product}', [AdminController::class, 'deleteProduct'])->name('products.delete');
+        Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.delete');
 
         // CategorÃ­as
         Route::get('/categories', [AdminController::class, 'categories'])->name('categories.index');
@@ -318,10 +325,18 @@ Route::middleware(['auth', 'admin'])
     });
 
 Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/api/admin/products', [AdminProductController::class, 'list'])->name('api.admin.products.index');
+    Route::post('/api/admin/products', [AdminProductController::class, 'store'])->name('api.admin.products.store');
+    Route::match(['put', 'patch'], '/api/admin/products/{product}', [AdminProductController::class, 'update'])->name('api.admin.products.update');
+    Route::delete('/api/admin/products/{product}', [AdminProductController::class, 'destroy'])->name('api.admin.products.delete');
+    Route::post('/api/admin/products/bulk-update', [AdminProductController::class, 'bulkUpdate'])->name('api.admin.products.bulk-update');
+    Route::post('/api/admin/products/bulk-delete', [AdminProductController::class, 'bulkDestroy'])->name('api.admin.products.bulk-delete');
+
     Route::get('/api/scripts', fn () => response()->json(
         collect(File::files(base_path('python_scripts')))
             ->filter(fn ($file) => $file->getExtension() === 'py')
             ->map(fn ($file) => $file->getFilename())
+            ->sortBy(fn ($filename) => $filename === 'scripy_web.py' ? '0_' . $filename : '1_' . $filename)
             ->values()
     ));
 
@@ -343,7 +358,6 @@ require __DIR__ . '/auth.php';
 if (app()->environment('local')) {
     Route::get('/test', fn () => Inertia::render('Orders/ShippedOrders', ['message' => 'Hola Inertia!']));
 }
-
 
 
 

@@ -1,4 +1,5 @@
 ﻿// resources/js/Pages/LinkAggregator.jsx
+import AdminWorkspaceLayout from '@/Layouts/AdminWorkspaceLayout.jsx';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 
@@ -33,6 +34,10 @@ const SCRIPT_GUIDES = {
 
 // Scripts que requieren menú interactivo
 const SCRIPTS_WITH_MENU = {
+    'scripy_web.py': [
+        { value: 'listado', label: 'Extraer productos del listado' },
+        { value: 'detalle', label: 'Añadir imágenes desde una ficha existente' }
+    ],
     'scripy.py': [
         { value: 'listado', label: 'Extraer tarjetas del listado / slider' },
         { value: 'detalle', label: 'Añadir imágenes a un producto existente (detalle)' }
@@ -140,6 +145,38 @@ const parseProductsFromOutput = (text) => {
     }
 };
 
+const formatProductPrice = (product) => {
+    const numericPrice = typeof product?.price === 'number' ? product.price : null;
+    if (numericPrice !== null && Number.isFinite(numericPrice)) {
+        return new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR'
+        }).format(numericPrice);
+    }
+
+    return product?.price_text || product?.price || 'Sin precio';
+};
+
+const getProductUrl = (product) => product?.product_url || product?.url || '';
+
+const getProductImage = (product) => {
+    if (product?.image_url) return product.image_url;
+    if (Array.isArray(product?.images) && product.images.length > 0) return product.images[0];
+    return '';
+};
+
+const pickPreferredScript = (scripts) => {
+    if (!Array.isArray(scripts) || scripts.length === 0) {
+        return '';
+    }
+
+    if (scripts.includes('scripy_web.py')) {
+        return 'scripy_web.py';
+    }
+
+    return scripts[0];
+};
+
 export default function LinkAggregator() {
     const { auth } = usePage().props;
     const isAdmin = !!auth?.user?.is_admin;
@@ -158,6 +195,8 @@ export default function LinkAggregator() {
     const [executionHistory, setExecutionHistory] = useState([]);
     const [scriptMode, setScriptMode] = useState('');
     const [importProducts, setImportProducts] = useState(null);
+    const [detectedProducts, setDetectedProducts] = useState(null);
+    const [scriptStats, setScriptStats] = useState(null);
     const [importLoading, setImportLoading] = useState(false);
     const [importMessage, setImportMessage] = useState('');
 
@@ -185,7 +224,7 @@ export default function LinkAggregator() {
                 if (Array.isArray(data) && data.length > 0) {
                     setAvailableScripts(data);
                     setScriptsError('');
-                    setScript((current) => current || data[0]);
+                    setScript((current) => current || pickPreferredScript(data));
                 } else {
                     setAvailableScripts([]);
                     setScriptsError('No se recibieron scripts disponibles desde la API.');
@@ -275,6 +314,8 @@ export default function LinkAggregator() {
             inputChars: htmlInput.length
         });
         setImportProducts(null);
+        setDetectedProducts(null);
+        setScriptStats(null);
         setImportMessage('');
 
         try {
@@ -315,13 +356,24 @@ export default function LinkAggregator() {
             };
 
             if (response.ok && data.success) {
+                const fallbackProducts = parseProductsFromOutput(data.output || '');
+                const normalizedImportProducts = Array.isArray(data.products) ? data.products : fallbackProducts;
+                const normalizedDetectedProducts = Array.isArray(data.detectedProducts)
+                    ? data.detectedProducts
+                    : Array.isArray(normalizedImportProducts)
+                        ? normalizedImportProducts
+                        : [];
                 const record = {
                     ...baseRecord,
                     status: 'success',
-                    message: 'Ejecucion completada sin errores.'
+                    message: Array.isArray(data.detectedProducts) && data.detectedProducts.length > 0
+                        ? `Se detectaron ${data.detectedProducts.length} productos.`
+                        : 'Ejecucion completada sin errores.'
                 };
                 setOutput(data.output || 'Sin salida generada.');
-                setImportProducts(parseProductsFromOutput(data.output || ''));
+                setImportProducts(normalizedImportProducts);
+                setDetectedProducts(normalizedDetectedProducts);
+                setScriptStats(data.stats || null);
                 setExecutionDetails(record);
                 setExecutionHistory((prev) => [record, ...prev].slice(0, MAX_HISTORY));
             } else {
@@ -398,6 +450,10 @@ export default function LinkAggregator() {
     const statusDetails = executionDetails ? getStatusDetails(executionDetails.status) : getStatusDetails();
 
     return (
+        <AdminWorkspaceLayout
+            title="Link Aggregator"
+            description="Vista operativa para ejecutar scripts autorizados, revisar diagnostico y mandar resultados a temporales sin perder contexto del flujo admin."
+        >
         <div className="max-w-6xl mx-auto px-6 py-10">
             <header className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Agregador de enlaces</h1>
@@ -450,6 +506,25 @@ export default function LinkAggregator() {
                                 <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                                     {scriptsError}
                                 </p>
+                            )}
+                            {scriptHasMenu && (
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium text-gray-700" htmlFor="script-mode-select">
+                                        Modo de extracción
+                                    </label>
+                                    <select
+                                        id="script-mode-select"
+                                        value={scriptMode}
+                                        onChange={(e) => setScriptMode(e.target.value)}
+                                        className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    >
+                                        {SCRIPTS_WITH_MENU[script].map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -632,10 +707,96 @@ export default function LinkAggregator() {
                         )}
                     </div>
 
-                    {isAdmin && Array.isArray(importProducts) && importProducts.length > 0 && (
+                        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-md border border-sky-200 bg-sky-50 p-4">
+                            <div className="text-sm text-sky-900">
+                                Revisa los productos detectados y, cuando estes conforme, abre la pantalla de migracion temporal.
+                            </div>
+                            <a
+                                href="/migrate-products"
+                                className="rounded-md border border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-100"
+                            >
+                                Ir a /migrate-products
+                            </a>
+                        </div>
+
+                        {Array.isArray(detectedProducts) && detectedProducts.length > 0 && (
+                            <div className="mt-4 space-y-4 rounded-md border border-gray-200 bg-gray-50 p-4">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <h3 className="text-base font-semibold text-gray-900">Productos encontrados</h3>
+                                        <p className="text-sm text-gray-600">
+                                            Detectados: <strong>{detectedProducts.length}</strong>
+                                            {Array.isArray(importProducts) && importProducts.length > 0 ? (
+                                                <>
+                                                    {' '}| Listos para migrar: <strong>{importProducts.length}</strong>
+                                                </>
+                                            ) : null}
+                                        </p>
+                                        {scriptStats && (
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                Nuevos: {scriptStats.new ?? 0} | Actualizados: {scriptStats.updated ?? 0} | Sin cambios: {scriptStats.unchanged ?? 0}
+                                            </p>
+                                        )}
+                                    </div>
+                                    {isAdmin && Array.isArray(importProducts) && importProducts.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={handleImport}
+                                            disabled={importLoading}
+                                            className="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-amber-300"
+                                        >
+                                            {importLoading ? 'Migrando...' : 'Migrar a temporary products'}
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                    {detectedProducts.map((product, index) => {
+                                        const image = getProductImage(product);
+                                        const productUrl = getProductUrl(product);
+
+                                        return (
+                                            <article key={`${product.title || 'product'}-${index}`} className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+                                                <div className="aspect-square bg-gray-100">
+                                                    {image ? (
+                                                        <img src={image} alt={product.title || 'Producto detectado'} className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <div className="flex h-full items-center justify-center text-sm text-gray-500">Sin imagen</div>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-3 p-4">
+                                                    <div>
+                                                        <h4 className="line-clamp-3 text-sm font-semibold text-gray-900">{product.title || 'Sin titulo'}</h4>
+                                                        <p className="mt-2 text-lg font-bold text-gray-900">{formatProductPrice(product)}</p>
+                                                        {product.original_price_text && (
+                                                            <p className="text-xs text-gray-500 line-through">{product.original_price_text}</p>
+                                                        )}
+                                                    </div>
+                                                    {Array.isArray(product.images) && product.images.length > 1 && (
+                                                        <p className="text-xs text-gray-500">Imagenes detectadas: {product.images.length}</p>
+                                                    )}
+                                                    {productUrl && (
+                                                        <a
+                                                            href={productUrl}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="inline-flex text-sm font-medium text-blue-600 hover:text-blue-700"
+                                                        >
+                                                            Abrir producto
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </article>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {isAdmin && Array.isArray(importProducts) && importProducts.length > 0 && (
                         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 p-4">
                             <div className="text-sm text-amber-900">
-                                Se detectó salida JSON con <strong>{importProducts.length}</strong> productos.
+                                Hay <strong>{importProducts.length}</strong> productos listos para migrar a temporary products.
                             </div>
                             <button
                                 type="button"
@@ -643,7 +804,7 @@ export default function LinkAggregator() {
                                 disabled={importLoading}
                                 className="rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:bg-amber-300"
                             >
-                                {importLoading ? 'Importando...' : 'Importar a temporales'}
+                                {importLoading ? 'Migrando...' : 'Migrar a temporary products'}
                             </button>
                         </div>
                     )}
@@ -684,5 +845,6 @@ export default function LinkAggregator() {
                 </div>
             </section>
         </div>
+        </AdminWorkspaceLayout>
     );
 }

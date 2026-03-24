@@ -1,4 +1,5 @@
-﻿import { useForm, usePage } from "@inertiajs/react";
+﻿import AdminWorkspaceLayout from '@/Layouts/AdminWorkspaceLayout.jsx';
+import { useForm, usePage } from "@inertiajs/react";
 import { useState } from "react";
 
 export default function AddProduct() {
@@ -46,6 +47,10 @@ export default function AddProduct() {
     };
 
     return (
+        <AdminWorkspaceLayout
+            title="Agregar Producto"
+            description="Alta rapida de producto con apoyo de temporales ya extraidos para reducir trabajo repetitivo y acelerar la publicacion."
+        >
         <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg">
             <h2 className="text-2xl font-bold text-center mb-6">Agregar Producto</h2>
             {successMessage && <p className="text-green-600 font-bold mb-4">{successMessage}</p>}
@@ -193,5 +198,6 @@ export default function AddProduct() {
                 )}
             </div>
         </div>
+        </AdminWorkspaceLayout>
     );
 }

@@ -1,4 +1,5 @@
-﻿import { useForm, usePage, Link, router } from "@inertiajs/react";
+﻿import AdminWorkspaceLayout from '@/Layouts/AdminWorkspaceLayout.jsx';
+import { useForm, usePage, Link, router } from "@inertiajs/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Upload, Loader2, Link as LinkIcon, PenLine, Images } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -846,7 +847,10 @@ export default function MigrateProducts() {
         { id: 'existing', label: 'Productos migrados' },
     ];
     return (
-        <>
+        <AdminWorkspaceLayout
+            title="Migracion de Productos"
+            description="Convierte productos temporales en catalogo definitivo y completa el mantenimiento de imagenes desde una misma superficie de trabajo."
+        >
             <div className="mx-auto mt-10 max-w-7xl space-y-10 rounded-2xl bg-gradient-to-br from-white to-gray-50 p-6 shadow-xl">
                 <div className="mb-6 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                     <div>
@@ -1088,6 +1092,6 @@ export default function MigrateProducts() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </>
+        </AdminWorkspaceLayout>
     );
 }
