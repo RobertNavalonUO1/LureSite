@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+<meta charset='UTF-8'>
+<title>Productos Ordenados</title>
+<style>
+
+            body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Noto Sans', Arial; margin: 20px; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+            .card { border: 1px solid #eee; border-radius: 12px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+            .header { display:flex; align-items:flex-start; gap:12px; }
+            .thumb { width: 120px; height: 120px; object-fit: contain; border: 1px solid #ddd; border-radius: 8px; padding: 6px; background:#fff; }
+            .titulo { font-size: 15px; color: #333; margin: 0 0 6px 0; }
+            .precios { margin-top: 6px; }
+            .precio { font-size: 16px; color: #E5533D; font-weight: 600; margin-right: 10px; }
+            .precio-original { font-size: 13px; color: #888; text-decoration: line-through; }
+            .galeria { display:flex; flex-wrap: wrap; gap:8px; margin-top: 12px; }
+            .galeria a { display:block; }
+            .galeria img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid #e5e5e5; }
+            .img-links { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #e5e5e5; font-size: 12px; line-height: 1.4; word-break: break-all; }
+            .img-links div { margin-bottom: 4px; }
+            .img-links a { color: #444; text-decoration: none; }
+            .img-links a:hover { text-decoration: underline; }
+            .img-links .index { color: #999; margin-right: 6px; font-size: 11px; }
+            .placeholder { width: 120px; height: 120px; background: #f5f5f5; border: 1px dashed #ccc; border-radius: 8px; display:flex; align-items:center; justify-content:center; color:#888; }
+            .url-prod { font-size:12px; color:#3366cc; word-break: break-all; }
+            .orig { font-size:11px; color:#777; word-break: break-all; }
+        </style>
+</head>
+<body>
+<h1>Productos extraídos</h1>
+<div class='grid'>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/Sfb9c34f05a6846aa8ab79f1d449e846du.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Alfombrilla de ratón grande para escritorio de oficina, alfombrilla de escritorio para teclado de escritorio de cuero PU impermeable, alfombrilla de ratón para juegos, alfombrilla de escritura para el hogar</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005009493424592.html' target='_blank'>https://es.aliexpress.com/item/1005009493424592.html</a></div>
+  <div class='precios'>
+    <span class='precio'>4,99€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005009493424592.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/Sfb9c34f05a6846aa8ab79f1d449e846du.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/Sfb9c34f05a6846aa8ab79f1d449e846du.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/Sfb9c34f05a6846aa8ab79f1d449e846du.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/Sfb9c34f05a6846aa8ab79f1d449e846du.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/Sd77ce0cc72db4a6d836b28ee4e92ba3cx.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Batería 17M3PG1 L17M3PG2 para Lenovo Legion, Y530, Y540-15IRH, Y7000, Y7000P, L17C3PG1, L17L3PG, L17M3PG3, L17C3PG2</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005007538696179.html' target='_blank'>https://es.aliexpress.com/item/1005007538696179.html</a></div>
+  <div class='precios'>
+    <span class='precio'>27,39€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005007538696179.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/Sd77ce0cc72db4a6d836b28ee4e92ba3cx.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/Sd77ce0cc72db4a6d836b28ee4e92ba3cx.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/Sd77ce0cc72db4a6d836b28ee4e92ba3cx.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/Sd77ce0cc72db4a6d836b28ee4e92ba3cx.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/Hd831aac4d4eb431a833e7bd93121c950P.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Cargador de 20V 3.25A 65W para Lenovo IdeaPad 1-15ADA7 1-15ALC7 1-15IAU7 1-15IGL7 1-15IJL7 82R1 82R4 82VY 82V7 82LX adaptador de corriente</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005006934720734.html' target='_blank'>https://es.aliexpress.com/item/1005006934720734.html</a></div>
+  <div class='precios'>
+    <span class='precio'>17,89€</span>
+    <span class='precio-original'>17,89€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005006934720734.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/Hd831aac4d4eb431a833e7bd93121c950P.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/Hd831aac4d4eb431a833e7bd93121c950P.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/Hd831aac4d4eb431a833e7bd93121c950P.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/Hd831aac4d4eb431a833e7bd93121c950P.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/S94b1a9ab95344745b0ed169f96d18408H.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Nivel de entrada de impresora 3D EasyThreed compatible con filamento PLA TPU de 1,75 mm incluye adaptador de corriente.</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005008273141070.html' target='_blank'>https://es.aliexpress.com/item/1005008273141070.html</a></div>
+  <div class='precios'>
+    <span class='precio'>57,06€</span>
+    <span class='precio-original'>180,7€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005008273141070.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/S94b1a9ab95344745b0ed169f96d18408H.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/S94b1a9ab95344745b0ed169f96d18408H.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/S94b1a9ab95344745b0ed169f96d18408H.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/S94b1a9ab95344745b0ed169f96d18408H.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/S5dbe839c84ed46c1a81d9cbf4c49d54eQ.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Alfombrilla de ratón grande, alfombrilla de escritorio de oficina, protector de almohadilla de escritorio de cuero, secante de escritorio de cuero PU antideslizante, alfombrilla de escritorio para computadora portátil</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005007082286046.html' target='_blank'>https://es.aliexpress.com/item/1005007082286046.html</a></div>
+  <div class='precios'>
+    <span class='precio'>4,89€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005007082286046.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/S5dbe839c84ed46c1a81d9cbf4c49d54eQ.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/S5dbe839c84ed46c1a81d9cbf4c49d54eQ.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/S5dbe839c84ed46c1a81d9cbf4c49d54eQ.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/S5dbe839c84ed46c1a81d9cbf4c49d54eQ.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/S7efad5c98e4c46e59bd7ed1755119c108.png_480x480.png_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>GIGABYTE B650M GAMING WIFI nuevo soporte para procesadores DDR5 M.2 AMD Ryzen serie 7000/8000/9000 Socket AM5 placa base</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005009120899585.html' target='_blank'>https://es.aliexpress.com/item/1005009120899585.html</a></div>
+  <div class='precios'>
+    <span class='precio'>129,48€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005009120899585.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/S7efad5c98e4c46e59bd7ed1755119c108.png_480x480.png_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/S7efad5c98e4c46e59bd7ed1755119c108.png_480x480.png_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/S7efad5c98e4c46e59bd7ed1755119c108.png_480x480.png_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/S7efad5c98e4c46e59bd7ed1755119c108.png_480x480.png_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/Ab6631ef65c0c437bb6277fd95baf18acB.png_480x480.png_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Tarjetas de violación de estacionamiento en español de 100 piezas: recordatorio de estacionamiento no autorizado, sin alerta de zona de licencia, con mensaje preimpreso.</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005008740944938.html' target='_blank'>https://es.aliexpress.com/item/1005008740944938.html</a></div>
+  <div class='precios'>
+    <span class='precio'>2,99€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005008740944938.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/Ab6631ef65c0c437bb6277fd95baf18acB.png_480x480.png_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/Ab6631ef65c0c437bb6277fd95baf18acB.png_480x480.png_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/Ab6631ef65c0c437bb6277fd95baf18acB.png_480x480.png_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/Ab6631ef65c0c437bb6277fd95baf18acB.png_480x480.png_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/S069aaede00d640578845d9e4aa15f798N.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>OnePlus Pad 2 Snapdragon 8 Gen 3 16GB + 512GB de almacenamiento 12,1 ''144Hz pantalla 67W SUPERVOOC 13MP cámara OS 14,1 2024 Pad Android</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005007758516607.html' target='_blank'>https://es.aliexpress.com/item/1005007758516607.html</a></div>
+  <div class='precios'>
+    <span class='precio'>310,59€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005007758516607.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/S069aaede00d640578845d9e4aa15f798N.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/S069aaede00d640578845d9e4aa15f798N.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/S069aaede00d640578845d9e4aa15f798N.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/S069aaede00d640578845d9e4aa15f798N.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/Sb09a9f70377346179721a455225d09b1K.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Alfombrilla de ratón de fieltro de lana para juegos, alfombrilla de escritura de gran tamaño para teclado, alfombrilla antideslizante para ratón, Protector de escritorio para ordenador de oficina y hogar</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005006086188422.html' target='_blank'>https://es.aliexpress.com/item/1005006086188422.html</a></div>
+  <div class='precios'>
+    <span class='precio'>2,12€</span>
+    <span class='precio-original'>2,12€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005006086188422.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/Sb09a9f70377346179721a455225d09b1K.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/Sb09a9f70377346179721a455225d09b1K.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/Sb09a9f70377346179721a455225d09b1K.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/Sb09a9f70377346179721a455225d09b1K.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/Scec05d3976cc4be799954cb2f94cac09h.png_480x480.png_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>160 pegatinas divertidas de advertencia de estacionamiento en español, etiquetas de recordatorio de coche humorísticas, autoadhesivas para vehículos, pegatinas de coche</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005008763478117.html' target='_blank'>https://es.aliexpress.com/item/1005008763478117.html</a></div>
+  <div class='precios'>
+    <span class='precio'>2,55€</span>
+    <span class='precio-original'>6,02€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005008763478117.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/Scec05d3976cc4be799954cb2f94cac09h.png_480x480.png_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/Scec05d3976cc4be799954cb2f94cac09h.png_480x480.png_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/Scec05d3976cc4be799954cb2f94cac09h.png_480x480.png_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/Scec05d3976cc4be799954cb2f94cac09h.png_480x480.png_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/S6b9ec2457fbb426aaa3c2851a018bdcfw.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Para Funda Xiaomi Mi Pad 8 pro 11,2 7 6 Pro 5 11 11,2 7S pro 12,5 Funda Redmi pad SE 11 10,6 8,7 redmi pad 2 pro 12,1 K pad 8,8" Auto despertador y sueño Funda de silicona soporte de carga</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005006814695320.html' target='_blank'>https://es.aliexpress.com/item/1005006814695320.html</a></div>
+  <div class='precios'>
+    <span class='precio'>4,52€</span>
+    <span class='precio-original'>8,97€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005006814695320.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/S6b9ec2457fbb426aaa3c2851a018bdcfw.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/S6b9ec2457fbb426aaa3c2851a018bdcfw.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/S6b9ec2457fbb426aaa3c2851a018bdcfw.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/S6b9ec2457fbb426aaa3c2851a018bdcfw.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/S173b1e91e5bf440ebc7e70f7d11379e5a.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>2 uds Protector de pantalla de vidrio templado para Xiaomi Pad 7 pro 11,2 6 6s pro 12,4 Mi Pad 7 pro 6 6s vidrio Protector</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005010146785577.html' target='_blank'>https://es.aliexpress.com/item/1005010146785577.html</a></div>
+  <div class='precios'>
+    <span class='precio'>5,32€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005010146785577.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/S173b1e91e5bf440ebc7e70f7d11379e5a.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/S173b1e91e5bf440ebc7e70f7d11379e5a.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/S173b1e91e5bf440ebc7e70f7d11379e5a.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/S173b1e91e5bf440ebc7e70f7d11379e5a.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/Sa0aed1a8d3f643608c334f1739d322bce.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Alfombrilla de ratón XXL de goma de algodón y lino, alfombrilla de ratón para juegos, alfombrilla de escritorio grande, alfombrilla de escritorio para PC, alfombrilla para teclado, alfombrilla de escritorio para ordenador</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005008059759483.html' target='_blank'>https://es.aliexpress.com/item/1005008059759483.html</a></div>
+  <div class='precios'>
+    <span class='precio'>9,29€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005008059759483.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/Sa0aed1a8d3f643608c334f1739d322bce.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/Sa0aed1a8d3f643608c334f1739d322bce.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/Sa0aed1a8d3f643608c334f1739d322bce.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/Sa0aed1a8d3f643608c334f1739d322bce.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/S1539f8bf89a445e98e8b033dee92eba1v.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Lápiz óptico para tableta Android, teléfono móvil, bolígrafo táctil Universal para iPhone, Xiaomi, Samsung, accesorios para tableta, lápiz para iPad</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005007979095991.html' target='_blank'>https://es.aliexpress.com/item/1005007979095991.html</a></div>
+  <div class='precios'>
+    <span class='precio'>5,09€</span>
+    <span class='precio-original'>5,09€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005007979095991.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/S1539f8bf89a445e98e8b033dee92eba1v.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/S1539f8bf89a445e98e8b033dee92eba1v.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/S1539f8bf89a445e98e8b033dee92eba1v.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/S1539f8bf89a445e98e8b033dee92eba1v.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/S6a0a794ceb3d43be96337af148837c4bv.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Rotulador de pintura acrílica de 12-168 colores, marcador de pintura con punta de pincel para pintura en roca, lienzo de madera, piedra, regalo de Navidad, manualidades DIY</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005009516339344.html' target='_blank'>https://es.aliexpress.com/item/1005009516339344.html</a></div>
+  <div class='precios'>
+    <span class='precio'>4,38€</span>
+    <span class='precio-original'>9,51€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005009516339344.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/S6a0a794ceb3d43be96337af148837c4bv.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/S6a0a794ceb3d43be96337af148837c4bv.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/S6a0a794ceb3d43be96337af148837c4bv.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/S6a0a794ceb3d43be96337af148837c4bv.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/H24411ef99fcb41c3bbb75a94454184b3l.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Teclado retroiluminado RU/SP/FR para Lenovo Legion, Y540, 15IRH, Y540-15IRH, Y545, 15ICH, Y545-15ICH, Y9000K, Y730, Y740(17 "), Y740-17ICH, nuevo</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005003629546919.html' target='_blank'>https://es.aliexpress.com/item/1005003629546919.html</a></div>
+  <div class='precios'>
+    <span class='precio'>20,19€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005003629546919.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/H24411ef99fcb41c3bbb75a94454184b3l.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/H24411ef99fcb41c3bbb75a94454184b3l.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/H24411ef99fcb41c3bbb75a94454184b3l.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/H24411ef99fcb41c3bbb75a94454184b3l.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/Sff7263a64d2b4f4d809c701d375a3205K.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Alfombrilla de ratón negra XXL para Gaming, alfombrilla de ratón grande para Gamer Mause, alfombrilla de escritorio para PC, alfombrilla para teclado, alfombrilla de ratón para ordenador</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005004325091023.html' target='_blank'>https://es.aliexpress.com/item/1005004325091023.html</a></div>
+  <div class='precios'>
+    <span class='precio'>3,59€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005004325091023.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/Sff7263a64d2b4f4d809c701d375a3205K.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/Sff7263a64d2b4f4d809c701d375a3205K.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/Sff7263a64d2b4f4d809c701d375a3205K.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/Sff7263a64d2b4f4d809c701d375a3205K.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <img class='thumb' src='https://ae-pic-a1.aliexpress-media.com/kf/Se43b74e0f7784bdd9fd65f677f8155b82.jpg_480x480q75.jpg_.avif' alt='producto' />
+<div>
+  <h3 class='titulo'>Procesador AMD Ryzen 7 7800X3D 4,2 GHz 5NM L3 = 96M 8 núcleos 16 hilos R7 7800X3D DDR5 120W Socket AM5 NUEVO pero sin ventilador</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005009004073475.html' target='_blank'>https://es.aliexpress.com/item/1005009004073475.html</a></div>
+  <div class='precios'>
+    <span class='precio'>364,69€</span>
+  </div>
+</div>
+</div>
+<div class='galeria'>
+  <a href="https://es.aliexpress.com/item/1005009004073475.html" target="_blank" title="//ae-pic-a1.aliexpress-media.com/kf/Se43b74e0f7784bdd9fd65f677f8155b82.jpg_480x480q75.jpg_.avif"><img src="https://ae-pic-a1.aliexpress-media.com/kf/Se43b74e0f7784bdd9fd65f677f8155b82.jpg_480x480q75.jpg_.avif" alt="galeria" /></a>
+</div>
+<div class='img-links'>
+  <div><span class="index">#01</span><a href="https://ae-pic-a1.aliexpress-media.com/kf/Se43b74e0f7784bdd9fd65f677f8155b82.jpg_480x480q75.jpg_.avif" target="_blank">//ae-pic-a1.aliexpress-media.com/kf/Se43b74e0f7784bdd9fd65f677f8155b82.jpg_480x480q75.jpg_.avif</a></div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>12/24/36/48Colors/set Acrylic Marker Pen Paint Brush Pen Painting Coloring Pen DIY Graffiti Art Making School and Office Supplie</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005008378784949.html' target='_blank'>https://es.aliexpress.com/item/1005008378784949.html</a></div>
+  <div class='precios'>
+    <span class='precio'>4,69€</span>
+  </div>
+</div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>Funda de teclado para Xiaomi Pad 7 7 Pro 11,2 pulgadas 2024 funda con ranura para bolígrafo para XIAOMI Pad 8/8 Pro teclado Bluetooth retroiluminado capa</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005008594610093.html' target='_blank'>https://es.aliexpress.com/item/1005008594610093.html</a></div>
+  <div class='precios'>
+    <span class='precio'>26,19€</span>
+    <span class='precio-original'>26,19€</span>
+  </div>
+</div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>Alfombrilla de ratón gris, alfombrilla de ratón overlock grande/pequeña xxl, alfombrilla de mesa para teclado de escritorio, serie gris, alfombrilla de escritorio para juegos, accesorios de ordenador</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005007935939687.html' target='_blank'>https://es.aliexpress.com/item/1005007935939687.html</a></div>
+  <div class='precios'>
+    <span class='precio'>5,29€</span>
+    <span class='precio-original'>5,29€</span>
+  </div>
+</div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>Procesador de juegos AMD RYZEN 7 7800X3D CPU AMD R7 7800X3D 8 núcleos 16 hilos 5NM 96M Socket AM5 sin ventilador juego caché caliente sin ventilador</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005008498513607.html' target='_blank'>https://es.aliexpress.com/item/1005008498513607.html</a></div>
+  <div class='precios'>
+    <span class='precio'>240,08€</span>
+  </div>
+</div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>Impresora de plantilla de tatuaje inalámbrica C80, Kit de impresora térmica portátil A4 para artistas de tatuajes, Compatible con teléfono, iPad y PC</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005008003703313.html' target='_blank'>https://es.aliexpress.com/item/1005008003703313.html</a></div>
+  <div class='precios'>
+    <span class='precio'>37,19€</span>
+    <span class='precio-original'>37,19€</span>
+  </div>
+</div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>Batería para Portátil SKOWER L17L3PG1 para Lenovo Legion Y530-15ICH Y540-15IRH/17IRH Y730 Y740 Y7000 Y7000P L17C3PG2 L17C3PG1 L17M3PG2</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005010802136776.html' target='_blank'>https://es.aliexpress.com/item/1005010802136776.html</a></div>
+  <div class='precios'>
+    <span class='precio'>32,79€</span>
+  </div>
+</div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>Alfombrilla de escritorio impermeable PU alfombrilla de ratón alfombrilla de escritorio cubierta protectora alfombrilla de ratón grande ordenador portátil antideslizante fácil de limpiar alfombrillas de teclado</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005008233296985.html' target='_blank'>https://es.aliexpress.com/item/1005008233296985.html</a></div>
+  <div class='precios'>
+    <span class='precio'>4,89€</span>
+  </div>
+</div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>Procesador AMD Ryzen 5 R5 5600 3,5 GHz 6 núcleos 12 hilos 65 W LGA AM4 No nuevo</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005007203104599.html' target='_blank'>https://es.aliexpress.com/item/1005007203104599.html</a></div>
+  <div class='precios'>
+    <span class='precio'>133,39€</span>
+  </div>
+</div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>20V 3.25A 65W 4,0*1,7mm adaptador de CA cargador de ordenador portátil para Lenovo IdeaPad 330s 320 100-15 B50-10 YOGA 710 510-14ISK Redmibook 14 13</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/4000765305146.html' target='_blank'>https://es.aliexpress.com/item/4000765305146.html</a></div>
+  <div class='precios'>
+    <span class='precio'>8,91€</span>
+    <span class='precio-original'>9,28€</span>
+  </div>
+</div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>Tapete de corte de PVC, manualidades de arte hechas a mano, almohadilla de corte de retales duradera, placa de corte para álbum de recortes, kits de herramientas de arte, organizadores de juego de escritorio</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005006192252285.html' target='_blank'>https://es.aliexpress.com/item/1005006192252285.html</a></div>
+  <div class='precios'>
+    <span class='precio'>2,64€</span>
+    <span class='precio-original'>2,64€</span>
+  </div>
+</div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>Alfombrilla de ratón de dragón chino, alfombrilla para teclado XXL, alfombrillas grandes para ratón, accesorios para juegos, ordenador de oficina, PC, Gamer, alfombrilla de escritorio para ordenador portátil</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005005110846635.html' target='_blank'>https://es.aliexpress.com/item/1005005110846635.html</a></div>
+  <div class='precios'>
+    <span class='precio'>2,81€</span>
+  </div>
+</div>
+</div>
+</div>
+<div class='card'>
+<div class='header'>
+  <div class='placeholder'>Sin imagen</div>
+<div>
+  <h3 class='titulo'>Tapete de escritorio de doble cara, almohadilla de escritorio de cuero, protector de alfombrilla de escritorio de corcho negro, alfombrilla de ratón grande, alfombrilla de escritura de escritorio para oficina y hogar</h3>
+  <div class='url-prod'><a href='https://es.aliexpress.com/item/1005008249097346.html' target='_blank'>https://es.aliexpress.com/item/1005008249097346.html</a></div>
+  <div class='precios'>
+    <span class='precio'>4,99€</span>
+  </div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

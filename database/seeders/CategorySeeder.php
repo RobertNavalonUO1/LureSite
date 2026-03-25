@@ -38,11 +38,15 @@ class CategorySeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            Category::create([
-                'name' => $category,
-                'slug' => Str::slug($category),
-                'description' => 'Categoría de ' . strtolower($category),
-            ]);
+            $slug = Str::slug($category);
+
+            Category::query()->firstOrCreate(
+                ['slug' => $slug],
+                [
+                    'name' => $category,
+                    'description' => 'Categoría de ' . strtolower($category),
+                ]
+            );
         }
     }
 }

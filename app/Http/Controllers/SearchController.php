@@ -2,36 +2,157 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
+use App\Support\CatalogDataLocalizer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class SearchController extends Controller
 {
     public function search(Request $request)
     {
-        $query = $request->input('query');
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
+        $filters = $request->validate([
+            'query'        => ['nullable', 'string', 'min:2'],
+            'category'     => ['nullable', 'integer', 'exists:categories,id'],
+            'min_price'    => ['nullable', 'numeric', 'min:0'],
+            'max_price'    => ['nullable', 'numeric', 'gte:min_price'],
+            'flags'        => ['nullable', 'array'],
+            'flags.*'      => ['in:is_featured,is_superdeal,is_fast_shipping,is_new_arrival,is_seasonal'],
+            'sort'         => ['nullable', 'in:relevance,price_asc,price_desc,recent,rating'],
+            'page'         => ['nullable', 'integer', 'min:1'],
+            'per_page'     => ['nullable', 'integer', 'min:6', 'max:48'],
+        ]);
 
-        $products = Product::with('category')
-            ->where('name', 'LIKE', "%{$query}%")
-            ->get()
-            ->map(fn($product) => [
-                'id' => $product->id,
-                'name' => $product->name,
-                'price' => $product->price,
-                'stock' => $product->stock,
-                'image' => $product->image,
-                'category' => [
-                    'id' => $product->category->id ?? null,
-                    'name' => $product->category->name ?? 'Sin categoría',
+        $builder = Product::query()
+            ->with(['category:id,name,slug', 'details:id,product_id,specifications'])
+            ->withAvg('reviews as reviews_average_rating', 'rating');
+
+        if ($term = $filters['query'] ?? null) {
+            $builder->where(function ($query) use ($term) {
+                $query->where('name', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%")
+                    ->orWhereHas('details', fn ($details) =>
+                        $details->where('specifications', 'like', "%{$term}%")
+                    );
+            });
+        }
+
+        if ($category = $filters['category'] ?? null) {
+            $builder->where('category_id', $category);
+        }
+
+        if (isset($filters['min_price'])) {
+            $builder->where('price', '>=', $filters['min_price']);
+        }
+
+        if (isset($filters['max_price'])) {
+            $builder->where('price', '<=', $filters['max_price']);
+        }
+
+        foreach ($filters['flags'] ?? [] as $flag) {
+            $builder->where($flag, true);
+        }
+
+        match ($filters['sort'] ?? 'relevance') {
+            'price_asc'  => $builder->orderBy('price'),
+            'price_desc' => $builder->orderByDesc('price'),
+            'recent'     => $builder->latest('products.created_at'),
+            'rating'     => $builder->orderByDesc('reviews_average_rating')->orderByDesc('products.created_at'),
+            default      => $builder->orderByDesc('reviews_average_rating')->orderByDesc('products.created_at'),
+        };
+
+        $perPage = $filters['per_page'] ?? 12;
+
+        $products = $builder->paginate($perPage)->withQueryString()->through(function ($product) use ($catalogLocalizer) {
+            return $catalogLocalizer->productPayload($product, [
+                'discount'       => $product->discount,
+                'average_rating' => round($product->reviews_average_rating ?? $product->average_rating ?? 0, 1),
+                'reviews_count'  => $product->reviews()->count(),
+                'tags'           => [
+                    'featured'     => $product->is_featured,
+                    'superdeal'    => $product->is_superdeal,
+                    'fastShipping' => $product->is_fast_shipping,
+                    'newArrival'   => $product->is_new_arrival,
+                    'seasonal'     => $product->is_seasonal,
                 ],
-                'is_adult' => $product->is_adult,
-                'link' => $product->link,
+                'details'        => $product->details ? [
+                    'specifications' => $product->details->specifications,
+                ] : null,
             ]);
+        });
 
-        return Inertia::render('Home', [
-            'products' => $products,
-            'searchQuery' => $query
+        $recommended = collect();
+        if (!($filters['query'] ?? null) && !($filters['category'] ?? null)) {
+            $recommended = Product::query()
+                ->with('category:id,name,slug')
+                ->featured()
+                ->latest()
+                ->take(6)
+                ->get()
+                ->map(fn ($product) => $catalogLocalizer->productPayload($product));
+        }
+
+        return Inertia::render('Search/Results', [
+            'products'       => $products,
+            'filters'        => $filters,
+            'categories'     => Category::select('id', 'name', 'slug')->orderBy('name')->get()->map(fn ($category) => $catalogLocalizer->categoryPayload($category)),
+            'recommended'    => $recommended,
+            'hasActiveQuery' => (bool) ($filters['query'] ?? null),
+        ]);
+    }
+
+    public function suggest(Request $request)
+    {
+        $catalogLocalizer = app(CatalogDataLocalizer::class);
+        $payload = $request->validate([
+            'query' => ['required', 'string', 'min:2'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:10'],
+        ]);
+
+        $term = trim($payload['query']);
+        $limit = $payload['limit'] ?? 6;
+
+        $products = Product::query()
+            ->select(['id', 'name', 'price', 'image_url', 'image_url_full', 'link', 'category_id'])
+            ->with(['category:id,name,slug'])
+            ->where(function ($query) use ($term) {
+                $likeTerm = "%{$term}%";
+                $query
+                    ->where('name', 'like', $likeTerm)
+                    ->orWhere('description', 'like', $likeTerm)
+                    ->orWhereHas('details', fn ($details) =>
+                        $details->where('specifications', 'like', $likeTerm)
+                    );
+            })
+            ->orderByRaw(
+                'CASE WHEN name LIKE ? THEN 0 WHEN name LIKE ? THEN 1 ELSE 2 END',
+                ["{$term}%", "% {$term}%"]
+            )
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get()
+            ->map(function (Product $product) use ($catalogLocalizer, $term) {
+                $displayName = Str::limit($product->name, 80);
+
+                return [
+                    'id'        => $product->id,
+                    'name'      => $displayName,
+                    'price'     => $product->price,
+                    'image'     => $product->image_url_full ?? $product->image_url,
+                    'category'  => $product->category ? $catalogLocalizer->localizeCategoryName($product->category->name, $product->category->slug) : null,
+                    'url'       => route('product.details', $product->id),
+                    'match'     => [
+                        'query' => $term,
+                    ],
+                ];
+            });
+
+        return response()->json([
+            'data'  => $products,
+            'query' => $term,
         ]);
     }
 }

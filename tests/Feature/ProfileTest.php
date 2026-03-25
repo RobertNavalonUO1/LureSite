@@ -2,8 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Mail\AccountDeletionConfirmationMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\CustomVerifyEmail;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -24,6 +28,7 @@ class ProfileTest extends TestCase
     public function test_profile_information_can_be_updated(): void
     {
         $user = User::factory()->create();
+        Notification::fake();
 
         $response = $this
             ->actingAs($user)
@@ -41,6 +46,7 @@ class ProfileTest extends TestCase
         $this->assertSame('Test User', $user->name);
         $this->assertSame('test@example.com', $user->email);
         $this->assertNull($user->email_verified_at);
+        Notification::assertSentTo($user->fresh(), CustomVerifyEmail::class);
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
@@ -64,6 +70,7 @@ class ProfileTest extends TestCase
     public function test_user_can_delete_their_account(): void
     {
         $user = User::factory()->create();
+        Mail::fake();
 
         $response = $this
             ->actingAs($user)
@@ -77,6 +84,9 @@ class ProfileTest extends TestCase
 
         $this->assertGuest();
         $this->assertNull($user->fresh());
+        Mail::assertSent(AccountDeletionConfirmationMail::class, function (AccountDeletionConfirmationMail $mail) use ($user) {
+            return $mail->hasTo($user->email);
+        });
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void

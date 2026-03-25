@@ -76,6 +76,7 @@ class OrdersSeeder extends Seeder
                 'product_id' => $product->id,
                 'quantity'   => 2,
                 'price'      => $product->price,
+                'status'     => $order->status ?? 'pendiente_pago',
             ]);
 
             OrderItem::create([
@@ -83,6 +84,7 @@ class OrdersSeeder extends Seeder
                 'product_id' => $product->id,
                 'quantity'   => 1,
                 'price'      => $product->price,
+                'status'     => $order->status ?? 'pendiente_pago',
             ]);
         }
 

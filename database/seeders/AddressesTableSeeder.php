@@ -9,31 +9,40 @@ class AddressesTableSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! class_exists(\Faker\Factory::class)) {
+            return;
+        }
+
+        $faker = \Faker\Factory::create('es_ES');
         $users = DB::table('users')->pluck('id');
 
+        if ($users->isEmpty()) {
+            return;
+        }
+        $provinces = [
+            'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Zaragoza', 'Málaga', 'Murcia', 'Palma', 'Las Palmas', 'Bilbao',
+            'Alicante', 'Córdoba', 'Valladolid', 'Vigo', 'Gijón', 'Hospitalet', 'A Coruña', 'Vitoria', 'Granada', 'Elche'
+        ];
         foreach ($users as $user_id) {
             $address_ids = [];
-
-            // Crear de 1 a 6 direcciones por usuario
-            for ($i = 0; $i < rand(1, 6); $i++) {
+            $numAddresses = rand(2, 5);
+            for ($i = 0; $i < $numAddresses; $i++) {
+                $province = $faker->randomElement($provinces);
                 $address_id = DB::table('addresses')->insertGetId([
                     'user_id' => $user_id,
-                    'street' => 'Calle ' . rand(100, 999),
-                    'city' => 'Madrid',
-                    'province' => 'Madrid',
-                    'zip_code' => rand(28000, 28999),
+                    'street' => $faker->streetAddress,
+                    'city' => $faker->city,
+                    'province' => $province,
+                    'zip_code' => $faker->numberBetween(10000, 52999),
                     'country' => 'España',
-                    'created_at' => now(),
+                    'created_at' => $faker->dateTimeBetween('-2 years', 'now'),
                     'updated_at' => now(),
                 ]);
-
                 $address_ids[] = $address_id;
             }
-
-            // Seleccionar una dirección al azar como "default"
             if (!empty($address_ids)) {
                 DB::table('users')->where('id', $user_id)->update([
-                    'default_address_id' => $address_ids[array_rand($address_ids)]
+                    'default_address_id' => $faker->randomElement($address_ids)
                 ]);
             }
         }

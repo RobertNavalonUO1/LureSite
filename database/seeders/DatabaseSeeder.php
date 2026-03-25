@@ -11,13 +11,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
+        $seeders = [
             UsersTableSeeder::class,
             AddressesTableSeeder::class,
+            CookiePreferencesSeeder::class,
+
             CategorySeeder::class,
             ProductsTableSeeder::class,
+            ProductDetailsSeeder::class,
+            ProductImagesSeeder::class,
+            ReviewsSeeder::class,
+
+            CouponsSeeder::class,
+            SettingsSeeder::class,
+            BannersSeeder::class,
+
             OrdersTableSeeder::class,
             OrderItemsTableSeeder::class,
-        ]);
+            OrderSeeder::class,
+        ];
+
+        foreach ($seeders as $seeder) {
+            try {
+                $this->call($seeder);
+            } catch (\Throwable $e) {
+                $this->command?->error("Seeder fallido: $seeder. Error: " . $e->getMessage());
+            }
+        }
     }
+
 }

@@ -2,115 +2,119 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
+use App\Services\ShoppingCartService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class CartController extends Controller
 {
-    // Mostrar el carrito
-    public function index()
-    {
-        $cartItems = session()->get('cart', []);
-
-        // Calcular el total
-        $total = array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $cartItems));
-
-        return inertia('CartPage', [
-            'cartItems' => $cartItems,
-            'cartCount' => array_sum(array_column($cartItems, 'quantity')),
-            'total' => number_format($total, 2),
-        ]);
+    public function __construct(
+        private readonly ShoppingCartService $shoppingCartService,
+    ) {
     }
 
-    // Agregar un producto al carrito
-    public function addToCart($productId)
+    /**
+     * Mostrar el contenido del carrito.
+     */
+    public function index(Request $request)
     {
-        $product = Product::findOrFail($productId);
+        $snapshot = $this->cartSnapshot($request);
 
-        // Obtener el carrito actual
-        $cart = session()->get('cart', []);
+        Log::info('Vista del carrito accedida', ['cartCount' => $snapshot['cartCount']]);
 
-        // Si el producto ya está en el carrito, aumentar la cantidad
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity']++;
-        } else {
-            // Si no está en el carrito, agregarlo con una cantidad inicial de 1
-            $cart[$productId] = [
-                'id' => $product->id,
-                'title' => $product->name, // Cambio de 'name' a 'title' para mantener consistencia con el frontend
-                'price' => $product->price,
-                'image_url' => $product->image_url ?? '/default-image.jpg',
+        return Inertia::render('Shop/CartPage', $snapshot);
+    }
 
-                'quantity' => 1,
-            ];
+    /**
+     * Agregar un producto al carrito (o incrementar si ya existe).
+     */
+    public function addToCart(Request $request, $productId)
+    {
+        $this->shoppingCartService->add($request, (int) $productId);
+        Log::info('Producto agregado al carrito', ['product_id' => (int) $productId]);
+
+        return $this->cartResponse($request, 'Producto agregado al carrito.');
+    }
+
+    /**
+     * Eliminar un producto del carrito.
+     */
+    public function removeFromCart(Request $request, $productId)
+    {
+        $this->shoppingCartService->remove($request, (int) $productId);
+        Log::info('Producto eliminado del carrito', ['product_id' => (int) $productId]);
+
+        return $this->cartResponse($request);
+    }
+
+    /**
+     * Incrementar cantidad de un producto en el carrito.
+     */
+    public function incrementQuantity(Request $request, $productId)
+    {
+        $this->shoppingCartService->add($request, (int) $productId, 1);
+        Log::info('Cantidad incrementada', ['product_id' => (int) $productId]);
+
+        return $this->cartResponse($request);
+    }
+
+    /**
+     * Decrementar cantidad o eliminar si llega a 0.
+     */
+    public function decreaseQuantity(Request $request, $productId)
+    {
+        $cart = $this->shoppingCartService->itemsForRequest($request);
+        $currentQuantity = (int) ($cart[(int) $productId]['quantity'] ?? 0);
+
+        if ($currentQuantity > 1) {
+            $this->shoppingCartService->setQuantity($request, (int) $productId, $currentQuantity - 1);
+            Log::info('Cantidad reducida', ['product_id' => (int) $productId]);
+        } elseif ($currentQuantity === 1) {
+            $this->shoppingCartService->remove($request, (int) $productId);
+            Log::info('Producto eliminado por cantidad 0', ['product_id' => (int) $productId]);
         }
 
-        // Guardar el carrito actualizado en la sesión
-        session()->put('cart', $cart);
-
-        return redirect()->back();
+        return $this->cartResponse($request);
     }
 
-    // Eliminar un producto del carrito
-    public function removeFromCart($productId)
+    /**
+     * Resumen del carrito para peticiones asincronas.
+     */
+    public function summary(Request $request)
     {
-        // Obtener el carrito de la sesión
-        $cart = session()->get('cart', []);
+        return response()->json($this->cartSnapshot($request));
+    }
 
-        // Verificar si el producto existe en el carrito y eliminarlo
-        if (isset($cart[$productId])) {
-            unset($cart[$productId]);
-            // Guardar el carrito actualizado en la sesión
-            session()->put('cart', $cart);
+    /**
+     * Construye la respuesta del carrito respetando el tipo de peticion.
+     */
+    private function cartResponse(Request $request, ?string $message = null)
+    {
+        $payload = $this->cartSnapshot($request);
+
+        if ($message) {
+            $payload['message'] = $message;
         }
 
-        return redirect()->back();
-    }
-
-    // Incrementar la cantidad de un producto en el carrito
-    public function incrementQuantity($productId)
-    {
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity']++;
-            session()->put('cart', $cart);
+        if ($request->expectsJson()) {
+            return response()->json($payload);
         }
 
-        return redirect()->back();
-    }
+        $redirect = redirect()->back();
 
-    // Decrementar la cantidad de un producto en el carrito
-    public function decreaseQuantity($productId)
-    {
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$productId])) {
-            if ($cart[$productId]['quantity'] > 1) {
-                $cart[$productId]['quantity']--;
-            } else {
-                // Si la cantidad es 1, eliminar el producto del carrito
-                unset($cart[$productId]);
-            }
-            session()->put('cart', $cart);
+        if ($message) {
+            $redirect->with('success', $message);
         }
 
-        return redirect()->back();
+        return $redirect;
     }
 
-    // Procesar el checkout
-    public function checkout()
+    /**
+     * Devuelve el estado actual del carrito listo para serializar.
+     */
+    private function cartSnapshot(Request $request): array
     {
-        return inertia('CheckoutPage');
-    }
-
-    // Confirmar la compra
-    public function confirmOrder(Request $request)
-    {
-        // Vaciar el carrito después de confirmar la compra
-        session()->forget('cart');
-
-        return redirect()->route('home')->with('success', 'Pedido confirmado!');
+        return $this->shoppingCartService->summaryForRequest($request);
     }
 }

@@ -1,48 +1,45 @@
-import PrimaryButton from '@/Components/PrimaryButton';
+﻿import PrimaryButton from '@/Components/ui/PrimaryButton.jsx';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { useI18n } from '@/i18n';
 
-export default function VerifyEmail({ status }) {
-    const { post, processing } = useForm({});
+export default function VerifyEmail() {
+    const { t } = useI18n();
+    const { status } = usePage().props;
+    const resendForm = useForm({});
+    const logoutForm = useForm({});
 
-    const submit = (e) => {
+    const resend = (e) => {
         e.preventDefault();
-
-        post(route('verification.send'));
+        resendForm.post(route('verification.send'));
     };
 
     return (
         <GuestLayout>
-            <Head title="Email Verification" />
+            <Head title={t('auth.verify_email_title')} />
 
             <div className="mb-4 text-sm text-gray-600">
-                Thanks for signing up! Before getting started, could you verify
-                your email address by clicking on the link we just emailed to
-                you? If you didn't receive the email, we will gladly send you
-                another.
+                {t('auth.verify_email_desc')}
             </div>
 
             {status === 'verification-link-sent' && (
                 <div className="mb-4 text-sm font-medium text-green-600">
-                    A new verification link has been sent to the email address
-                    you provided during registration.
+                    {t('auth.verify_email_sent')}
                 </div>
             )}
 
-            <form onSubmit={submit}>
+            <form onSubmit={resend}>
                 <div className="mt-4 flex items-center justify-between">
-                    <PrimaryButton disabled={processing}>
-                        Resend Verification Email
+                    <PrimaryButton disabled={resendForm.processing}>
+                        {t('auth.resend_verification')}
                     </PrimaryButton>
-
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    <button
+                        type="button"
+                        onClick={() => logoutForm.post(route('logout'))}
+                        className="text-sm text-gray-600 underline hover:text-gray-900"
                     >
-                        Log Out
-                    </Link>
+                        {t('auth.logout')}
+                    </button>
                 </div>
             </form>
         </GuestLayout>

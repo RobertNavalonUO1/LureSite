@@ -1,0 +1,1796 @@
+﻿{
+  "common": {
+    "language": "Langue",
+    "change_language": "Changer de langue",
+    "open_menu": "Ouvrir le menu",
+    "search_placeholder": "Rechercher...",
+    "and": "et",
+    "home": "Accueil",
+    "contact": "Contact",
+    "greeting": "Bonjour, {name}",
+    "yes": "Oui",
+    "no": "Non",
+    "close_notification": "Fermer la notification",
+    "processing": "Traitement en cours..."
+  },
+  "auth": {
+    "login": "Se connecter",
+    "register": "Créer un compte",
+    "logout": "Se déconnecter",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "remember": "Se souvenir de moi",
+    "forgot_password": "Mot de passe oublié ?",
+    "login_title": "Se connecter",
+    "login_heading": "Connectez-vous à votre compte",
+    "login_submit": "Se connecter",
+    "or_continue_with": "ou continuer avec",
+    "no_account": "Vous n'avez pas de compte ?",
+    "sign_up": "Inscrivez-vous",
+    "register_title": "Inscription",
+    "register_heading": "Créez votre compte",
+    "full_name": "Nom complet",
+    "password_confirm": "Confirmer le mot de passe",
+    "already_have_account": "Vous avez déjà un compte ?",
+    "register_submit": "Créer un compte",
+    "or_register_with": "ou inscrivez-vous avec",
+    "register_terms_prefix": "En vous inscrivant, vous acceptez nos",
+    "terms_of_service": "Conditions d'utilisation",
+    "privacy_policy": "Politique de confidentialité",
+    "forgot_title": "Mot de passe oublié",
+    "forgot_desc": "Saisissez votre e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+    "send_link": "Envoyer le lien",
+    "confirm_password_title": "Confirmer le mot de passe",
+    "confirm_password_desc": "Il s'agit d'une zone sécurisée de l'application. Veuillez confirmer votre mot de passe avant de continuer.",
+    "confirm": "Confirmer",
+    "reset_password_title": "Réinitialiser le mot de passe",
+    "reset_password_submit": "Réinitialiser le mot de passe",
+    "verify_email_title": "Vérifier l'e-mail",
+    "verify_email_desc": "Merci pour votre inscription. Veuillez vérifier votre e-mail et cliquer sur le lien de vérification. Si vous ne l'avez pas reçu, vous pouvez en demander un autre.",
+    "verify_email_sent": "Un nouveau lien de vérification a été envoyé à votre e-mail.",
+    "resend_verification": "Renvoyer l'e-mail de vérification",
+    "social_google": "Google",
+    "social_facebook": "Facebook",
+    "login_brand_blurb": "Accedez a vos commandes, adresses et paiements depuis un seul compte."
+  },
+  "nav": {
+    "deals_today": "Offres du jour",
+    "super_deal": "Super Deal",
+    "fast_shipping": "Livraison rapide",
+    "new_arrivals": "Nouveautés",
+    "seasonal": "Saison",
+    "see_all": "Voir tout"
+  },
+  "header": {
+    "promo": {
+      "label": "Catalogue actif :",
+      "highlight": "paiements vérifiés",
+      "suffix": "et campagnes avec stock disponible"
+    },
+    "support": {
+      "primary": "Centre d'aide",
+      "secondary": "Contacter le support"
+    },
+    "navigation": {
+      "primary_aria": "Navigation principale",
+      "home": "Accueil",
+      "about": "À propos",
+      "contact": "Contact",
+      "help": "Aide"
+    },
+    "search_placeholder": "Rechercher des produits, catégories ou marques",
+    "search_submit": "Rechercher",
+    "cart": {
+      "view": "Voir le panier"
+    },
+    "user": {
+      "profile": "Profil",
+      "guest": "invité",
+      "go_to_panel": "Accéder au tableau de bord utilisateur",
+      "avatar_alt": "Avatar de l'utilisateur"
+    }
+  },
+  "footer": {
+    "brand_kicker": "catalogue operationnel",
+    "description": "Limoneo relie catalogue navigable, paiement verifie et support reel pour que chaque commande garde son contexte complet.",
+    "explore_title": "Explorer",
+    "catalog": "Catalogue",
+    "legal_title": "Mentions legales",
+    "privacy": "Politique de confidentialite",
+    "terms": "Conditions du service",
+    "cookies": "Politique des cookies",
+    "help_title": "Aide",
+    "help_body": "Si vous devez revoir une commande, un retour ou un incident de paiement, utilisez les canaux du site afin que le support dispose du contexte des le debut.",
+    "help_cta": "Centre d'aide",
+    "contact_cta": "Contact",
+    "rights": "Tous droits reserves."
+  },
+  "home": {
+    "welcome_guest": "Bienvenue sur Limoneo",
+    "welcome_user": "Bonjour, {name}",
+    "hero_title": "Découvrez des collections sélectionnées prêtes à être expédiées aujourd'hui",
+    "hero_subtitle": "Nous sélectionnons le meilleur en électronique, mode, maison et plus pour vous faire gagner du temps.",
+    "hero_cta_primary": "Explorer les produits",
+    "hero_cta_secondary": "Voir les nouveautés",
+    "catalog_summary": "Résumé du catalogue",
+    "catalog_total_products": "Produits actifs",
+    "catalog_discounted_products": "En promotion",
+    "catalog_fast_shipping_products": "Livraison rapide",
+    "catalog_refresh_note": "Nous mettons à jour le stock et les offres plusieurs fois par jour.",
+    "filters_title": "Filtrer les résultats",
+    "filters_subtitle": "Affinez par catégorie, prix et pertinence.",
+    "filters_clear": "Réinitialiser",
+    "filters_search_aria": "Rechercher des produits",
+    "filters_search_placeholder": "Rechercher par nom, marque ou catégorie",
+    "filters_category_aria": "Catégorie",
+    "filters_category_all": "Toutes les catégories",
+    "aside_tips_title": "Conseils d'achat",
+    "aside_tip_1": "Utilisez des filtres rapides pour comparer les catégories en quelques secondes.",
+    "aside_tip_2": "Enregistrez vos favoris et recevez des alertes de stock et de réductions.",
+    "aside_tip_3": "Privilégiez la livraison rapide si vous en avez besoin sous 48h.",
+    "aside_quick_access": "Accès rapides",
+    "aside_top_categories": "Top catégories",
+    "aside_safe_title": "Achat sécurisé",
+    "aside_safe_heading": "Support et garanties",
+    "aside_safe_body": "Paiements protégés, retours clairs et aide rapide quand vous en avez besoin.",
+    "aside_go": "Aller",
+    "aside_see": "Voir",
+    "aside_tip_label": "Astuce",
+    "aside_tip_text": "Utilisez \"Livraison rapide\" pour filtrer.",
+    "support_faq": "FAQ",
+    "support_contact": "Contact",
+    "quick_link_subtitle": {
+      "deals_today": "Promotions actives",
+      "super_deal": "Meilleur rapport qualité/prix",
+      "fast_shipping": "48 h sur une sélection",
+      "new_arrivals": "Nouveautés"
+    }
+  },
+  "catalog": {
+    "filter": {
+      "panel_title": "Filtres",
+      "compact_label": "Vue rapide",
+      "result_count_one": "{count} résultat",
+      "result_count_other": "{count} résultats",
+      "active_count_one": "{count} filtre actif",
+      "active_count_other": "{count} filtres actifs",
+      "status_free": "Exploration libre",
+      "status_active_one": "{count} actif",
+      "status_active_other": "{count} actifs",
+      "unrestricted": "Sans restriction",
+      "no_active_filters": "Aucun filtre actif",
+      "custom_sort": "Tri personnalisé",
+      "enter": "Entrer",
+      "open_filters": "Ouvrir les filtres",
+      "close_filters": "Fermer",
+      "back_to_summary": "Retour au résumé des filtres",
+      "badge": "Mode filtres",
+      "caption": "Colonne sticky de contrôle",
+      "description": "Affinez le catalogue pendant que vous parcourez la page.",
+      "search_label": "Rechercher",
+      "category_label": "Catégorie",
+      "sort_label": "Trier par",
+      "price_label": "Prix",
+      "min_placeholder": "Minimum",
+      "max_placeholder": "Maximum",
+      "quick_filters_label": "Raccourcis populaires",
+      "active_filters_label": "Filtres actifs",
+      "summary_label": "Vue actuelle",
+      "clear": "Réinitialiser",
+      "sort_featured": "À la une",
+      "sort_newest": "Plus récents",
+      "sort_lowest_price": "Prix le plus bas",
+      "sort_highest_price": "Prix le plus élevé",
+      "sort_relevance": "Pertinence",
+      "sort_rating": "Mieux notés",
+      "sort_price_asc": "Prix : croissant",
+      "sort_price_desc": "Prix : décroissant",
+      "sort_recent": "Plus récents",
+      "search_placeholder": "Rechercher par produit, marque ou catégorie",
+      "search_within_category": "Rechercher dans cette catégorie",
+      "all_categories": "Toutes les catégories"
+    },
+    "flags": {
+      "is_featured": "À la une",
+      "is_superdeal": "Superdeal",
+      "is_fast_shipping": "Livraison rapide",
+      "is_new_arrival": "Nouveau",
+      "is_seasonal": "Saisonnier"
+    },
+    "results": {
+      "title": "Résultats produits",
+      "title_with_query": "Résultats pour “{query}”",
+      "subtitle": "Ajustez les filtres, triez par prix ou note et trouvez le bon produit plus vite.",
+      "recommended_title": "Vous pourriez aimer",
+      "count_found": "{count} produits trouvés",
+      "count_empty": "Aucun résultat pour le moment.",
+      "tip": "Astuce : essayez des mots-clés plus précis ou ajustez les filtres.",
+      "empty_title": "Aucun résultat trouvé",
+      "empty_body": "Vérifiez l'orthographe, essayez une catégorie liée ou retirez quelques filtres."
+    },
+    "product_card": {
+      "fallback_title": "Produit",
+      "fallback_category": "Marketplace",
+      "shipping_fast": "Livraison en 48 h",
+      "shipping_standard": "Livraison standard",
+      "add_favorite": "Ajouter aux favoris",
+      "remove_favorite": "Retirer des favoris",
+      "badge_new": "Nouveau",
+      "badge_fast_shipping": "Livraison rapide",
+      "view_details_aria": "Voir les details de {title}",
+      "rating_aria": "Note {rating} sur 5",
+      "description_fallback": "Fiche verifiee avec prix actif, stock visible et acces direct aux details complets.",
+      "sold_out": "Rupture",
+      "add_to_cart": "Ajouter au panier",
+      "view_details": "Voir les details",
+      "stock_available": "Stock disponible",
+      "last_units": "Dernieres unites",
+      "out_of_stock": "Rupture de stock"
+    }
+  },
+  "shop": {
+    "cart": {
+      "title": "Panier",
+      "price": "Prix",
+      "quantity": "Quantité",
+      "remove": "Supprimer",
+      "empty": "Votre panier est vide",
+      "total": "Total",
+      "checkout": "Aller au paiement",
+      "summary_badge": "Résumé rapide",
+      "items_count": "{count} articles prêts pour le paiement",
+      "subtotal": "Sous-total",
+      "unit_suffix": "l'unité",
+      "secure_checkout": "Paiement sécurisé",
+      "continue_shopping": "Continuer les achats",
+      "empty_title": "Votre panier vous attend",
+      "empty_body": "Ajoutez des produits pour revoir les quantités, les totaux et finaliser l'achat depuis ici.",
+      "remove_item": "Supprimer {name} du panier",
+      "increment_item": "Augmenter la quantité de {name}",
+      "decrement_item": "Diminuer la quantité de {name}"
+    },
+    "category": {
+      "categories_title": "Catégories",
+      "help_title": "Besoin d'aide ?",
+      "help_body": "Chat en direct, retours gratuits et suivi des commandes en temps réel.",
+      "help_cta": "Contacter le support",
+      "description": "Découvrez le catalogue complet de produits sélectionnés pour cette catégorie.",
+      "empty": "Aucun produit dans cette catégorie.",
+      "featured_title": "À la une",
+      "view_all_deals": "Voir toutes les offres",
+      "recommendations_title": "Continuez à explorer les articles suggérés",
+      "add_to_cart_error": "Erreur lors de l'ajout du produit au panier"
+    },
+    "checkout": {
+      "kicker": "Processus d'achat",
+      "title": "Paiement",
+      "subtitle": "Vérifiez votre commande, confirmez vos informations et choisissez la meilleure option de livraison avant de payer.",
+      "hero_badge": "checkout actif",
+      "hero_title": "Confirmez votre commande avec adresse, livraison et total synchronisés en temps réel.",
+      "hero_body": "Le checkout partage maintenant la même structure, les mêmes adresses et le même état que le reste du storefront pour éviter les pertes de contexte.",
+      "summary_items_label": "Articles",
+      "summary_shipping_label": "Livraison active",
+      "summary_total_label": "Total",
+      "summary_title": "Récapitulatif de la commande",
+      "summary_subtitle": "Inclut vos articles, vos coordonnées, votre adresse et les avantages de livraison.",
+      "items_title": "Articles ({count})",
+      "items_empty": "Votre panier est vide. Ajoutez des produits pour continuer.",
+      "product_placeholder": "Produit",
+      "variant": "Variante",
+      "item_unit_price": "{count} x {price} chacun",
+      "decrement_aria": "Diminuer la quantité de {name}",
+      "increment_aria": "Augmenter la quantité de {name}",
+      "remove": "Supprimer",
+      "user_title": "Informations utilisateur",
+      "user_guest_warning": "Vous devez vous connecter pour finaliser l'achat.",
+      "user_name": "Nom",
+      "user_email": "Email",
+      "user_phone": "Téléphone",
+      "user_phone_missing": "Indisponible",
+      "address_title": "Adresse de livraison",
+      "address_body": "Utilisez le même carnet d'adresses du profil pour créer, modifier, définir l'adresse par défaut et choisir l'adresse de cette commande.",
+      "address_guest_hint": "Connectez-vous ou créez un compte pour gérer vos adresses.",
+      "address_selected": "Sélectionnée",
+      "address_none": "Aucune",
+      "address_edit_selected": "Modifier l'adresse sélectionnée",
+      "address_add_new": "Ajouter une nouvelle adresse",
+      "active_address": "Adresse active pour cette commande",
+      "address_empty": "Vous n'avez aucune adresse enregistrée.",
+      "address_empty_body": "Ajoutez votre première adresse pour débloquer le paiement et recalculer la commande sans quitter le checkout.",
+      "address_add": "Ajouter une adresse",
+      "coverage_title": "Couverture et garanties",
+      "benefits_title": "Avantages de votre achat",
+      "benefit_1": "Livraison fiable avec suivi pour toutes les options disponibles.",
+      "benefit_2": "Paiements sécurisés avec protection contre la fraude et chiffrement avancé.",
+      "benefit_3": "Support 24/7 pour répondre à vos questions et gérer les incidents.",
+      "benefit_4": "Plusieurs moyens de paiement, dont Stripe et PayPal.",
+      "benefits": {
+        "tracking_title": "Livraison suivie",
+        "tracking_body": "Chaque option affiche délai estimé et coût avant le paiement.",
+        "payment_title": "Paiement protégé",
+        "payment_body": "Stripe et PayPal ne démarrent qu'après validation de l'adresse et de la session.",
+        "traceability_title": "Traçabilité de la commande",
+        "traceability_body": "Coupon, livraison et références de paiement restent dans le même résumé opérationnel.",
+        "addresses_title": "Adresses unifiées",
+        "addresses_body": "Le profil et le checkout utilisent exactement le même flux d'adresses."
+      },
+      "financial_title": "Résumé financier",
+      "live_badge": "Live",
+      "subtotal": "Sous-total",
+      "coupon_applied": "Coupon appliqué",
+      "coupon_applied_title": "Coupon appliqué",
+      "coupon_applied_body": "Le résumé de commande a été mis à jour.",
+      "coupon_removed_title": "Coupon retiré",
+      "coupon_removed_body": "Le total de la commande a été recalculé.",
+      "remove_coupon": "Retirer",
+      "shipping": "Livraison",
+      "shipping_select": "Sélectionnez une méthode",
+      "shipping_updated_title": "Livraison mise à jour",
+      "shipping_updated_body": "La sélection de livraison a bien été enregistrée.",
+      "estimated_total": "Total estimé",
+      "sync_note": "Les totaux réagissent instantanément lorsque la livraison, le coupon ou les quantités changent.",
+      "tax_note": "Taxes applicables incluses. Le montant final dépendra du mode de livraison sélectionné.",
+      "coupon_title": "Vous avez un coupon ?",
+      "coupon_placeholder": "Saisir le code",
+      "coupon_applying": "Application…",
+      "coupon_apply": "Appliquer",
+      "shipping_method": "Mode de livraison",
+      "active_badge": "Actif",
+      "redirecting_stripe": "Redirection vers Stripe…",
+      "pay_with_card": "Payer par carte (Stripe)",
+      "stripe_init_failed": "Stripe n'a pas pu être initialisé.",
+      "stripe_redirect_failed": "Stripe n'a pas pu poursuivre le paiement.",
+      "stripe_session_missing": "La session Stripe n'a pas été reçue.",
+      "stripe_error_title": "Échec du démarrage Stripe",
+      "stripe_error_body": "La passerelle de paiement n'a pas pu être ouverte.",
+      "redirecting_paypal": "Redirection vers PayPal…",
+      "pay_with_paypal": "Payer avec PayPal",
+      "paypal_link_missing": "Le lien d'approbation PayPal n'a pas été reçu.",
+      "paypal_error_title": "Échec du démarrage PayPal",
+      "paypal_error_body": "Impossible de rediriger vers PayPal.",
+      "cart_update_failed_title": "Panier non mis à jour",
+      "cart_update_failed_body": "La quantité du produit n'a pas pu être mise à jour. Veuillez réessayer.",
+      "payment_disabled_hint": "Vous avez besoin d'une adresse valide pour continuer.",
+      "security_title": "Sécurité et confidentialité",
+      "security_1": "✓ Données chiffrées et vérification en deux étapes.",
+      "security_2": "✓ Protection de l'acheteur et remboursements garantis.",
+      "security_3": "✓ Opérations auditées par des prestataires tiers."
+    }
+  },
+  "banners": {
+    "recommended": "Recommandé",
+    "footer_note": "Découvrez des promotions et nouveautés sélectionnées pour vous.",
+    "paused": "En pause",
+    "auto": "Auto",
+    "view_banner": "Voir la bannière : {title}",
+    "go_to_banner": "Aller à la bannière {index}",
+    "featured_description": "Sélection visuelle mise en avant pour découvrir les nouveautés sans perdre le contexte de la page.",
+    "fallbacks": {
+      "seasonal_accessories": {
+        "title": "Offre de saison : accessoires en tons naturels",
+        "cta": "Voir la saison"
+      },
+      "gourmet_baskets": {
+        "title": "Paniers gourmet et cadeaux sélectionnés",
+        "cta": "Voir les nouveautés"
+      },
+      "aromas_home": {
+        "title": "Parfums d’intérieur et détails qui transforment",
+        "cta": "Voir les offres"
+      },
+      "fast_shipping": {
+        "title": "Livraison rapide : recevez sous 48 h",
+        "cta": "Livraison rapide"
+      },
+      "superdeal": {
+        "title": "SuperDeal vedette de la semaine",
+        "cta": "Voir SuperDeal"
+      },
+      "categories": {
+        "title": "Explorez par catégorie et trouvez votre style",
+        "cta": "Rechercher des offres"
+      },
+      "market_picks": {
+        "title": "Sélection du marché du jour",
+        "cta": "Picks du jour"
+      },
+      "launches": {
+        "title": "Nouveaux lancements et tendances",
+        "cta": "Découvrir"
+      }
+    }
+  },
+  "orders": {
+    "status": {
+      "pendiente_pago": "Paiement en attente",
+      "pagado": "Payé",
+      "pendiente_envio": "Expédition en attente",
+      "enviado": "Expédié",
+      "entregado": "Livré",
+      "confirmado": "Confirmé",
+      "cancelacion_pendiente": "Annulation en cours",
+      "cancelado": "Annulé",
+      "fallido": "Échec",
+      "devolucion_solicitada": "Retour demandé",
+      "devolucion_aprobada": "Retour approuvé",
+      "devolucion_rechazada": "Retour refusé",
+      "reembolsado": "Remboursé",
+      "parcialmente_cancelado": "Partiellement annulé",
+      "parcialmente_reembolsado": "Partiellement remboursé"
+    },
+    "module": {
+      "kicker": "Module commandes",
+      "title": "Commandes",
+      "subtitle": "Une vue unifiée pour les commandes actives, le suivi, les incidents et les annulations partielles par ligne.",
+      "empty_filtered": "Aucune commande pour ce filtre. Les lignes correspondantes apparaîtront ici lorsqu'elles existeront.",
+      "filters": {
+        "all": { "label": "Toutes les commandes", "short": "Toutes", "description": "Vue générale de votre historique de commandes." },
+        "paid": { "label": "Commandes actives", "short": "Actives", "description": "Commandes avec des lignes encore actives ou en cours." },
+        "shipped": { "label": "Suivi", "short": "Suivi", "description": "Lignes expédiées, livrées ou confirmées." },
+        "cancelled": { "label": "Annulations et remboursements", "short": "Incidents", "description": "Commandes mixtes, annulations et retours." }
+      },
+      "stats": {
+        "orders": "Commandes",
+        "lines": "Lignes",
+        "active_lines": "Lignes actives",
+        "affected_lines": "Lignes affectées",
+        "cancelled_lines": "Lignes annulées",
+        "active_value": "Valeur active"
+      },
+      "summary": {
+        "total_order": "Total commande",
+        "active_value": "Valeur active",
+        "affected_value": "Valeur affectée",
+        "active_lines": "Actives",
+        "affected_lines": "Affectées",
+        "cancelled_lines": "Annulées",
+        "active_lines_help": "Toujours opérationnelles",
+        "cancelled_lines_help": "Annulation finale",
+        "pending_review": "En révision",
+        "pending_review_help": "En attente de traitement",
+        "refunded_lines": "Remboursées",
+        "refunded_lines_help": "Remboursement terminé",
+        "units": "{count} unité(s)",
+        "more_lines": "+ {count} ligne(s) supplémentaire(s) dans le détail."
+      }
+    },
+    "cancel_warning": "Voulez-vous vraiment annuler cette commande ?",
+    "common": {
+      "back": "Retour",
+      "order_number": "Commande n°{id}",
+      "date": "Date",
+      "no_date": "Aucune date",
+      "current_status": "Statut actuel",
+      "quantity": "Quantité : {count}",
+      "total": "Total",
+      "address": "Adresse",
+      "address_missing": "Adresse indisponible",
+      "status": "Statut",
+      "estimated_delivery": "Livraison estimée",
+      "pending": "En attente",
+      "products": "Produits",
+      "view_detail": "Voir le détail",
+      "view_detail_full": "Voir les détails de la commande →",
+      "view_details": "Voir les détails",
+      "external_tracking": "Suivi externe",
+      "not_available": "N/A"
+    },
+    "actions": {
+      "request_cancel": "Demander une annulation",
+      "request_refund": "Demander un remboursement",
+      "cancel_order": "Annuler la commande",
+      "confirm_reception": "Confirmer la réception",
+      "grouped_cancel": "Annulation groupée",
+      "grouped_refund": "Retour groupé",
+      "cancel_line": "Annuler la ligne",
+      "refund_line": "Retourner la ligne"
+    },
+    "prompts": {
+      "group_cancel": "Toutes les lignes éligibles de cette commande seront envoyées en annulation. Continuer ?",
+      "group_refund": "Toutes les lignes éligibles de cette commande seront envoyées en retour. Continuer ?",
+      "line_cancel": "Cette ligne sera envoyée en annulation. Continuer ?",
+      "line_refund": "Cette ligne sera envoyée en retour. Continuer ?",
+      "confirm_reception": "Les lignes livrées seront confirmées comme reçues. Continuer ?"
+    },
+    "index": {
+      "title": "Mes commandes",
+      "more_items": "+{count} de plus",
+      "empty": "Vous n'avez aucune commande."
+    },
+    "show": {
+      "back": "Retour aux commandes",
+      "items_title": "Articles",
+      "subtitle": "Détail par ligne avec statuts indépendants, actions contextuelles et lecture claire de l'état agrégé de la commande.",
+      "status_desc": {
+        "pendiente_pago": "Nous attendons le paiement pour traiter votre commande.",
+        "pagado": "Paiement confirmé. Nous préparons votre commande.",
+        "pendiente_envio": "Votre commande est prête et sera expédiée bientôt.",
+        "enviado": "Votre commande est en route.",
+        "entregado": "La commande a été marquée comme livrée.",
+        "confirmado": "Vous avez confirmé la réception de la commande.",
+        "cancelacion_pendiente": "Votre demande d'annulation est en cours d'examen.",
+        "cancelado": "La commande a été annulée.",
+        "reembolsado": "Le remboursement a été traité avec succès.",
+        "fallido": "Un problème est survenu avec la commande ou le paiement.",
+        "devolucion_solicitada": "Vous avez demandé un retour. Nous vous informerons dès qu'une décision sera prise.",
+        "devolucion_aprobada": "Le retour a été approuvé.",
+        "devolucion_rechazada": "Le retour a été refusé."
+      }
+    },
+    "detail": {
+      "subtitle": "Détail par ligne avec statuts indépendants, actions contextuelles et lecture claire de l'état agrégé de la commande.",
+      "operational_summary": "Résumé opérationnel",
+      "operational_summary_body": "Cette vue sépare clairement l'état agrégé de la commande et l'état réel de chaque ligne. Les actions de groupe restent disponibles comme option secondaire.",
+      "lines_title": "Lignes de commande",
+      "lines_subtitle": "Chaque ligne peut gérer sa propre annulation ou son propre retour lorsque l'état courant l'autorise."
+    },
+    "line": {
+      "no_image": "Sans image",
+      "unit_price": "Prix unitaire",
+      "subtotal": "Sous-total",
+      "cancellation_reason": "Motif d'annulation",
+      "return_reason": "Motif du retour",
+      "notes": "Observation",
+      "refunded_at": "Remboursé",
+      "technical_status": "Statut technique",
+      "cancelled_by": "Annulé par",
+      "cancelled_at": "Date d'annulation",
+      "refund_reference": "Référence remboursement"
+    },
+    "product": {
+      "category_missing": "Sans catégorie",
+      "in_stock": "En stock ({count})",
+      "out_of_stock": "Rupture de stock",
+      "sku_sold": "SKU : {sku} · Vendus : {count}",
+      "view_product": "Voir le produit"
+    },
+    "paid": {
+      "title": "Commandes payées",
+      "empty": "Il n'y a aucune commande payée.",
+      "refund_unavailable_title": "Le remboursement n'est disponible qu'après approbation du retour.",
+      "refund_processed": "Remboursement traité",
+      "note_cancellation_review": "Votre demande d'annulation est en cours d'examen. Vous recevrez une confirmation sous 24 à 48 h.",
+      "note_return_approved": "Le retour a été approuvé. Vous pouvez maintenant demander un remboursement.",
+      "note_refunded": "Le remboursement a été traité avec succès. Cela peut prendre du temps selon votre moyen de paiement.",
+      "note_cancellation_in_process": "Pendant l'examen, la commande peut encore apparaître comme active."
+    },
+    "tracking": {
+      "title": "Suivi des livraisons",
+      "back_dashboard": "Retour",
+      "empty": "Vous n'avez aucune commande expédiée.",
+      "progress": {
+        "payment_received": "Paiement reçu",
+        "preparing": "Préparation",
+        "shipped": "Expédié",
+        "delivered": "Livré"
+      },
+      "highlight": {
+        "cancelacion_pendiente": "Votre demande d'annulation est en cours d'examen. Nous vous répondrons sous 24 à 48 h."
+      },
+      "note": {
+        "pagado": "Paiement confirmé. Préparation de la commande.",
+        "pendiente_envio": "Emballage et préparation de l'expédition.",
+        "enviado": "La commande a quitté l'entrepôt et est en route.",
+        "entregado": "Le transporteur a marqué la commande comme livrée.",
+        "confirmado": "Réception confirmée. Merci !",
+        "devolucion_aprobada": "Retour approuvé. Vous pouvez demander un remboursement.",
+        "reembolsado": "Remboursement traité."
+      },
+      "item_line": "{name} x{count} - {price}"
+    },
+    "shipped": {
+      "title": "Commandes expédiées",
+      "back_dashboard": "Retour",
+      "empty": "Il n'y a aucune commande expédiée.",
+      "status_desc": {
+        "enviado": "Votre commande est en route.",
+        "entregado": "La commande a été marquée comme livrée.",
+        "confirmado": "Réception confirmée."
+      }
+    },
+    "cancelled_refunded": {
+      "title": "Commandes annulées / remboursées",
+      "empty": "Il n'y a aucune commande annulée ou remboursée.",
+      "note_cancellation_review": "Votre demande d'annulation est en cours d'examen. Vous recevrez une confirmation sous 24 à 48 h.",
+      "note_return_approved": "Le retour a été approuvé. Si ce n'est pas encore fait, demandez votre remboursement depuis la section des commandes payées.",
+      "note_refunded": "Le remboursement a été traité avec succès. Il peut prendre quelques minutes à apparaître selon votre moyen de paiement."
+    },
+    "cancel_confirm": {
+      "title": "Confirmer l'annulation",
+      "back_to_orders": "Retour à mes commandes",
+      "notice": "En confirmant l'annulation, nous lancerons le processus d'examen. Nous vous enverrons une décision sous 24 à 48 h environ. En attendant, la commande peut encore apparaître comme active.",
+      "order_summary": "Récapitulatif de la commande n°{id}",
+      "reason_optional": "Motif (facultatif)",
+      "reason_placeholder": "Expliquez la raison afin de nous aider à améliorer votre expérience",
+      "review_order": "Revoir la commande",
+      "submit": "Confirmer l'annulation"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "avatar_change_title": "Cliquez pour modifier votre avatar",
+    "avatar_alt": "Avatar utilisateur",
+    "welcome_back": "Bon retour",
+    "greeting": "Bonjour, {name}",
+    "intro": "Gérez vos commandes, paiements et support depuis votre tableau de bord.",
+    "total_orders": "{count} commandes au total",
+    "cart_items": "{count} articles dans le panier",
+    "admin_access": "Accès administrateur",
+    "next_delivery": "Commande n°{id} {status}",
+    "no_active_shipments": "Aucun envoi actif pour le moment.",
+    "stats_total_orders": "Commandes totales",
+    "stats_cancelled_hint": "{count} annulées",
+    "stats_on_the_way": "En cours de livraison",
+    "stats_on_the_way_hint": "Inclut expédiées et livrées",
+    "stats_active_cart": "Panier actif",
+    "stats_estimated_hint": "{amount} estimé",
+    "stats_pending": "En attente",
+    "stats_pending_hint": "Commandes à compléter",
+    "quick_actions_title": "Actions rapides",
+    "quick_actions_subtitle": "Tout ce dont vous avez besoin en quelques clics.",
+    "qa_orders_history_label": "Historique des commandes",
+    "qa_orders_history_desc": "Consultez toutes vos commandes au même endroit.",
+    "qa_shipping_tracking_label": "Suivi des livraisons",
+    "qa_shipping_tracking_desc": "Vérifiez les commandes expédiées et celles qui arrivent bientôt.",
+    "qa_paid_label": "Paiements",
+    "qa_paid_desc": "Affichez vos paiements confirmés et récents.",
+    "qa_cancellations_label": "Annulations et remboursements",
+    "qa_cancellations_desc": "Consultez les commandes annulées ou remboursées.",
+    "qa_checkout_label": "Aller au paiement",
+    "qa_checkout_desc": "Finalisez votre achat avec les articles actuels.",
+    "qa_preferences_label": "Préférences du compte",
+    "qa_preferences_desc": "Mettez à jour vos informations et adresses.",
+    "qa_discover_label": "Découvrir des produits",
+    "qa_discover_desc": "Explorez le catalogue avec de nouvelles recherches.",
+    "qa_help_center_label": "Centre d'aide",
+    "qa_help_center_desc": "Contactez le support pour toute question.",
+    "qa_admin_panel_label": "Panneau d'administration",
+    "qa_admin_panel_desc": "Gérez commandes, produits et utilisateurs.",
+    "qa_add_product_label": "Ajouter un produit",
+    "qa_add_product_desc": "Publiez de nouveaux produits dans la boutique.",
+    "recent_orders_title": "Vos commandes récentes",
+    "recent_orders_subtitle": "Consultez le statut et les détails de vos dernières activités.",
+    "no_orders_message": "Vous n'avez pas encore de commandes.",
+    "no_orders_action": "Commencer à acheter",
+    "cart_title": "Panier",
+    "cart_subtitle": "Consultez un récapitulatif avant de finaliser.",
+    "cart_count": "{count} articles",
+    "cart_ready": "Prêt à finaliser votre achat.",
+    "cart_empty": "Votre panier est vide.",
+    "go_checkout": "Aller au paiement",
+    "quantity": "Quantité : {count}",
+    "estimated_total": "Total estimé",
+    "empty_cart_message": "Ajoutez des produits pour les voir ici.",
+    "empty_cart_action": "Explorer le catalogue",
+    "help_title": "Besoin d'aide ?",
+    "help_subtitle": "Notre équipe est prête à vous aider.",
+    "help_body": "Obtenez de l'aide pour les commandes, la livraison ou les retours.",
+    "priority_support": "Support prioritaire",
+    "priority_support_desc": "Réponse sous 24h ouvrées.",
+    "contact_support": "Contacter le support",
+    "go_now": "Y aller >",
+    "more_items": "+{count} de plus",
+    "order_total_label": "Total",
+    "view_details": "Voir les détails"
+  },
+  "profile": {
+    "title": "Profil",
+    "information_title": "Informations du profil",
+    "information_desc": "Mettez à jour vos informations de profil et votre e-mail.",
+    "name_label": "Nom",
+    "email_label": "E-mail",
+    "email_unverified": "Votre adresse e-mail n'est pas vérifiée.",
+    "resend_verification": "Cliquez ici pour renvoyer l'e-mail de vérification.",
+    "verification_sent": "Un nouveau lien de vérification a été envoyé à votre e-mail.",
+    "password_title": "Mettre à jour le mot de passe",
+    "password_desc": "Assurez-vous d'utiliser un mot de passe long et aléatoire pour rester en sécurité.",
+    "current_password": "Mot de passe actuel",
+    "new_password": "Nouveau mot de passe",
+    "confirm_password": "Confirmer le mot de passe",
+    "save": "Enregistrer",
+    "saved": "Enregistré.",
+    "delete_title": "Supprimer le compte",
+    "delete_desc": "Une fois votre compte supprimé, toutes ses ressources et données seront définitivement supprimées. Avant de supprimer votre compte, veuillez télécharger toute donnée ou information que vous souhaitez conserver.",
+    "delete_account": "Supprimer le compte",
+    "delete_confirm_title": "Êtes-vous sûr de vouloir supprimer votre compte ?",
+    "delete_confirm_desc": "Une fois votre compte supprimé, toutes ses ressources et données seront définitivement supprimées. Veuillez saisir votre mot de passe pour confirmer la suppression.",
+    "cancel": "Annuler",
+    "edit_heading": "Modifier le profil",
+    "avatar_alt": "Avatar",
+    "change_avatar": "Changer d'avatar",
+    "field_name": "Prénom",
+    "field_lastname": "Nom",
+    "field_email": "E-mail",
+    "phone": "Téléphone",
+    "phone_placeholder": "Numéro de mobile",
+    "payment_method_label": "Méthode de paiement préférée",
+    "payment_method_stripe": "Carte (Stripe)",
+    "payment_method_paypal": "PayPal",
+    "save_changes": "Enregistrer les modifications",
+    "addresses_title": "Mes adresses",
+    "new_address": "Nouvelle adresse",
+    "profile_updated": "Profil mis à jour.",
+    "address_updated": "Adresse mise à jour.",
+    "address_min_one": "Vous devez avoir au moins une adresse.",
+    "address_delete_confirm": "Êtes-vous sûr de vouloir supprimer cette adresse ?",
+    "add_address_title": "Ajouter une adresse",
+    "address_field_street": "Rue",
+    "address_field_city": "Ville",
+    "address_field_province": "Région/Province",
+    "address_field_zip_code": "Code postal",
+    "address_field_country": "Pays",
+    "modern": {
+      "hero_badge": "Profil premium",
+      "hero_title": "Gerez votre compte et vos adresses",
+      "hero_subtitle": "Mettez a jour vos donnees avec un retour immediat et gardez vos adresses pretes pour le checkout sans quitter la vue.",
+      "flash_completed_title": "Action terminee",
+      "flash_failed_title": "Une erreur est survenue",
+      "avatar_updated_title": "Avatar mis a jour",
+      "avatar_updated_message": "Votre avatar est deja mis a jour et disponible sur votre compte.",
+      "profile_updated_title": "Profil mis a jour",
+      "account_deleted_title": "Compte supprime",
+      "stats": {
+        "addresses_saved": "Adresses enregistrees",
+        "default_address": "Adresse par defaut",
+        "email_status": "Statut de l e-mail",
+        "active": "Active",
+        "pending": "En attente",
+        "verified": "Verifie"
+      },
+      "sections": {
+        "personal_title": "Donnees personnelles",
+        "personal_description": "Gerez identite, e-mail, telephone et adresse par defaut avec validation inline et retour coherent.",
+        "security_title": "Securite",
+        "security_description": "Mettez a jour votre mot de passe et controlez les actions sensibles avec des confirmations accessibles.",
+        "addresses_title": "Carnet d adresses",
+        "addresses_description": "CRUD complet sans rechargement de page, avec adresse par defaut et confirmation avant suppression."
+      },
+      "address_delete_title": "Supprimer l adresse",
+      "address_delete_description": "{street}, {city} sera supprimee. Cette action est irreversible.",
+      "address_delete_confirm": "Supprimer l adresse",
+      "user_avatar_alt": "Avatar de l utilisateur"
+    },
+    "address_book": {
+      "empty_title": "Vous n avez encore aucune adresse enregistree.",
+      "empty_body": "Creez la premiere pour accelerer vos prochains achats et garder un checkout coherent.",
+      "add_first": "Ajouter une adresse",
+      "list_kicker": "Adresses enregistrees",
+      "list_body": "Modifiez, changez l adresse par defaut ou supprimez sans recharger la page.",
+      "new_address": "Nouvelle adresse",
+      "default_badge": "Par defaut",
+      "edit": "Modifier",
+      "set_default": "Definir par defaut",
+      "updating": "Mise a jour...",
+      "delete": "Supprimer",
+      "saved_title": "Adresse enregistree",
+      "updated_title": "Adresse mise a jour",
+      "deleted_title": "Adresse supprimee",
+      "default_title": "Adresse par defaut",
+      "error_title": "Action impossible a terminer",
+      "save_failed": "Impossible d enregistrer l adresse.",
+      "update_failed": "Impossible de mettre a jour l adresse.",
+      "delete_failed": "Impossible de supprimer l adresse.",
+      "default_failed": "Impossible de mettre a jour l adresse par defaut."
+    },
+    "form": {
+      "validation_summary": "Verifiez les champs mis en evidence avant d enregistrer vos modifications.",
+      "phone_hint": "Format suggere : +34 600 123 123",
+      "default_address_label": "Adresse par defaut",
+      "default_address_hint": "Elle sera utilisee automatiquement au checkout sauf si vous en choisissez une autre.",
+      "select_address": "Selectionnez une adresse",
+      "payment_methods_title": "Methodes de paiement disponibles",
+      "payment_methods_body": "La preference de paiement se choisit pendant le checkout. Ici nous affichons uniquement les methodes actives pour votre compte.",
+      "email_unverified_notice": "Votre e-mail n est pas encore verifie.",
+      "save_notice": "Les modifications sont enregistrees avec validation serveur tout en preservant la navigation Inertia.",
+      "saving": "Enregistrement...",
+      "available_methods_label": "Methodes actives pour votre compte"
+    },
+    "address_form": {
+      "create_title": "Nouvelle adresse",
+      "edit_title": "Modifier l adresse",
+      "create_description": "Enregistrez une adresse prete pour le checkout lors de vos prochaines commandes.",
+      "edit_description": "Mettez a jour les informations de livraison sans quitter votre profil.",
+      "error_generic": "Impossible d enregistrer l adresse.",
+      "make_default_title": "Utiliser comme adresse par defaut",
+      "make_default_body": "Elle sera preselectionnee automatiquement pendant le checkout.",
+      "save_create": "Enregistrer l adresse",
+      "save_edit": "Enregistrer les modifications",
+      "saving": "Enregistrement...",
+      "default_country": "Espagne"
+    },
+    "delete_panel": {
+      "sensitive_kicker": "Zone sensible",
+      "body": "Cette action supprime l acces et les donnees associees a votre compte. Elle requiert votre mot de passe actuel pour confirmation.",
+      "confirm_button": "Supprimer definitivement",
+      "password_placeholder": "Mot de passe actuel",
+      "delete_success": "Votre compte a ete supprime avec succes."
+    },
+    "validation": {
+      "name_required": "Le nom est obligatoire.",
+      "email_required": "L email est obligatoire.",
+      "email_invalid": "Saisissez une adresse e-mail valide.",
+      "phone_invalid": "Saisissez un numero de telephone valide.",
+      "street_required": "La rue est obligatoire.",
+      "city_required": "La ville est obligatoire.",
+      "province_required": "La province est obligatoire.",
+      "zip_code_required": "Le code postal est obligatoire.",
+      "country_required": "Le pays est obligatoire."
+    },
+    "avatar_modal": {
+      "title": "Createur d avatar",
+      "subtitle": "Personnalisez un apercu rapide de votre avatar et enregistrez-le directement sur votre compte.",
+      "presets_title": "Avatars par defaut",
+      "presets_subtitle": "Choisissez l un des 15 avatars de base si vous ne voulez pas importer ou generer une nouvelle image.",
+      "preset_select": "Selectionner l avatar par defaut {index}",
+      "shirt": "Haut",
+      "pants": "Pantalon",
+      "hair": "Cheveux",
+      "gender": "Genre",
+      "gender_male": "Homme",
+      "gender_female": "Femme",
+      "body_type": "Silhouette",
+      "body_short": "Petit",
+      "body_average": "Moyen",
+      "body_tall": "Grand",
+      "reset": "Reinitialiser l avatar",
+      "save": "Enregistrer l avatar",
+      "saving": "Enregistrement de l avatar...",
+      "preset_saving": "Application de l avatar...",
+      "resetting": "Reinitialisation de l avatar...",
+      "canvas_unavailable": "L apercu de l avatar n est pas disponible pour le moment.",
+      "save_failed": "Impossible d enregistrer l avatar.",
+      "preset_failed": "Impossible d appliquer l avatar par defaut.",
+      "reset_failed": "Impossible de reinitialiser l avatar."
+    }
+  },
+  "static": {
+    "about": {
+      "head_title": "À propos | Limoneo",
+      "user_avatar_alt": "Avatar de l'utilisateur",
+      "title": "À propos de Limoneo",
+      "intro_1": "Limoneo est une plateforme dédiée à vous proposer les meilleurs produits du marché, avec une expérience utilisateur intuitive, rapide et sécurisée.",
+      "intro_2": "Notre objectif est de faciliter votre achat en offrant transparence, confiance et une attention personnalisée.",
+      "why_title": "Pourquoi nous choisir ?",
+      "why": {
+        "items": {
+          "clear_nav": {
+            "label": "Navigation claire :",
+            "body": "Des menus et filtres accessibles pour trouver facilement ce que vous cherchez."
+          },
+          "simple_checkout": {
+            "label": "Achat simplifié :",
+            "body": "Panier et paiement optimisés pour réduire les étapes et les erreurs."
+          },
+          "security_privacy": {
+            "label": "Sécurité et confidentialité :",
+            "body": "Vos données sont protégées et ne sont jamais partagées avec des tiers."
+          },
+          "fast_support": {
+            "label": "Support rapide :",
+            "body": "Un service client disponible pour répondre à vos questions."
+          },
+          "deals_news": {
+            "label": "Offres et nouveautés :",
+            "body": "Accédez à des promotions exclusives et aux produits tout juste arrivés."
+          }
+        }
+      },
+      "ux_note": {
+        "title": "Note UX :",
+        "body_1": "Cette page a été conçue selon des principes d'utilisabilité et d'accessibilité : contraste des couleurs, typographie lisible, structure claire et navigation cohérente.",
+        "body_2": "Notre objectif est que tout utilisateur, quelle que soit son expérience numérique, puisse acheter confortablement et en toute sécurité."
+      },
+      "thanks": "Merci de faire confiance à Limoneo. Votre satisfaction est notre priorité !",
+      "experience_kicker": "Experience",
+      "final_note": "Un achat plus clair, un support plus rapide et un catalogue pense pour explorer sans friction."
+    },
+    "contact": {
+      "head_title": "Contact",
+      "title": "Contact",
+      "subtitle": "Vous avez des questions ou des suggestions ? Nous sommes là pour vous aider !",
+      "name_label": "Nom",
+      "message_label": "Message",
+      "submit": "Envoyer",
+      "support_kicker": "Support",
+      "support_body": "Vous avez des questions ou des suggestions ? Nous sommes la pour vous aider avec les commandes, incidents et recommandations d achat.",
+      "response_label": "Reponse",
+      "response_title": "Nous repondons au plus vite",
+      "response_body": "Questions sur les commandes, retours, paiements et support general dans un seul canal.",
+      "channel_label": "Canal",
+      "channel_title": "Formulaire direct",
+      "channel_body": "Laissez-nous le contexte et nous repondrons avec l information precise pour le resoudre.",
+      "form_title": "Ecrivez-nous",
+      "form_body": "Dites-nous ce dont vous avez besoin et nous vous repondrons par e-mail.",
+      "email_label": "E-mail",
+      "footer_help": "Nous repondrons a l adresse indiquee avec la prochaine etape ou la resolution.",
+      "submit_loading": "Envoi..."
+    },
+    "faq": {
+      "head_title": "Aide et FAQ | Limoneo",
+      "title": "Aide et questions fréquentes",
+      "items": {
+        "create_account": {
+          "question": "Comment créer un compte ?",
+          "answer": "Cliquez sur \"Se connecter\" puis sélectionnez \"Créer un compte\". Remplissez le formulaire avec vos informations et suivez les instructions."
+        },
+        "payment_methods": {
+          "question": "Quels moyens de paiement acceptez-vous ?",
+          "answer": "Nous acceptons les cartes de crédit, de débit et les paiements électroniques sécurisés."
+        },
+        "order_tracking": {
+          "question": "Comment suivre ma commande ?",
+          "answer": "Rendez-vous dans votre tableau de bord et sélectionnez \"Mes commandes\" pour voir l'état et les détails de vos achats."
+        },
+        "returns": {
+          "question": "Puis-je retourner un produit ?",
+          "answer": "Oui, vous pouvez demander un retour dans les 14 jours suivant la réception du produit, à condition qu'il soit dans son état d'origine."
+        },
+        "support_contact": {
+          "question": "Comment contacter le support ?",
+          "answer": "Vous pouvez nous écrire via la page de contact ou par e-mail à support@limoneo.com."
+        }
+      },
+      "no_answer_prefix": "Vous ne trouvez pas votre réponse ?",
+      "no_answer_link": "Contactez-nous ici",
+      "no_answer_suffix": "."
+    },
+    "privacy": {
+      "head_title": "Politique de confidentialité | Limoneo",
+      "title": "Politique de confidentialité",
+      "intro": "Chez Limoneo, votre vie privée est essentielle. Cette politique explique comment nous collectons, utilisons et protégeons vos informations personnelles.",
+      "sections": {
+        "collected": {
+          "title": "1. Informations collectées",
+          "body": "Nous collectons les données que vous fournissez lors de l'inscription, des achats ou du contact avec le support, comme le nom, l'e-mail, l'adresse et les détails de paiement."
+        },
+        "usage": {
+          "title": "2. Utilisation des informations",
+          "body": "Nous utilisons vos données pour traiter les commandes, améliorer votre expérience, envoyer des notifications pertinentes et respecter nos obligations légales."
+        },
+        "protection": {
+          "title": "3. Protection des données",
+          "body": "Nous mettons en place des mesures de sécurité pour protéger vos informations contre tout accès non autorisé, toute altération ou divulgation."
+        },
+        "sharing": {
+          "title": "4. Partage des informations",
+          "body": "Nous ne partageons pas vos données personnelles avec des tiers, sauf pour traiter les paiements, les expéditions ou lorsque la loi l'exige."
+        },
+        "cookies": {
+          "title": "5. Cookies",
+          "body": "Nous utilisons des cookies pour améliorer la navigation et personnaliser l'expérience. Vous pouvez gérer vos préférences à tout moment."
+        },
+        "rights": {
+          "title": "6. Droits de l'utilisateur",
+          "body_prefix": "Vous pouvez accéder, modifier ou supprimer vos données personnelles en nous contactant via la page",
+          "body_link": "Contact",
+          "body_suffix": "."
+        },
+        "changes": {
+          "title": "7. Modifications de la politique",
+          "body": "Nous nous réservons le droit de mettre à jour cette politique. Nous vous informerons des changements importants via le site web ou par e-mail."
+        }
+      }
+    },
+    "terms": {
+      "head_title": "Conditions d'utilisation | Limoneo",
+      "title": "Conditions d'utilisation",
+      "intro": "Bienvenue sur Limoneo. En accédant à notre site web et en l'utilisant, vous acceptez de respecter les présentes conditions. Si vous n'êtes pas d'accord avec une partie, veuillez ne pas utiliser nos services.",
+      "sections": {
+        "use_site": {
+          "title": "1. Utilisation du site",
+          "body": "L'utilisateur s'engage à utiliser ce site uniquement à des fins légales et personnelles. Les activités frauduleuses, la copie de contenu et toute interférence avec le fonctionnement du site sont interdites."
+        },
+        "purchases_payments": {
+          "title": "2. Achats et paiements",
+          "body": "Tous les prix sont indiqués dans la devise locale et incluent les taxes applicables. Nous nous réservons le droit de modifier les prix et les produits sans préavis. Les paiements sont traités de manière sécurisée via nos prestataires autorisés."
+        },
+        "shipping_returns": {
+          "title": "3. Livraisons et retours",
+          "body": "Les délais de livraison sont estimatifs et peuvent varier. Vous pouvez demander le retour d'un produit dans les 14 jours suivant sa réception, à condition qu'il soit dans son état d'origine."
+        },
+        "ip": {
+          "title": "4. Propriété intellectuelle",
+          "body": "Tout le contenu de ce site, y compris les textes, images et logos, appartient à Limoneo ou à ses fournisseurs et est protégé par le droit d'auteur."
+        },
+        "modifications": {
+          "title": "5. Modifications",
+          "body": "Nous nous réservons le droit de mettre à jour ces conditions à tout moment. Nous vous recommandons de les consulter régulièrement."
+        },
+        "contact": {
+          "title": "6. Contact",
+          "body_prefix": "Pour toute question, vous pouvez nous contacter via la page",
+          "body_link": "Contact",
+          "body_suffix": "."
+        }
+      }
+    }
+  },
+  "search": {
+    "flags": {
+      "is_featured": "En vedette",
+      "is_superdeal": "Superdeal",
+      "is_fast_shipping": "Livraison rapide",
+      "is_new_arrival": "Nouveau",
+      "is_seasonal": "De saison"
+    },
+    "results": {
+      "head_title": "Résultats de recherche",
+      "title": "Résultats produits",
+      "title_with_query": "Résultats pour « {query} »",
+      "subtitle": "Ajustez les filtres, triez par prix ou note et trouvez le produit idéal.",
+      "filters": {
+        "title": "Filtres",
+        "clear_all": "Tout effacer",
+        "category": "Catégorie",
+        "category_all": "Toutes",
+        "min": "Min",
+        "max": "Max",
+        "sort_by": "Trier par",
+        "quick_tags": "Étiquettes rapides"
+      },
+      "sort": {
+        "relevance": "Pertinence",
+        "rating": "Meilleure note",
+        "price_asc": "Prix : du moins cher au plus cher",
+        "price_desc": "Prix : du plus cher au moins cher",
+        "recent": "Plus récents"
+      },
+      "recommended": {
+        "title": "Vous pourriez aimer"
+      },
+      "summary": {
+        "found": "{count} produits trouvés",
+        "none": "Aucune correspondance pour l’instant.",
+        "tip": "Conseil : essayez des mots-clés plus précis ou ajustez les filtres."
+      },
+      "empty": {
+        "title": "Aucune correspondance",
+        "body": "Vérifiez l’orthographe, essayez une catégorie associée ou retirez certains filtres."
+      }
+    }
+  },
+  "tools": {
+    "link_aggregator": {
+      "script_modes": {
+        "listado": "Extraire les cartes de la liste/du slider",
+        "detalle": "Ajouter des images à un produit existant (détail)"
+      },
+      "status": {
+        "running": "En cours",
+        "success": "Terminé",
+        "error": "Erreur du script",
+        "network_error": "Erreur réseau",
+        "idle": "Non exécuté"
+      },
+      "units": {
+        "ms": "{value} ms",
+        "seconds": "{value} s"
+      },
+      "command": {
+        "default": "python scripts/<nom_script>.py --input entree.html"
+      },
+      "errors": {
+        "auth_required": "Vous devez vous connecter pour voir les scripts.",
+        "admin_only": "Vous n'avez pas l'autorisation de voir les scripts (admin uniquement).",
+        "scripts_server": "Impossible de charger les scripts (erreur serveur).",
+        "scripts_empty": "Aucun script disponible n'a été renvoyé par l'API.",
+        "scripts_load": "Impossible de charger les scripts disponibles."
+      },
+      "page": {
+        "title": "Agrégateur de liens",
+        "subtitle": "Contrôlez et documentez les extractions en exécutant les scripts autorisés depuis une vue unique.",
+        "steps": [
+          "1. Sélectionnez un script et consultez son guide rapide.",
+          "2. Collez le HTML du produit ou de la page à analyser.",
+          "3. Exécutez, consultez le résumé et partagez les résultats."
+        ]
+      },
+      "guides": {
+        "default": {
+          "title": "Guide rapide",
+          "description": "Sélectionnez un script, collez le HTML produit et exécutez pour obtenir les liens traités.",
+          "steps": [
+            "Consultez la description du script sélectionné pour comprendre son objectif.",
+            "Vérifiez que le fragment HTML contient les informations à analyser.",
+            "Cliquez sur Exécuter le script puis vérifiez le résumé et la sortie générée."
+          ],
+          "expected": "La sortie affichera les liens détectés ou les étapes effectuées par le script.",
+          "notes": "Si des paramètres supplémentaires sont nécessaires, ajoutez-les dans le HTML ou contactez le responsable du script."
+        },
+        "verify_env": {
+          "title": "Diagnostic de l'environnement",
+          "description": "Confirmez que les dépendances et chemins Python sont correctement configurés avant d'extraire des liens.",
+          "steps": [
+            "Exécutez ce script sans HTML supplémentaire pour valider l'environnement.",
+            "Vérifiez que chaque contrôle affiche le statut OK.",
+            "Si un problème est détecté, corrigez la dépendance indiquée avant de continuer avec d'autres scripts."
+          ],
+          "expected": "La sortie doit lister chaque dépendance avec l'état OK ou le détail de la correction nécessaire.",
+          "notes": "Répétez le diagnostic à chaque mise à jour de bibliothèque ou changement de version Python."
+        },
+        "dynamic": {
+          "title": "Guide rapide pour {name}",
+          "description": "Utilisez ce script pour automatiser un flux spécifique. Consultez la documentation interne si une configuration supplémentaire est requise.",
+          "steps": [
+            "Confirmez les données d'entrée avant l'exécution.",
+            "Vérifiez la sortie et conservez une preuve si nécessaire.",
+            "En cas d'erreur, consultez le résumé ou exécutez le diagnostic."
+          ],
+          "expected": "Le script doit afficher un résumé des liens collectés ou des actions réalisées.",
+          "notes": "Si vous ne reconnaissez pas le nom du script, validez avec le responsable du processus avant exécution."
+        }
+      },
+      "config": {
+        "title": "Configurer l'exécution",
+        "subtitle": "Choisissez le script et confirmez que l'entrée contient toutes les données requises.",
+        "script_label": "Script disponible",
+        "no_scripts": "Aucun script disponible"
+      },
+      "input": {
+        "title": "HTML du produit",
+        "subtitle": "Collez le bloc exact à traiter. L'analyse s'exécute côté serveur.",
+        "placeholder": "<div class=\"product-card\">...</div>",
+        "tip": "Conseil : conservez des attributs uniques (classes, data-* ou ids) pour que le script identifie les bons éléments."
+      },
+      "run": {
+        "title": "Exécuter le script",
+        "subtitle": "Vous obtiendrez un résumé avec le statut, la durée et la sortie complète.",
+        "running": "Exécution...",
+        "cta": "Exécuter le script"
+      },
+      "guide": {
+        "suggested_steps": "Étapes suggérées",
+        "what_to_expect": "À prévoir",
+        "notes": "Notes",
+        "command_example": "Exemple de commande"
+      },
+      "diagnostic": {
+        "title": "Diagnostic de l'environnement",
+        "retry": "Réessayer",
+        "running": "Diagnostic en cours...",
+        "completed": "Diagnostic terminé.",
+        "failed": "Échec du diagnostic de l'environnement.",
+        "network_error": "Erreur réseau du diagnostic : {message}",
+        "note": "Le diagnostic s'exécute avec verify_env.py et valide les dépendances avant les autres scripts."
+      },
+      "summary": {
+        "title": "Résumé d'exécution",
+        "script": "Script",
+        "start": "Début",
+        "end": "Fin",
+        "duration": "Durée",
+        "input_chars": "Caractères d'entrée",
+        "result": "Résumé",
+        "empty": "Aucune exécution enregistrée pour le moment."
+      },
+      "history": {
+        "title": "Historique récent",
+        "empty": "Exécutez un script pour commencer à générer un historique.",
+        "no_output": "Aucune sortie enregistrée"
+      },
+      "execution": {
+        "success_message": "Exécution terminée sans erreurs.",
+        "no_output": "Aucune sortie générée.",
+        "run_error": "Erreur lors de l'exécution du script.",
+        "server_connection_error": "Erreur de connexion au serveur : {message}"
+      },
+      "output": {
+        "title": "Sortie du script",
+        "last_update": "Dernière mise à jour",
+        "empty": "Exécutez un script pour afficher la sortie détaillée."
+      },
+      "import": {
+        "unable": "Impossible d'importer.",
+        "error": "Erreur : {message}",
+        "completed": "Import terminé : {count} produits.",
+        "network_error": "Erreur réseau : {message}",
+        "detected_prefix": "Sortie JSON détectée avec",
+        "detected_suffix": "produits.",
+        "loading": "Import en cours...",
+        "cta": "Importer vers temporaires"
+      },
+      "tech_notes": {
+        "title": "Notes techniques rapides",
+        "validate_title": "Valider les entrées :",
+        "validate_body": "évitez les balises incomplètes ou scripts embarqués qui peuvent casser le parseur.",
+        "diagnostic_title": "Diagnostic :",
+        "diagnostic_body": "si un script échoue, vérifiez d'abord verify_env.py pour vous assurer que les dépendances sont disponibles.",
+        "evidence_title": "Preuve :",
+        "evidence_body": "conservez la sortie texte ou exportez-la si vous devez la partager avec d'autres équipes."
+      }
+    }
+  },
+  "special": {
+    "deals_today": {
+      "head_title": "Offres en vedette aujourd'hui",
+      "search_placeholder": "Rechercher des offres",
+      "sponsored": "Sponsorisé",
+      "banner_alt": "Promotion en vedette",
+      "footer_note": "Les prix changent constamment. Enregistrez vos favoris et revenez bientôt pour continuer à économiser.",
+      "actions": {
+        "reload": "Recharger",
+        "reload_offers": "Recharger les offres",
+        "top": "Haut"
+      },
+      "filters": {
+        "all": "Toutes",
+        "clear_aria": "Effacer les filtres"
+      },
+      "hero": {
+        "kicker": "Aujourd'hui seulement",
+        "title": "Les offres à ne pas manquer",
+        "subtitle": "Nous sélectionnons les meilleurs prix du jour pour vous faire économiser sans renoncer à l'essentiel.",
+        "updated_hourly": "Mis à jour chaque heure"
+      },
+      "insights": {
+        "best_discount": "Meilleure remise",
+        "avg_saving": "Économie moyenne",
+        "active_offers": "Offres actives",
+        "no_data": "Sans données",
+        "waiting": "En attente de nouvelles offres",
+        "avg_caption": "Calculé sur les offres actives",
+        "team_selected": "Sélectionnées par l'équipe"
+      },
+      "states": {
+        "error_title": "Oups, quelque chose a échoué",
+        "retry": "Réessayer",
+        "empty_title": "Revenez plus tard",
+        "empty_body": "Aucune offre active pour le moment, mais nous publions des nouveautés chaque jour.",
+        "no_match_title": "Aucun résultat",
+        "no_match_body": "Essayez une autre recherche ou baissez le filtre de remise."
+      },
+      "errors": {
+        "fetch_failed": "Nous n'avons pas pu récupérer les offres.",
+        "load_failed": "Nous n'avons pas pu charger les offres du jour. Réessayez dans quelques secondes."
+      },
+      "card": {
+        "featured_fallback": "Offre en vedette",
+        "category_fallback": "Offre spéciale",
+        "badge_today": "Offre du jour",
+        "description_fallback": "Remise exclusive pour une durée limitée.",
+        "buy_now": "Acheter maintenant",
+        "limited_stock": "Stock limité"
+      }
+    },
+    "fast_shipping": {
+      "head_title": "Produits en livraison rapide",
+      "search_placeholder": "Rechercher par produit ou catégorie",
+      "sponsored": "Sponsorisé",
+      "banner_alt": "Promotion livraison rapide",
+      "delivery_24h": "Livraison en 24 h",
+      "delivery_48h": "Livraison en 48 h",
+      "filters": {
+        "all_categories": "Toutes les catégories"
+      },
+      "hero": {
+        "kicker": "Livraison garantie",
+        "title": "Achetez aujourd'hui et recevez sous 48 heures",
+        "subtitle": "Produits sélectionnés avec expédition prioritaire, suivi en temps réel et politique de retour flexible."
+      },
+      "insights": {
+        "total_products": "Produits disponibles",
+        "discounted": "Avec remise exclusive",
+        "ultra_fast": "Livraison en moins de 24 h"
+      },
+      "states": {
+        "no_match_title": "Aucun résultat",
+        "no_match_body": "Ajustez la recherche ou sélectionnez une autre catégorie pour voir plus de produits en livraison rapide."
+      },
+      "card": {
+        "product_fallback": "Produit",
+        "category_fallback": "Livraison rapide",
+        "badge": "Livraison rapide",
+        "description_fallback": "Recevez ce produit en un temps record sans frais surprises.",
+        "tracking_included": "Suivi inclus",
+        "view_details": "Voir les détails",
+        "quick_view": "Aperçu rapide"
+      },
+      "modal": {
+        "close": "Fermer",
+        "saving": "-{discount}% d'économie",
+        "description_fallback": "Expédition sécurisée avec livraison rapide et suivi dès la sortie de l'entrepôt.",
+        "delivery_guarantee": "Garantie de livraison",
+        "add_to_cart": "Ajouter au panier"
+      }
+    },
+    "new_arrivals": {
+      "head_title": "Nouveautés | Limoneo",
+      "search_placeholder": "Rechercher par nom ou catégorie",
+      "banner_alt": "Nouveautés en vedette",
+      "footer_note": "Vous voulez rester à jour ? Abonnez-vous à notre newsletter et recevez les nouveautés avant tout le monde.",
+      "actions": {
+        "reload": "Recharger les nouveautés"
+      },
+      "filters": {
+        "all_categories": "Toutes les catégories"
+      },
+      "sort": {
+        "featured": "En vedette",
+        "newest": "Plus récents",
+        "lowest_price": "Prix le plus bas",
+        "highest_discount": "Remise la plus élevée"
+      },
+      "hero": {
+        "kicker": "Nouvelles arrivées",
+        "title": "Découvrez le meilleur de la tech, mode et lifestyle",
+        "subtitle": "Chaque semaine, nous sélectionnons des produits à stock limité, remises exclusives et disponibilité immédiate.",
+        "weekly_update": "Mise à jour hebdomadaire"
+      },
+      "insights": {
+        "new_products": "Nouveaux produits",
+        "detected_week": "Détectés cette semaine",
+        "discounted": "Avec remise exclusive",
+        "over_original": "Sur prix original",
+        "limited_stock": "Stock limité",
+        "last_units": "Dernières unités"
+      },
+      "states": {
+        "error_title": "Oups, quelque chose a échoué",
+        "retry": "Réessayer",
+        "no_match_title": "Aucun résultat",
+        "no_match_body": "Ajustez les filtres ou la recherche pour découvrir plus de nouveautés disponibles."
+      },
+      "errors": {
+        "fetch_failed": "Nous n'avons pas pu récupérer les nouveautés.",
+        "load_failed": "Nous n'avons pas pu charger les nouveautés pour le moment. Réessayez dans quelques secondes."
+      },
+      "toast": {
+        "added": "\"{name}\" a été ajouté au panier."
+      },
+      "tip": {
+        "title": "Conseil",
+        "body": "Ajoutez vos favoris au panier pour recevoir des alertes quand le stock baisse."
+      },
+      "card": {
+        "new_product_fallback": "Nouveau produit",
+        "badge": "Nouveau",
+        "collection_fallback": "Collection",
+        "description_fallback": "Édition limitée disponible exclusivement pendant cette saison.",
+        "view_detail": "Voir le détail",
+        "add": "Ajouter"
+      }
+    },
+    "seasonal": {
+      "head_title": "Produits de saison",
+      "search_placeholder": "Rechercher par nom ou catégorie",
+      "sponsored": "Sponsorisé",
+      "banner_alt": "Promotion saisonnière",
+      "footer_note": "Les articles changent selon la saison. Enregistrez cette page en favori pour découvrir des nouveautés chaque semaine.",
+      "filters": {
+        "all_categories": "Toutes les catégories"
+      },
+      "sort": {
+        "featured": "En vedette",
+        "lowest_price": "Prix le plus bas",
+        "highest_discount": "Remise la plus élevée"
+      },
+      "hero": {
+        "kicker": "Saison tendance",
+        "title": "Collections fraîches pour renouveler vos espaces",
+        "subtitle": "Découvrez des lancements limités, des couleurs tendance et des articles disponibles uniquement pendant cette saison."
+      },
+      "insights": {
+        "active_products": "Produits actifs",
+        "discounted": "Offres remisées",
+        "new_arrivals": "Nouvelles incorporations"
+      },
+      "states": {
+        "error_title": "Oups, quelque chose a échoué",
+        "retry": "Réessayer",
+        "no_match_title": "Aucun résultat",
+        "no_match_body": "Ajustez les filtres ou la recherche pour découvrir plus de produits saisonniers."
+      },
+      "errors": {
+        "fetch_failed": "Nous n'avons pas pu récupérer les produits saisonniers.",
+        "load_failed": "Nous n'avons pas pu charger les produits saisonniers pour le moment."
+      },
+      "toast": {
+        "error": "Erreur lors du chargement des produits. Réessayez dans quelques secondes."
+      },
+      "card": {
+        "product_fallback": "Produit de saison",
+        "category_fallback": "Collection saisonnière",
+        "season_fallback": "Saison actuelle",
+        "description_fallback": "Nouveautés sélectionnées selon la saison pour renouveler votre maison et votre style.",
+        "view_product": "Voir le produit",
+        "limited_stock": "Stock limité"
+      }
+    },
+    "super_deal": {
+      "head_title": "Super deals",
+      "search_placeholder": "Rechercher des super deals",
+      "sponsored": "Sponsorisé",
+      "banner_alt": "Promotion super deal",
+      "actions": {
+        "reload": "Recharger",
+        "reload_superdeals": "Recharger les super deals",
+        "buy_now": "Acheter maintenant",
+        "top": "Haut"
+      },
+      "filters": {
+        "all": "Tous",
+        "clear_aria": "Effacer les filtres"
+      },
+      "hero": {
+        "kicker": "Super deals",
+        "title": "Remises imbattables sur des produits premium",
+        "subtitle": "Chaque super deal est sélectionné par notre équipe pour offrir le meilleur prix du marché avec garantie totale.",
+        "daily_update": "Nouvelles offres chaque jour"
+      },
+      "insights": {
+        "active_deals": "Deals actifs",
+        "daily_updated": "Mis à jour quotidiennement",
+        "discounted": "Avec remise",
+        "priority_shipping": "Inclut livraison prioritaire",
+        "avg_saving": "Économie moyenne",
+        "no_data": "Sans données",
+        "over_original": "Sur le prix original"
+      },
+      "states": {
+        "error_title": "Oups, quelque chose a échoué",
+        "retry": "Réessayer",
+        "no_match_title": "Aucun résultat",
+        "no_match_body": "Essayez une autre recherche ou baissez le filtre de remise.",
+        "empty_title": "Super deals indisponibles",
+        "empty_body": "Nous préparons de nouvelles offres. Revenez bientôt pour découvrir des prix exceptionnels."
+      },
+      "errors": {
+        "fetch_failed": "Nous n'avons pas pu récupérer les super deals.",
+        "load_failed": "Nous n'avons pas pu charger les super deals. Réessayez dans quelques secondes."
+      },
+      "featured": {
+        "title_fallback": "Super deal en vedette",
+        "badge": "Super deal du jour",
+        "description_fallback": "Profitez de cette opportunité limitée avec livraison rapide, garantie étendue et support prioritaire.",
+        "saving": "-{discount}% d'économie",
+        "expires_soon": "L'offre expire bientôt",
+        "remaining": "Reste",
+        "few": "Peu",
+        "units": "{count} unités"
+      },
+      "card": {
+        "title_fallback": "Super deal",
+        "badge": "Super deal",
+        "category_fallback": "Offre exclusive",
+        "description_fallback": "Remise exclusive pendant une durée limitée.",
+        "view_offer": "Voir l'offre",
+        "limited_time": "Temps limité"
+      }
+    }
+  },
+  "legacy": {
+    "home_page": {
+      "title": "Bienvenue dans la boutique"
+    },
+    "welcome": {
+      "head_title": "Bienvenue",
+      "nav": {
+        "dashboard": "Tableau de bord",
+        "login": "Se connecter",
+        "register": "S'inscrire"
+      },
+      "docs": {
+        "image_alt": "Capture de la documentation Laravel",
+        "title": "Documentation",
+        "body": "Laravel propose une excellente documentation couvrant chaque aspect du framework. Que vous soyez débutant ou déjà expérimenté avec Laravel, nous recommandons de la lire du début à la fin."
+      },
+      "laracasts": {
+        "title": "Laracasts",
+        "body": "Laracasts propose des milliers de tutoriels vidéo sur Laravel, PHP et le développement JavaScript. Découvrez-les et améliorez fortement vos compétences de développement."
+      },
+      "news": {
+        "title": "Laravel News",
+        "body": "Laravel News est un portail et une newsletter animés par la communauté qui rassemblent les informations les plus récentes et importantes de l'écosystème Laravel, y compris les nouvelles versions de packages et des tutoriels."
+      },
+      "ecosystem": {
+        "title": "Écosystème dynamique",
+        "part_1": "La solide bibliothèque d'outils et de bibliothèques officielles de Laravel, tels que ",
+        "part_2": ", ",
+        "part_3": ", et ",
+        "part_4": " vous aide à faire passer vos projets au niveau supérieur. Associez-les à de puissantes bibliothèques open source comme ",
+        "part_5": ", et plus encore."
+      },
+      "footer": {
+        "version": "Laravel v{laravelVersion} (PHP v{phpVersion})"
+      }
+    }
+  },
+  "landing": {
+    "universe": {
+      "head_title": "Bientôt disponible"
+    }
+  },
+  "admin": {
+    "orders_module": {
+      "title": "Gestion des commandes",
+      "subtitle": "Vue opérationnelle avec hiérarchie commande-ligne et actions spécifiques pour les annulations et retours partiels.",
+      "export_csv": "Exporter CSV",
+      "customer": "Client",
+      "general_reason": "Motif général",
+      "no_general_notes": "Aucune note générale",
+      "actions_title": "Actions de commande",
+      "reason_placeholder": "Motif administratif",
+      "tracking_carrier_placeholder": "Transporteur",
+      "tracking_number_placeholder": "Numéro de suivi",
+      "tracking_url_placeholder": "URL de suivi externe",
+      "save_tracking": "Enregistrer le suivi",
+      "current_tracking": "Suivi actuel",
+      "cancel_eligible": "Annuler les éligibles",
+      "ship_active": "Expédier les actives",
+      "deliver_active": "Livrer les actives",
+      "approve_returns": "Approuver les retours",
+      "reject_returns": "Rejeter les retours",
+      "process_refunds": "Traiter les remboursements",
+      "approve_item": "Approuver",
+      "reject_item": "Rejeter",
+      "refund_item": "Rembourser la ligne",
+      "prompts": {
+        "cancel_order": "Voulez-vous vraiment annuler cette commande depuis l'administration ?",
+        "approve_returns": "Approuver les retours demandés pour cette commande ?",
+        "reject_returns": "Rejeter les retours demandés pour cette commande ?",
+        "process_refunds": "Traiter les remboursements approuvés pour cette commande ?",
+        "save_tracking": "Enregistrer ou mettre à jour le suivi externe de cette commande ?",
+        "cancel_line": "Annuler cette ligne ?",
+        "approve_item": "Approuver le retour de cette ligne ?",
+        "reject_item": "Rejeter le retour de cette ligne ?",
+        "refund_item": "Traiter le remboursement de cette ligne ?"
+      }
+    },
+    "products": {
+      "title": "Gestion des produits",
+      "columns": {
+        "name": "Nom",
+        "category": "Catégorie",
+        "price": "Prix",
+        "stock": "Stock",
+        "actions": "Actions"
+      },
+      "actions": {
+        "delete": "Supprimer"
+      }
+    },
+    "users": {
+      "title": "Gestion des utilisateurs",
+      "columns": {
+        "name": "Nom",
+        "admin": "Admin",
+        "actions": "Actions"
+      },
+      "actions": {
+        "remove_admin": "Retirer admin",
+        "make_admin": "Rendre admin"
+      }
+    },
+    "settings": {
+      "title": "Configuration globale",
+      "new_field": "Nouveau champ",
+      "placeholders": {
+        "key": "Clé",
+        "value": "Valeur"
+      },
+      "save": "Enregistrer les modifications"
+    },
+    "reviews": {
+      "title": "Gestion des avis",
+      "columns": {
+        "product": "Produit",
+        "user": "Utilisateur",
+        "rating": "Note",
+        "comment": "Commentaire",
+        "actions": "Actions"
+      },
+      "actions": {
+        "delete": "Supprimer"
+      }
+    },
+    "stats": {
+      "title": "Statistiques",
+      "cards": {
+        "orders": "Commandes",
+        "sales": "Ventes",
+        "users": "Utilisateurs",
+        "products": "Produits",
+        "reviews": "Avis"
+      },
+      "top_products_title": "Top produits par avis",
+      "top_products_item": "{name} ({count} avis)",
+      "recent_orders_title": "Dernières commandes",
+      "recent_order_item": "#{id} - {user} - {total} - {status}",
+      "user_fallback": "Sans utilisateur"
+    },
+    "dashboard": {
+      "header": {
+        "kicker": "Tableau de bord",
+        "title": "Bon retour",
+        "subtitle": "Surveillez la santé de l'activité, prenez des décisions et agissez rapidement.",
+        "last_updated": "Dernière mise à jour",
+        "settings": "Paramètres"
+      },
+      "summary": {
+        "total_orders": "Commandes totales",
+        "pending_count": "{count} en attente",
+        "no_pending": "Aucune en attente",
+        "active_users": "Utilisateurs actifs",
+        "new_this_month": "{count} nouveaux ce mois-ci",
+        "stable_growth": "Croissance stable",
+        "published_products": "Produits publiés",
+        "review_catalog": "Vérifier le catalogue",
+        "open_tickets": "Tickets ouverts",
+        "prioritize_support": "Prioriser le support",
+        "all_good": "Tout est en ordre",
+        "view_details": "Voir les détails"
+      },
+      "performance": {
+        "title": "Performance commerciale",
+        "last_30_days": "30 derniers jours",
+        "monthly_revenue": "Revenus du mois",
+        "vs_previous_month": "Comparé au mois précédent",
+        "avg_order_value": "Panier moyen",
+        "avg_per_order": "Valeur moyenne par commande",
+        "conversion": "Conversion",
+        "site_rate": "Taux global du site",
+        "chart_placeholder": "Intégrez ici un graphique des revenus hebdomadaires pour compléter la visualisation."
+      },
+      "recent_orders": {
+        "title": "Commandes récentes",
+        "view_all": "Voir tout",
+        "empty": "Aucune commande récente. Invitez votre équipe à créer des promotions ou à lancer des campagnes.",
+        "columns": {
+          "order": "Commande",
+          "customer": "Client",
+          "status": "Statut",
+          "total": "Total"
+        },
+        "no_customer": "Sans client",
+        "no_status": "Sans statut"
+      },
+      "quick_actions": {
+        "title": "Actions rapides",
+        "subtitle": "Raccourcis fréquents pour accélérer les opérations.",
+        "create_product": "Créer un produit",
+        "generate_coupon": "Générer un coupon",
+        "view_inventory": "Voir l'inventaire"
+      },
+      "featured_products": {
+        "title": "Produits en vedette",
+        "empty": "Ajoutez vos produits les plus performants pour les suivre depuis ici.",
+        "units": "{count} unités",
+        "sales": "{total} de ventes"
+      },
+      "alerts": {
+        "title": "Alertes",
+        "empty": "Tout est en ordre. Aucune alerte en attente.",
+        "fallback_title": "Alerte"
+      },
+      "timeline": {
+        "title": "Activité de l'équipe",
+        "no_activity_title": "Aucune activité récente",
+        "no_activity_description": "Les mouvements de l'équipe et du système apparaîtront ici."
+      }
+    }
+  },
+  "marketing": {
+    "autumn": {
+      "kicker": "Sélection mise en avant",
+      "heading_default": "Explorez les dernières collections et sélections phares",
+      "heading_with_campaign": "Explorez les nouveautés de {campaign}",
+      "subtitle": "Trouvez des idées rapides pour renouveler vos espaces, votre style et vos moments préférés.",
+      "cards": {
+        "coffee": {
+          "eyebrow": "Moment café et thé",
+          "title": "Mugs artisanaux et infusions",
+          "description": "Collection de tasses en céramique et mélanges épicés prêts à offrir.",
+          "cta": "Découvrir les mugs"
+        },
+        "bakery": {
+          "eyebrow": "Boulangerie gourmet",
+          "title": "Sélection de pâtisseries de saison",
+          "description": "Packs gourmands et détails spéciaux pour réunions et cadeaux.",
+          "cta": "Explorer la pâtisserie"
+        },
+        "wellness": {
+          "eyebrow": "Bien-être aromatique",
+          "title": "Diffuseurs et huiles essentielles",
+          "description": "Notes de forêt, vanille et agrumes pour une atmosphère chaleureuse.",
+          "cta": "Voir les arômes"
+        }
+      }
+    }
+  },
+  "promo": {
+    "label": "Promotion en vedette",
+    "dismiss_today": "Ne plus afficher aujourd’hui",
+    "close": "Fermer la promotion",
+    "live_now": "En direct",
+    "hover_hint": "Pause au survol",
+    "global": {
+      "autumn_flash": {
+        "eyebrow": "Offre limitée",
+        "title": "Vente flash en vedette",
+        "message": "Profitez de remises à durée limitée sur une sélection soignée du catalogue.",
+        "detail": "Pensée pour une décision rapide : moins de bruit, plus de références prêtes à partir.",
+        "benefit_primary": "Sélection filtrée pour réduire la fatigue de comparaison.",
+        "benefit_secondary": "Les conditions restent claires avant l’entrée en paiement.",
+        "cta": "Voir la vente flash"
+      },
+      "bundle_warm": {
+        "eyebrow": "Pack recommandé",
+        "title": "Pack maison cosy",
+        "message": "Combinez produits maison et accessoires avec une livraison optimisée en une seule commande.",
+        "detail": "Utile pour augmenter le panier sans rendre le choix plus complexe.",
+        "benefit_primary": "Produits compatibles regroupés pour réduire la friction d’achat.",
+        "benefit_secondary": "Promesse de valeur claire même sur mobile.",
+        "cta": "Composer mon pack"
+      }
+    },
+    "category": {
+      "category_extra": {
+        "eyebrow": "Conversion directe",
+        "title": "10 % en plus dans votre catégorie",
+        "message": "Utilisez le coupon CATEGORIA10 au paiement sur les produits vedettes.",
+        "detail": "L’incitation apparaît dans le bon contexte, au moment où l’utilisateur compare la catégorie.",
+        "benefit_primary": "Ancre la remise sur une action simple et compréhensible.",
+        "benefit_secondary": "Conduit vers le bon bloc sans ouvrir un parcours parallèle.",
+        "cta": "Appliquer le coupon"
+      },
+      "free_shipping": {
+        "eyebrow": "Moins de friction",
+        "title": "Livraison express offerte",
+        "message": "Livraison en 48 h disponible sur les articles avec étiquette de livraison rapide.",
+        "detail": "Pertinent quand la vitesse de livraison pèse plus que la remise pure.",
+        "benefit_primary": "Réduit les doutes sur le délai et le coût avant la fiche produit.",
+        "benefit_secondary": "Garde l’offre visible sans masquer le contenu principal.",
+        "cta": "Trouver la livraison rapide"
+      }
+    }
+  },
+  "cookies": {
+    "banner": {
+      "kicker": "Préférences cookies",
+      "privacy_note": "Aucun cookie non essentiel par défaut",
+      "title": "Votre vie privée mérite une décision claire, pas une bannière confuse.",
+      "description": "Nous utilisons des cookies fonctionnels pour assurer la continuité de la boutique et, uniquement si vous l’autorisez, des cookies d’analyse et marketing pour mesurer la performance et personnaliser les campagnes.",
+      "secondary": "Vous pouvez tout accepter, ne garder que l’essentiel ou personnaliser chaque catégorie en quelques secondes.",
+      "policy_link": "Voir la politique des cookies",
+      "footer_note": "Votre choix est enregistré et peut être modifié plus tard depuis la politique des cookies."
+    },
+    "actions": {
+      "accept_all": "Tout accepter",
+      "customize": "Personnaliser les préférences",
+      "reject_optional": "Refuser le non essentiel",
+      "only_essential": "Utiliser seulement l’essentiel",
+      "save_preferences": "Enregistrer les préférences",
+      "cancel": "Annuler",
+      "close_customizer": "Fermer la personnalisation"
+    },
+    "customize": {
+      "kicker": "Centre de préférences",
+      "title": "Décidez quelles données vous nous autorisez à utiliser",
+      "description": "Cette configuration vous permet de comprendre l’impact de chaque catégorie sans noyer le parcours dans du texte juridique.",
+      "info_title": "Ce qui change si vous désactivez les catégories optionnelles",
+      "info_body": "La boutique continuera de fonctionner, mais certaines mesures de performance, recommandations et campagnes de remarketing ne seront plus disponibles."
+    },
+    "categories": {
+      "required": "Nécessaires",
+      "optional": "Optionnelles",
+      "enabled": "Activées",
+      "disabled": "Désactivées",
+      "functional": {
+        "label": "Cookies fonctionnels",
+        "summary": "Maintiennent la session, la langue et la continuité d’achat.",
+        "description": "Ils sont indispensables pour naviguer, se connecter, conserver le panier et préserver les préférences minimales du storefront."
+      },
+      "analytics": {
+        "label": "Cookies d’analyse",
+        "summary": "Nous aident à repérer les parties du parcours les plus efficaces.",
+        "description": "Ils mesurent les vues, l’interaction avec le catalogue et la performance des campagnes pour améliorer UX et conversion."
+      },
+      "marketing": {
+        "label": "Cookies marketing",
+        "summary": "Servent à personnaliser les messages et limiter les sollicitations inutiles.",
+        "description": "Ils activent le ciblage d’audience et le suivi promotionnel pour proposer des offres plus cohérentes avec l’intérêt réel."
+      }
+    }
+  }
+}
+

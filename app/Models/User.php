@@ -2,53 +2,85 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Address;
+use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+use App\Models\{CookiePreference, Address};
+use App\Notifications\CustomVerifyEmail;
+
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
+    /**
+     * Atributos que se pueden asignar en masa.
+     */
     protected $fillable = [
         'name',
+        'lastname',
         'email',
+        'phone',
         'password',
-        'default_address_id', // Campo para la dirección predeterminada
+        'default_address_id',
+        'avatar',
+        'photo_url',
+        'oauth_provider',
+        'oauth_provider_id',
     ];
 
+    /**
+     * Atributos que deben ocultarse en arrays/JSON.
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    protected function casts(): array
+    /**
+     * Atributos que deben convertirse a tipos nativos.
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'is_admin' => 'boolean',
+    ];
+
+    /**
+     * Relación: el usuario tiene preferencias de cookies.
+     */
+    public function cookiePreference()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-        ];
+        return $this->hasOne(CookiePreference::class);
     }
 
-    // Relación con las direcciones del usuario
-    public function addresses(): HasMany
+    /**
+     * Relación: el usuario tiene muchas direcciones.
+     */
+    public function addresses()
     {
         return $this->hasMany(Address::class);
     }
 
-    // Relación con la dirección predeterminada
-    public function defaultAddress(): BelongsTo
+    /**
+     * Relación: la dirección predeterminada del usuario.
+     */
+    public function defaultAddress()
     {
         return $this->belongsTo(Address::class, 'default_address_id');
     }
 
-    // Establece una dirección como predeterminada
-    public function setDefaultAddress(Address $address): void
+    /**
+     * Relación: el usuario tiene muchas reseñas.
+     */
+    public function reviews()
     {
-        $this->default_address_id = $address->id;
-        $this->save();
+        return $this->hasMany(\App\Models\Review::class);
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new CustomVerifyEmail());
     }
 }

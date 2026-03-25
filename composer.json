@@ -9,9 +9,11 @@
         "php": "^8.2",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^11.31",
-        "laravel/sanctum": "^4.0",
+        "laravel/sanctum": "^4.1",
+        "laravel/socialite": "^5.24",
         "laravel/tinker": "^2.9",
         "paypal/paypal-checkout-sdk": "^1.0",
+        "psr/http-message": "^1.1",
         "stripe/stripe-php": "^16.6",
         "tightenco/ziggy": "^2.0"
     },
@@ -56,6 +58,39 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
+        ],
+        "env:switch": [
+            "@php scripts/switch-env.php"
+        ],
+        "env:dev": [
+            "@php scripts/switch-env.php development",
+            "@php artisan config:clear",
+            "@php artisan cache:clear"
+        ],
+        "env:staging": [
+            "@php scripts/switch-env.php staging",
+            "@php artisan config:clear",
+            "@php artisan cache:clear"
+        ],
+        "env:prod": [
+            "@php scripts/switch-env.php production",
+            "@php artisan config:clear",
+            "@php artisan cache:clear"
+        ],
+        "test": [
+            "@php artisan test"
+        ],
+        "test:critical": [
+            "@php artisan test tests/Feature/AdminRestWorkflowTest.php tests/Feature/AdminDashboardMetricsTest.php tests/Feature/RouteSecurityTest.php tests/Feature/OrderAuthorizationTest.php tests/Feature/AddressManagementTest.php tests/Feature/PublicCatalogApiTest.php"
+        ],
+        "test:qa-dataset": [
+            "@php artisan test tests/Feature/QaDatasetSeederTest.php"
+        ],
+        "seed:qa": [
+            "@php artisan db:seed --class=Database\\Seeders\\QaDatasetSeeder"
+        ],
+        "qa:refresh": [
+            "@php artisan migrate:fresh --seed --class=Database\\Seeders\\QaDatasetSeeder"
         ]
     },
     "extra": {

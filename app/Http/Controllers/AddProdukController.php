@@ -18,7 +18,7 @@ class AddProdukController extends Controller
         $temporaryProducts = TemporaryProduct::all();
         $categories = Category::all(['id', 'name']);
 
-        return Inertia::render('AddProduct', [
+        return Inertia::render('Admin/AddProduct', [
             'temporaryProducts' => $temporaryProducts,
             'categories' => $categories
         ]);

@@ -2,91 +2,80 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\ProfileAvatar;
 use Illuminate\Http\Request;
 use App\Models\Order;
+use App\Services\ShoppingCartService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        private readonly ShoppingCartService $shoppingCartService,
+    ) {
+    }
+
     /**
-     * Muestra el dashboard del usuario con todos sus pedidos.
+     * Muestra el dashboard del usuario con sus datos y carrito (pero sin lógica de pedidos).
      */
     public function index()
     {
         $user = Auth::user();
+        $cart = $this->shoppingCartService->itemsForRequest(request());
 
-        // Obtener pedidos del usuario ordenados por fecha descendente
-        $orders = Order::where('user_id', $user->id)
-            ->with('items.product')
-            ->orderBy('created_at', 'desc')
+        $statusCounts = Order::query()
+            ->byUser($user->id)
+            ->select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $ordersSummary = [
+            'total' => $statusCounts->sum(),
+            'inProgress' => $statusCounts->only(['pendiente_pago', 'pagado', 'pendiente_envio'])->sum(),
+            'shipped' => $statusCounts->only(['enviado', 'entregado', 'confirmado'])->sum(),
+            'cancelled' => $statusCounts->only(['cancelado', 'reembolsado'])->sum(),
+        ];
+
+        $orders = Order::with(['items.product'])
+            ->byUser($user->id)
+            ->latest()
+            ->take(5)
             ->get()
-            ->map(function ($order) {
+            ->map(function (Order $order) {
                 return [
-                    'id'     => $order->id,
-                    'date'   => $order->created_at->format('Y-m-d'),
-                    'total'  => number_format($order->total, 2),
-                    // En este caso usamos el campo payment_method como indicador de estado
-                    'status' => $order->payment_method,
-                    'items'  => $order->items->map(function ($item) {
+                    'id' => $order->id,
+                    'status' => $order->status,
+                    'date' => $order->created_at?->format('d/m/Y H:i'),
+                    'total' => (float) $order->total,
+                    'items' => $order->items->map(function ($item) {
                         return [
-                            'id'       => $item->product->id,
-                            'name'     => $item->product->name,
-                            'image'    => $item->product->image,
+                            'id' => $item->id,
+                            'name' => $item->product->name ?? $item->name,
                             'quantity' => $item->quantity,
-                            'price'    => $item->price,
+                            'price' => $item->price,
                         ];
-                    }),
+                    })->values(),
                 ];
-            });
+            })
+            ->values()
+            ->all();
 
-        // Obtener carrito desde la sesión (si lo necesitas)
-        $cart = session()->get('cart', []);
-
-        return Inertia::render('Dashboard', [
-            'auth'      => ['user' => $user],
-            'orders'    => $orders,
+        return Inertia::render('User/Dashboard', [
+            'auth' => [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'avatar' => ProfileAvatar::resolve($user->avatar, $user->id, $user->email, $user->photo_url),
+                    'photo_url' => $user->photo_url,
+                    'is_admin' => $user->is_admin ? true : false,
+                ],
+            ],
+            'orders' => $orders,
+            'ordersSummary' => $ordersSummary,
             'cartItems' => array_values($cart),
-        ]);
-    }
-
-    /**
-     * Muestra solo los pedidos enviados (donde payment_method es 'shipped').
-     */
-    public function shipped()
-    {
-        $user = Auth::user();
-
-        // Obtener pedidos del usuario ordenados por fecha descendente
-        $orders = Order::where('user_id', $user->id)
-            ->with('items.product')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($order) {
-                return [
-                    'id'     => $order->id,
-                    'date'   => $order->created_at->format('Y-m-d'),
-                    'total'  => number_format($order->total, 2),
-                    'status' => $order->payment_method,
-                    'items'  => $order->items->map(function ($item) {
-                        return [
-                            'id'       => $item->product->id,
-                            'name'     => $item->product->name,
-                            'image'    => $item->product->image,
-                            'quantity' => $item->quantity,
-                            'price'    => $item->price,
-                        ];
-                    }),
-                ];
-            });
-
-        // Filtrar pedidos donde payment_method es 'shipped'
-        $shippedOrders = $orders->filter(function ($order) {
-            return $order['status'] === 'shipped';
-        })->values(); // Reindexamos el array
-
-        return Inertia::render('ShippedOrders', [
-            'orders' => $shippedOrders,
         ]);
     }
 }

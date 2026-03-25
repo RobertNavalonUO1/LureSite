@@ -8,7 +8,15 @@
 /vendor
 .env
 .env.backup
+.env.backup-*
 .env.production
+.env.production.local
+.env.staging
+.env.staging.local
+.env.development
+.env.development.local
+client_secret*.json
+release-*.tar.gz
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
@@ -21,3 +29,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Python artifacts
+__pycache__/
+python_scripts/__pycache__/

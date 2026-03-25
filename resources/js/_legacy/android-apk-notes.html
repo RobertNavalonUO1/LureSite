@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android Store - Premium Android Products</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Animation for product cards */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .product-card {
+            animation: fadeIn 0.5s ease-out forwards;
+            animation-delay: calc(var(--order) * 0.1s);
+        }
+        
+        /* Custom checkbox style */
+        .filter-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #3b82f6;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .filter-checkbox:checked {
+            background-color: #3b82f6;
+        }
+        
+        .filter-checkbox:checked::after {
+            content: '\2713';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            left: 2px;
+            top: -1px;
+        }
+        
+        /* Price range slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            background-image: linear-gradient(#3b82f6, #3b82f6);
+            background-size: 50% 100%;
+            background-repeat: no-repeat;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            box-shadow: 0 0 2px 0 #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Header -->
+    <header class="bg-green-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fab fa-android text-3xl"></i>
+                    <h1 class="text-2xl font-bold">Android Store</h1>
+                </div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#" class="hover:text-green-200 transition">Home</a>
+                    <a href="#" class="hover:text-green-200 transition">Products</a>
+                    <a href="#" class="hover:text-green-200 transition">Deals</a>
+                    <a href="#" class="hover:text-green-200 transition">About</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="#" class="hover:text-green-200 transition">
+                        <i class="fas fa-shopping-cart text-xl"></i>
+                        <span class="hidden md:inline ml-1">Cart</span>
+                    </a>
+                    <a href="#" class="hover:text-green-200 transition">
+                        <i class="fas fa-user text-xl"></i>
+                        <span class="hidden md:inline ml-1">Account</span>
+                    </a>
+                    <button class="md:hidden text-xl" id="mobile-menu-button">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div class="md:hidden hidden bg-green-700 mt-2 py-2 rounded-lg" id="mobile-menu">
+                <div class="flex flex-col space-y-2 px-4">
+                    <a href="#" class="hover:text-green-200 transition py-1">Home</a>
+                    <a href="#" class="hover:text-green-200 transition py-1">Products</a>
+                    <a href="#" class="hover:text-green-200 transition py-1">Deals</a>
+                    <a href="#" class="hover:text-green-200 transition py-1">About</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Hero Section -->
+        <section class="bg-gradient-to-r from-green-500 to-blue-500 rounded-xl p-6 mb-8 text-white shadow-lg">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-6 md:mb-0">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Premium Android Products</h2>
+                    <p class="text-lg mb-6">Discover the latest smartphones, tablets, and accessories with the best Android experience.</p>
+                    <button class="bg-white text-green-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition shadow-md">
+                        Shop Now <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <img src="https://cdn.pixabay.com/photo/2016/11/29/08/41/android-1869510_1280.jpg" alt="Android Devices" class="w-full max-w-md rounded-lg shadow-xl">
+                </div>
+            </div>
+        </section>
+
+        <!-- Search and Filter Section -->
+        <section class="mb-8">
+            <div class="flex flex-col md:flex-row gap-4">
+                <!-- Search Bar -->
+                <div class="flex-1 relative">
+                    <input type="text" placeholder="Search for products..." class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-sm">
+                    <button class="absolute right-3 top-3 text-gray-500 hover:text-green-600">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                
+                <!-- Filter Button -->
+                <button id="filter-toggle" class="bg-white border border-gray-300 px-4 py-3 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-50 shadow-sm">
+                    <i class="fas fa-filter"></i>
+                    <span>Filters</span>
+                </button>
+            </div>
+            
+            <!-- Filters Panel -->
+            <div id="filters-panel" class="hidden md:block bg-white p-4 rounded-lg shadow-md mt-4 border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <!-- Price Range -->
+                    <div>
+                        <h3 class="font-semibold mb-3 text-gray-700">Price Range</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>$0</span>
+                                <span>$2000</span>
+                            </div>
+                            <input type="range" min="0" max="2000" value="1000" class="w-full">
+                            <div class="flex justify-between">
+                                <span class="text-sm font-medium">$0</span>
+                                <span class="text-sm font-medium">$2000</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Brands -->
+                    <div>
+                        <h3 class="font-semibold mb-3 text-gray-700">Brands</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox">
+                                <span>Samsung</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox" checked>
+                                <span>Google</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox">
+                                <span>OnePlus</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox">
+                                <span>Xiaomi</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox">
+                                <span>Oppo</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Ratings -->
+                    <div>
+                        <h3 class="font-semibold mb-3 text-gray-700">Ratings</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox">
+                                <div class="flex">
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                </div>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox" checked>
+                                <div class="flex">
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="far fa-star text-yellow-400"></i>
+                                </div>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox">
+                                <div class="flex">
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="fas fa-star text-yellow-400"></i>
+                                    <i class="far fa-star text-yellow-400"></i>
+                                    <i class="far fa-star text-yellow-400"></i>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- RAM -->
+                    <div>
+                        <h3 class="font-semibold mb-3 text-gray-700">RAM</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox">
+                                <span>8GB+</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox" checked>
+                                <span>6GB</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox">
+                                <span>4GB</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="filter-checkbox">
+                                <span>2GB</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end mt-4">
+                    <button class="px-4 py-2 bg-gray-200 rounded-lg mr-2 hover:bg-gray-300 transition">Reset</button>
+                    <button class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Apply Filters</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Categories</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                <a href="#" class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition flex flex-col items-center">
+                    <i class="fas fa-mobile-alt text-3xl text-green-600 mb-2"></i>
+                    <span class="font-medium">Smartphones</span>
+                </a>
+                <a href="#" class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition flex flex-col items-center">
+                    <i class="fas fa-tablet-alt text-3xl text-blue-600 mb-2"></i>
+                    <span class="font-medium">Tablets</span>
+                </a>
+                <a href="#" class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition flex flex-col items-center">
+                    <i class="fas fa-headphones text-3xl text-purple-600 mb-2"></i>
+                    <span class="font-medium">Accessories</span>
+                </a>
+                <a href="#" class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition flex flex-col items-center">
+                    <i class="fas fa-laptop text-3xl text-red-600 mb-2"></i>
+                    <span class="font-medium">Laptops</span>
+                </a>
+                <a href="#" class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition flex flex-col items-center">
+                    <i class="fas fa-smartwatch text-3xl text-yellow-600 mb-2"></i>
+                    <span class="font-medium">Wearables</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Featured Products</h2>
+                <div class="flex space-x-2">
+                    <button class="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+                        <i class="fas fa-list"></i>
+                    </button>
+                    <select class="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300 transition outline-none">
+                        <option>Sort by: Featured</option>
+                        <option>Price: Low to High</option>
+                        <option>Price: High to Low</option>
+                        <option>Highest Rated</option>
+                        <option>Newest</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Product 1 -->
+                <div class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition border border-gray-200" style="--order: 0;">
+                    <div class="relative">
+                        <img src="https://cdn.pixabay.com/photo/2016/11/29/08/41/apple-1868496_1280.jpg" alt="Google Pixel 7 Pro" class="w-full h-48 object-contain">
+                        <div class="absolute top-2 right-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            -15%
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-gray-800">Google Pixel 7 Pro</h3>
+                            <button class="text-gray-400 hover:text-red-500 transition">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <span class="text-gray-600 text-sm ml-1">(128)</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-gray-500 line-through text-sm">$899</span>
+                                <span class="text-green-600 font-bold ml-2">$764</span>
+                            </div>
+                            <button class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product 2 -->
+                <div class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition border border-gray-200" style="--order: 1;">
+                    <div class="relative">
+                        <img src="https://cdn.pixabay.com/photo/2016/11/29/08/41/smartphone-1869512_1280.jpg" alt="Samsung Galaxy S23 Ultra" class="w-full h-48 object-contain">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-gray-800">Samsung Galaxy S23 Ultra</h3>
+                            <button class="text-red-500">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <span class="text-gray-600 text-sm ml-1">(256)</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-green-600 font-bold">$1199</span>
+                            </div>
+                            <button class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product 3 -->
+                <div class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition border border-gray-200" style="--order: 2;">
+                    <div class="relative">
+                        <img src="https://cdn.pixabay.com/photo/2016/11/22/23/44/pixel-1851075_1280.jpg" alt="OnePlus 11 5G" class="w-full h-48 object-contain">
+                        <div class="absolute top-2 right-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            New
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-gray-800">OnePlus 11 5G</h3>
+                            <button class="text-gray-400 hover:text-red-500 transition">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <span class="text-gray-600 text-sm ml-1">(89)</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-green-600 font-bold">$699</span>
+                            </div>
+                            <button class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product 4 -->
+                <div class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition border border-gray-200" style="--order: 3;">
+                    <div class="relative">
+                        <img src="https://cdn.pixabay.com/photo/2016/11/29/08/41/smartphone-1869511_1280.jpg" alt="Xiaomi 13 Pro" class="w-full h-48 object-contain">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-gray-800">Xiaomi 13 Pro</h3>
+                            <button class="text-gray-400 hover:text-red-500 transition">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <span class="text-gray-600 text-sm ml-1">(147)</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-green-600 font-bold">$999</span>
+                            </div>
+                            <button class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product 5 -->
+                <div class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition border border-gray-200" style="--order: 4;">
+                    <div class="relative">
+                        <img src="https://cdn.pixabay.com/photo/2015/02/02/11/09/phone-620397_1280.jpg" alt="Samsung Galaxy Tab S8" class="w-full h-48 object-contain">
+                        <div class="absolute top-2 right-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            -10%
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-gray-800">Samsung Galaxy Tab S8</h3>
+                            <button class="text-gray-400 hover:text-red-500 transition">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <span class="text-gray-600 text-sm ml-1">(72)</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-gray-500 line-through text-sm">$699</span>
+                                <span class="text-green-600 font-bold ml-2">$629</span>
+                            </div>
+                            <button class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product 6 -->
+                <div class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition border border-gray-200" style="--order: 5;">
+                    <div class="relative">
+                        <img src="https://cdn.pixabay.com/photo/2015/01/09/11/08/phone-594091_1280.jpg" alt="Google Pixel Buds Pro" class="w-full h-48 object-contain">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-gray-800">Google Pixel Buds Pro</h3>
+                            <button class="text-gray-400 hover:text-red-500 transition">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <span class="text-gray-600 text-sm ml-1">(203)</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-green-600 font-bold">$199</span>
+                            </div>
+                            <button class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product 7 -->
+                <div class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition border border-gray-200" style="--order: 6;">
+                    <div class="relative">
+                        <img src="https://cdn.pixabay.com/photo/2016/11/29/08/41/smartphone-1869513_1280.jpg" alt="Oppo Find X5 Pro" class="w-full h-48 object-contain">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-gray-800">Oppo Find X5 Pro</h3>
+                            <button class="text-gray-400 hover:text-red-500 transition">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <span class="text-gray-600 text-sm ml-1">(64)</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-green-600 font-bold">$1099</span>
+                            </div>
+                            <button class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product 8 -->
+                <div class="product-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition border border-gray-200" style="--order: 7;">
+                    <div class="relative">
+                        <img src="https://cdn.pixabay.com/photo/2015/02/02/11/11/phone-620400_1280.jpg" alt="Samsung Galaxy Watch 5" class="w-full h-48 object-contain">
+                        <div class="absolute top-2 right-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            New
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-semibold text-gray-800">Samsung Galaxy Watch 5</h3>
+                            <button class="text-gray-400 hover:text-red-500 transition">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <div class="flex text-yellow-400">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <span class="text-gray-600 text-sm ml-1">(118)</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-green-600 font-bold">$279</span>
+                            </div>
+                            <button class="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="flex justify-center mt-8">
+                <nav class="inline-flex rounded-md shadow">
+                    <a href="#" class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                    <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50">1</a>
+                    <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50">2</a>
+                    <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50">3</a>
+                    <a href="#" class="px-3 py-2 border-t border-b border-gray-300 bg-white text-gray-500 hover:bg-gray-50">4</a>
+                    <a href="#" class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </nav>
+            </div>
+        </section>
+    </main>
+
+    <!-- Newsletter -->
+    <section class="bg-gray-100 py-8 mt-8">
+        <div class="container mx-auto px-4">
+            <div class="max-w-3xl mx-auto text-center">
+                <h2 class="text-2xl font-bold mb-4">Subscribe to our Newsletter</h2>
+                <p class="text-gray-600 mb-6">Get the latest updates on new products and upcoming sales</p>
+                <div class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+                    <input type="email" placeholder="Your email address" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <button class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Subscribe</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white pt-8 pb-6">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fab fa-android text-3xl text-green-500"></i>
+                        <h3 class="text-xl font-bold">Android Store</h3>
+                    </div>
+                    <p class="text-gray-400">Your one-stop shop for premium Android devices and accessories.</p>
+                    <div class="flex space-x-4 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Shop</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Smartphones</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Tablets</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Wearables</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Accessories</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Deals</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">FAQs</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Shipping</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Returns</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Warranty</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">About Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Careers</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Blog</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Press</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm">© 2023 Android Store. All rights reserved.</p>
+                <div class="flex space-x-6 mt-4 md:mt-0">
+                    <img src="https://cdn.pixabay.com/photo/2015/05/26/09/37/paypal-784404_1280.png" alt="PayPal" class="h-8">
+                    <img src="https://cdn.pixabay.com/photo/2015/05/26/09/37/visa-784404_1280.png" alt="Visa" class="h-8">
+                    <img src="https://cdn.pixabay.com/photo/2015/05/26/09/37/master-card-784405_1280.png" alt="MasterCard" class="h-8">
+                    <img src="https://cdn.pixabay.com/photo/2015/05/26/09/37/american-express-784406_1280.png" alt="American Express" class="h-8">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+        
+        // Filter panel toggle
+        document.getElementById('filter-toggle').addEventListener('click', function() {
+            const panel = document.getElementById('filters-panel');
+            panel.classList.toggle('hidden');
+        });
+        
+        // Product card animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const productCards = document.querySelectorAll('.product-card');
+            productCards.forEach((card, index) => {
+                card.style.setProperty('--order', index);
+            });
+        });
+        
+        // Price range slider
+        const priceRange = document.querySelector('input[type="range"]');
+        priceRange.addEventListener('input', function() {
+            const value = this.value;
+            const min = parseInt(this.min);
+            const max = parseInt(this.max);
+            const percentage = ((value - min) / (max - min)) * 100;
+            this.style.backgroundSize = percentage + '% 100%';
+        });
+    </script>
+</body>
+</html>
