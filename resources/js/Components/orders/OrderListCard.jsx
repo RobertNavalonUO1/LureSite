@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, router } from '@inertiajs/react';
-import { Eye, RotateCcw, XCircle } from 'lucide-react';
+import { Eye, ExternalLink, RotateCcw, XCircle } from 'lucide-react';
 import OrderStatusBadge from '@/Components/orders/OrderStatusBadge.jsx';
 import { formatCurrency } from '@/Components/orders/orderUi.jsx';
 import { useI18n } from '@/i18n';
@@ -86,6 +86,13 @@ const OrderListCard = ({ order }) => {
             <Eye className="h-4 w-4" />
             {t('orders.common.view_details')}
           </Link>
+
+          {order.tracking_url ? (
+            <a href={order.tracking_url} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-700 transition hover:bg-sky-100">
+              <ExternalLink className="h-4 w-4" />
+              {t('orders.common.external_tracking')}
+            </a>
+          ) : null}
 
           {order.can_cancel ? (
             <button

@@ -1,6 +1,6 @@
 # Limoneo
 
-Last updated: 2026-03-23
+Last updated: 2026-03-25
 
 Limoneo is an ecommerce project built with Laravel 11, Inertia.js, React, Vite, Sanctum, Stripe, PayPal, and Socialite.
 
@@ -14,7 +14,7 @@ This repository currently contains:
 
 ## Current status
 
-As of 2026-03-23:
+As of 2026-03-25:
 
 - production is live at `https://limoneo.com`
 - `api/mobile/v1/products` is fixed and returns real products from the production database again
@@ -27,10 +27,14 @@ As of 2026-03-23:
 - Facebook data deletion endpoints and the public instructions page are deployed on production
 - order shipping, coupon, discount, and payment metadata are now persisted in orders
 - the production checkout UI has been refreshed with the profile address-book flow and live shipping total feedback
+- order tracking fields and shipment update email are deployed
+- Zoho SMTP is live on production for transactional mail
+- mobile and web accounts share the same `users` table, profile serializer, and Sanctum-based identity layer
 - order cancellation and refund workflows are covered by backend tests
 
 Still pending in production:
 
+- Android still needs to be audited against the real backend project by project
 - Google and Facebook redirects are operational, but end-to-end provider login still needs manual validation in production
 - Facebook live-mode or app-review restrictions may still block real-user login until Meta-side configuration is confirmed
 - payments are still not in live mode
@@ -43,6 +47,8 @@ Still pending in production:
 - Next priorities: [docs/NEXT_STEPS.md](docs/NEXT_STEPS.md)
 - Handoff guide: [docs/GUIDE_NEXT_AGENT.md](docs/GUIDE_NEXT_AGENT.md)
 - Android mobile API contract: [docs/MOBILE_API_ANDROID_SPEC.md](docs/MOBILE_API_ANDROID_SPEC.md)
+- Android sync matrix: [docs/ANDROID_WEB_SYNC_MATRIX.md](docs/ANDROID_WEB_SYNC_MATRIX.md)
+- Android sync prompt: [docs/ANDROID_AGENT_SYNC_PROMPT.md](docs/ANDROID_AGENT_SYNC_PROMPT.md)
 - Android prompt overview: [docs/ANDROID_APP_PROMPT_GUIDE.md](docs/ANDROID_APP_PROMPT_GUIDE.md)
 - Android base prompt: [docs/ANDROID_APP_BASE_PROMPT.md](docs/ANDROID_APP_BASE_PROMPT.md)
 - QA dataset: [docs/QA_DATASET.md](docs/QA_DATASET.md)
@@ -109,6 +115,8 @@ php artisan mobile:checkout-sandbox-smoke
 
 - Guest cart uses session on web and Room on Android.
 - Authenticated cart is persisted in `cart_items` and shared between web and mobile.
+- Users created from web register, mobile register, mobile social auth, or browser OAuth all resolve to the same backend `users` records.
+- Mobile login and social login issue Sanctum tokens; web login keeps the same identity in the server session.
 - Mobile locale is stateless through `Accept-Language: es|en|fr`.
 - The canonical mobile contract is `api/mobile/v1`.
 - The old `/api/mobile/*` endpoints are legacy only.

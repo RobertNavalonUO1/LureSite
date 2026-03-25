@@ -113,4 +113,10 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    'support_address' => env('MAIL_SUPPORT_ADDRESS', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+
+    'orders_address' => env('MAIL_ORDERS_ADDRESS', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+
+    'help_address' => env('MAIL_HELP_ADDRESS', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+
 ];

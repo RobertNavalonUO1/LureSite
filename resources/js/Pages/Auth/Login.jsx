@@ -8,11 +8,14 @@ import TextInput from '@/Components/ui/TextInput.jsx';
 
 import Header from '@/Components/navigation/Header.jsx';
 import Footer from '@/Components/navigation/Footer.jsx';
+import site from '@/config/site';
+import { useI18n } from '@/i18n';
 
 import { FcGoogle } from 'react-icons/fc';
 import { FaFacebookF } from 'react-icons/fa';
 
 export default function Login({ status, canResetPassword }) {
+  const { t } = useI18n();
   const { data, setData, post, processing, errors, reset } = useForm({
     email: '',
     password: '',
@@ -36,38 +39,43 @@ export default function Login({ status, canResetPassword }) {
 
   return (
     <>
-      <Head title="Iniciar Sesión" />
+      <Head title={t('auth.login_title')} />
 
       <Header />
 
-      <div className="bg-gradient-to-r from-blue-200 via-indigo-600 to-purple-200 py-2 text-center text-white">
-
-      </div>
-
-      <div className="max-w-md mx-auto mt-12 mb-20 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-        <h2 className="text-2xl font-bold text-center text-indigo-700 mb-6">Inicia sesión en tu cuenta</h2>
-
-        {serverSuccess && (
-          <div className="mb-4 text-sm font-medium text-green-600 text-center">
-            {serverSuccess}
+      <div className="storefront-shell px-4 py-12 sm:px-6">
+        <div className="mx-auto mb-20 max-w-md rounded-[28px] border border-white/70 bg-white/92 p-8 shadow-[0_30px_80px_-48px_rgba(15,23,42,0.42)] backdrop-blur">
+          <div className="mb-6 flex items-center gap-3 rounded-3xl bg-amber-50 px-4 py-3">
+            <img src={site.brand.logoSrc} alt={site.brand.logoAlt} className="h-12 w-12 rounded-full border border-amber-100 bg-white object-cover p-1" />
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-700">{site.brand.name}</p>
+              <p className="text-sm text-slate-600">{t('auth.login_brand_blurb')}</p>
+            </div>
           </div>
-        )}
 
-        {serverError && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {serverError}
-          </div>
-        )}
+          <h2 className="mb-6 text-center text-2xl font-bold text-slate-900">{t('auth.login_heading')}</h2>
 
-        {status && (
-          <div className="mb-4 text-sm font-medium text-green-600 text-center">
-            {status}
-          </div>
-        )}
+          {serverSuccess && (
+            <div className="mb-4 text-center text-sm font-medium text-green-600">
+              {serverSuccess}
+            </div>
+          )}
 
-        <form onSubmit={submit} className="space-y-4">
+          {serverError && (
+            <div className="mb-4 rounded border border-red-400 bg-red-100 p-3 text-red-700">
+              {serverError}
+            </div>
+          )}
+
+          {status && (
+            <div className="mb-4 text-center text-sm font-medium text-green-600">
+              {status}
+            </div>
+          )}
+
+          <form onSubmit={submit} className="space-y-4">
           <div>
-            <InputLabel htmlFor="email" value="Correo electrónico" />
+            <InputLabel htmlFor="email" value={t('auth.email')} />
             <TextInput
               id="email"
               type="email"
@@ -83,7 +91,7 @@ export default function Login({ status, canResetPassword }) {
           </div>
 
           <div>
-            <InputLabel htmlFor="password" value="Contraseña" />
+            <InputLabel htmlFor="password" value={t('auth.password')} />
             <TextInput
               id="password"
               type="password"
@@ -104,7 +112,7 @@ export default function Login({ status, canResetPassword }) {
                 checked={data.remember}
                 onChange={(e) => setData('remember', e.target.checked)}
               />
-              <span className="ml-2 text-gray-600">Recordarme</span>
+              <span className="ml-2 text-gray-600">{t('auth.remember')}</span>
             </label>
 
             {canResetPassword && (
@@ -112,24 +120,22 @@ export default function Login({ status, canResetPassword }) {
                 href={route('password.request')}
                 className="text-sm text-indigo-600 hover:underline"
               >
-                ¿Olvidaste tu contraseña?
+                {t('auth.forgot_password')}
               </Link>
             )}
           </div>
 
-          <PrimaryButton className="w-full bg-indigo-600 hover:bg-indigo-700 mt-4" disabled={processing}>
-            Entrar
+          <PrimaryButton className="storefront-primary-button mt-4 w-full bg-amber-600 hover:bg-amber-700" disabled={processing}>
+            {t('auth.login_submit')}
           </PrimaryButton>
         </form>
 
-        {/* Separador */}
         <div className="flex items-center gap-4 my-6">
           <div className="flex-grow h-px bg-gray-300" />
-          <span className="text-sm text-gray-500">o continúa con</span>
+          <span className="text-sm text-gray-500">{t('auth.or_continue_with')}</span>
           <div className="flex-grow h-px bg-gray-300" />
         </div>
 
-        {/* Botones sociales */}
         <div className="grid grid-cols-1 gap-3">
           <button
             type="button"
@@ -137,7 +143,7 @@ export default function Login({ status, canResetPassword }) {
             className="flex items-center justify-center gap-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 font-semibold py-2 rounded-lg shadow-sm transition"
           >
             <FcGoogle size={20} />
-            Google
+            {t('auth.social_google')}
           </button>
 
           <button
@@ -146,16 +152,17 @@ export default function Login({ status, canResetPassword }) {
             className="flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg shadow transition"
           >
             <FaFacebookF size={18} />
-            Facebook
+            {t('auth.social_facebook')}
           </button>
         </div>
 
         <p className="text-center text-sm text-gray-600 mt-6">
-          ¿No tienes una cuenta?{' '}
+          {t('auth.no_account')}{' '}
           <Link href={route('register')} className="text-indigo-600 hover:underline">
-            Regístrate
+            {t('auth.sign_up')}
           </Link>
         </p>
+        </div>
       </div>
 
       <Footer />

@@ -6,6 +6,7 @@ use App\Models\Address;
 use App\Models\User;
 use App\Support\ProfileAvatar;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class ProfileService
@@ -30,7 +31,9 @@ class ProfileService
 
     public function updateProfile(User $user, array $data): User
     {
-        if (($data['email'] ?? null) !== $user->email) {
+        $emailChanged = ($data['email'] ?? null) !== $user->email;
+
+        if ($emailChanged) {
             $user->forceFill(['email_verified_at' => null]);
         }
 
@@ -42,6 +45,17 @@ class ProfileService
             'avatar' => $data['avatar'] ?? null,
             'default_address_id' => $data['default_address_id'] ?? null,
         ])->save();
+
+        if ($emailChanged) {
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $exception) {
+                Log::warning('No se pudo reenviar la verificacion de email tras actualizar el perfil.', [
+                    'user_id' => $user->id,
+                    'exception' => $exception,
+                ]);
+            }
+        }
 
         return $user->fresh(['addresses']);
     }

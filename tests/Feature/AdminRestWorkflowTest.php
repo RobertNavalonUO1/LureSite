@@ -2,12 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Mail\OrderShipmentUpdateMail;
 use App\Models\Category;
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
 use App\Models\User;
 use App\Services\OrderRefundService;
 use App\Services\RefundResult;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Mockery\MockInterface;
 use Tests\TestCase;
 
@@ -171,5 +175,63 @@ class AdminRestWorkflowTest extends TestCase
         $this->assertSame('re_existing_123', $order->refund_reference_id);
         $this->assertNotNull($order->cancelled_at);
         $this->assertSame('admin', $order->cancelled_by);
+    }
+
+    public function test_admin_can_save_tracking_and_mark_order_as_shipped(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create(['is_admin' => true]);
+        $customer = User::factory()->create();
+        $category = Category::create([
+            'name' => 'Test',
+            'slug' => 'test',
+            'description' => 'Categoria de tracking',
+        ]);
+        $product = Product::create([
+            'name' => 'Producto tracking',
+            'description' => 'Producto para probar tracking.',
+            'price' => 39.90,
+            'stock' => 5,
+            'category_id' => $category->id,
+        ]);
+
+        $order = Order::create([
+            'user_id' => $customer->id,
+            'name' => $customer->name,
+            'email' => $customer->email,
+            'total' => 39.90,
+            'status' => 'pagado',
+            'address' => 'Calle Tracking 12',
+            'payment_method' => 'stripe',
+            'transaction_id' => 'txn_tracking_flow',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'price' => 39.90,
+            'status' => 'pagado',
+        ]);
+
+        $this->actingAs($admin)
+            ->patch("/admin/orders/{$order->id}/ship", [
+                'tracking_carrier' => 'Correos Express',
+                'tracking_number' => 'CX-99881',
+                'tracking_url' => 'https://tracking.example.test/CX-99881',
+            ])
+            ->assertRedirect();
+
+        $order->refresh();
+
+        $this->assertSame('enviado', $order->status);
+        $this->assertSame('Correos Express', $order->tracking_carrier);
+        $this->assertSame('CX-99881', $order->tracking_number);
+        $this->assertSame('https://tracking.example.test/CX-99881', $order->tracking_url);
+
+        Mail::assertSent(OrderShipmentUpdateMail::class, function (OrderShipmentUpdateMail $mail) use ($customer, $order) {
+            return $mail->hasTo($customer->email) && $mail->order->is($order);
+        });
     }
 }

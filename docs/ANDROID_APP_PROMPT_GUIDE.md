@@ -1,6 +1,6 @@
 # Limoneo - Documento base para generar la app Android mediante prompts
 
-Ultima actualizacion: 2026-03-17
+Ultima actualizacion: 2026-03-25
 
 ## 1. Objetivo de este documento
 
@@ -18,6 +18,7 @@ Base revisada:
 - Storefront ecommerce con catalogo, carrito, checkout, pedidos, perfil, direcciones, admin y promociones
 - Auth web con Socialite
 - API movil canonica `api/mobile/v1` con Sanctum y capa legacy parcial todavia presente
+- usuarios compartidos entre web y movil en la misma tabla `users`
 - i18n activo en `es`, `en`, `fr`
 
 Fuentes principales revisadas:
@@ -60,6 +61,7 @@ Fuentes principales revisadas:
 - CRUD de direcciones.
 - Dashboard de usuario.
 - Historial de pedidos.
+- Tracking externo y email de envio disponibles hoy en web/admin.
 - Flujo de cancelaciones y devoluciones.
 - Cambio de idioma `es/en/fr`.
 
@@ -119,6 +121,13 @@ Problemas reales:
 - Esa capa legacy tampoco refleja el locale stateless ni el carrito autenticado compartido.
 
 Conclusion: la app Android debe apuntar a `api/mobile/v1` y tratar `/api/mobile/*` solo como compatibilidad parcial/historica.
+
+Ademas, Android debe asumir identidad compartida completa:
+
+- un usuario creado en Android debe poder iniciar sesion en web sin migraciones ni perfiles duplicados
+- un usuario creado en web debe poder iniciar sesion en Android sin pasos especiales
+- Google y Facebook deben reutilizar el usuario existente por email cuando backend ya lo haga
+- el estado `email_verified_at` viene del backend y no debe inferirse en cliente
 
 ---
 
@@ -185,6 +194,7 @@ Si se pide multiplataforma mas adelante, ya se valorara otro stack. Para Android
 - register
 - social login bridge
 - persistencia de token Sanctum
+- compatibilidad con browser OAuth movil usando `limoneo://auth/complete` y `https://limoneo.com/app/auth/complete`
 
 2. Home
 - banners
@@ -224,6 +234,7 @@ Si se pide multiplataforma mas adelante, ya se valorara otro stack. Para Android
 - detalle
 - cancelar
 - solicitar devolucion
+- preparar CTA de tracking solo cuando la API movil exponga esos campos
 
 8. Profile
 - datos de usuario

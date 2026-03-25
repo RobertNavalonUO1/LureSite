@@ -13,6 +13,7 @@ import SpecialCategoryRail from "@/Components/catalog/SpecialCategoryRail.jsx";
 import UI_CONFIG from "@/config/ui.config";
 import { addCartItem } from "@/utils/cartClient";
 import { formatCurrency, normalizePrice } from "@/utils/pricing";
+import { acceptAllCookies, hasSavedCookieConsent, rejectOptionalCookies, saveCustomCookieSelection } from "@/utils/cookieConsent";
 
 const getDiscountPercentage = (currentPrice, previousPrice) => {
   const current = normalizePrice(currentPrice);
@@ -130,19 +131,26 @@ const NewArrivals = () => {
   const [sortOrder, setSortOrder] = useState("featured");
 
   useEffect(() => {
-    const accepted = localStorage.getItem("cookiesAccepted");
-    if (!accepted && UI_CONFIG.cookies.showConsentByDefault) {
+    if (!hasSavedCookieConsent() && UI_CONFIG.cookies.showConsentByDefault) {
       setShowCookiesModal(true);
     }
   }, []);
 
   const handleAcceptCookies = () => {
-    localStorage.setItem("cookiesAccepted", "true");
+    acceptAllCookies();
     setShowCookiesModal(false);
+    setShowCustomizeModal(false);
   };
 
   const handleRejectCookies = () => {
-    localStorage.setItem("cookiesAccepted", "false");
+    rejectOptionalCookies();
+    setShowCookiesModal(false);
+    setShowCustomizeModal(false);
+  };
+
+  const handleSaveCookiePreferences = (settings) => {
+    saveCustomCookieSelection(settings);
+    setShowCustomizeModal(false);
     setShowCookiesModal(false);
   };
 
@@ -451,7 +459,7 @@ const NewArrivals = () => {
       <CustomizeCookiesModal
         isOpen={showCustomizeModal}
         onClose={() => setShowCustomizeModal(false)}
-        onSave={handleAcceptCookies}
+        onSave={handleSaveCookiePreferences}
       />
     </div>
   );

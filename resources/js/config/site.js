@@ -6,8 +6,17 @@
 const site = {
   brand: {
     name: 'Limoneo',
-    logoSrc: '/images/logo.png',
+    shortName: 'Limoneo',
+    logoSrc: '/storage/logo/logo1.png',
     logoAlt: 'Limoneo',
+    faviconIco: '/favicon.ico',
+    faviconSvg: '/favicon.svg',
+    manifest: '/site.webmanifest',
+    appleTouchIcon: '/images/logo.png',
+  },
+  theme: {
+    themeColor: '#d97706',
+    accentColor: '#65a30d',
   },
   promo: {
     labelKey: 'header.promo.label',

@@ -12,6 +12,7 @@ use App\Models\OrderItem;
 use App\Models\Setting;
 use App\Services\OrderLineStateService;
 use App\Services\OrderRefundService;
+use App\Services\TransactionalEmailService;
 use App\Support\OrderState;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -27,6 +28,11 @@ class AdminController extends Controller
         'campaign.mode',
         'campaign.manual_slug',
     ];
+
+    public function __construct(
+        private readonly TransactionalEmailService $transactionalEmailService,
+    ) {
+    }
 
     public function dashboard()
     {
@@ -172,6 +178,9 @@ class AdminController extends Controller
                 'cancelled_at' => $order->cancelled_at?->format('d/m/Y H:i'),
                 'refund_reference_id' => $order->refund_reference_id,
                 'refund_error' => $order->refund_error,
+                'tracking_carrier' => $order->tracking_carrier,
+                'tracking_number' => $order->tracking_number,
+                'tracking_url' => $order->tracking_url,
                 'user' => $order->user ? [
                     'id' => $order->user->id,
                     'name' => $order->user->name,
@@ -229,10 +238,38 @@ class AdminController extends Controller
         return back()->with('success', 'Linea cancelada por administracion.');
     }
 
-    public function markAsShipped(Order $order, OrderLineStateService $lineStateService): RedirectResponse
+    public function updateTracking(Request $request, Order $order): RedirectResponse
     {
+        $validated = $request->validate([
+            'tracking_carrier' => ['nullable', 'string', 'max:120'],
+            'tracking_number' => ['nullable', 'string', 'max:120'],
+            'tracking_url' => ['required', 'url', 'max:2048'],
+        ]);
+
+        $this->fillTrackingData($order, $validated);
+
+        return back()->with('success', 'Tracking externo guardado correctamente.');
+    }
+
+    public function markAsShipped(Request $request, Order $order, OrderLineStateService $lineStateService): RedirectResponse
+    {
+        $validated = $request->validate([
+            'tracking_carrier' => ['nullable', 'string', 'max:120'],
+            'tracking_number' => ['nullable', 'string', 'max:120'],
+            'tracking_url' => ['nullable', 'url', 'max:2048'],
+        ]);
+
+        $trackingUrl = trim((string) ($validated['tracking_url'] ?? $order->tracking_url ?? ''));
+
+        if ($trackingUrl === '') {
+            return back()->with('error', 'Debes indicar una URL externa de seguimiento antes de marcar el pedido como enviado.');
+        }
+
         try {
+            $this->fillTrackingData($order, $validated + ['tracking_url' => $trackingUrl]);
             $lineStateService->markOrderShipped($order);
+            $this->transactionalEmailService->sendShipmentUpdate($order->fresh(['items.product']));
+
             return back()->with('success', 'Pedido marcado como enviado.');
         } catch (DomainException $exception) {
             return back()->with('error', $exception->getMessage());
@@ -258,6 +295,22 @@ class AdminController extends Controller
         }
 
         return back()->with('success', "La devolucion fue aprobada para {$affectedItems} linea(s).");
+    }
+
+    private function fillTrackingData(Order $order, array $validated): void
+    {
+        $order->forceFill([
+            'tracking_carrier' => $this->nullIfBlank($validated['tracking_carrier'] ?? null),
+            'tracking_number' => $this->nullIfBlank($validated['tracking_number'] ?? null),
+            'tracking_url' => $this->nullIfBlank($validated['tracking_url'] ?? null),
+        ])->save();
+    }
+
+    private function nullIfBlank(mixed $value): ?string
+    {
+        $normalized = trim((string) ($value ?? ''));
+
+        return $normalized !== '' ? $normalized : null;
     }
 
     public function approveReturnItem(Order $order, OrderItem $item, OrderLineStateService $lineStateService): RedirectResponse

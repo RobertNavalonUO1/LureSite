@@ -50,7 +50,8 @@
     "verify_email_sent": "Un nouveau lien de vérification a été envoyé à votre e-mail.",
     "resend_verification": "Renvoyer l'e-mail de vérification",
     "social_google": "Google",
-    "social_facebook": "Facebook"
+    "social_facebook": "Facebook",
+    "login_brand_blurb": "Accedez a vos commandes, adresses et paiements depuis un seul compte."
   },
   "nav": {
     "deals_today": "Offres du jour",
@@ -88,6 +89,21 @@
       "go_to_panel": "Accéder au tableau de bord utilisateur",
       "avatar_alt": "Avatar de l'utilisateur"
     }
+  },
+  "footer": {
+    "brand_kicker": "catalogue operationnel",
+    "description": "Limoneo relie catalogue navigable, paiement verifie et support reel pour que chaque commande garde son contexte complet.",
+    "explore_title": "Explorer",
+    "catalog": "Catalogue",
+    "legal_title": "Mentions legales",
+    "privacy": "Politique de confidentialite",
+    "terms": "Conditions du service",
+    "cookies": "Politique des cookies",
+    "help_title": "Aide",
+    "help_body": "Si vous devez revoir une commande, un retour ou un incident de paiement, utilisez les canaux du site afin que le support dispose du contexte des le debut.",
+    "help_cta": "Centre d'aide",
+    "contact_cta": "Contact",
+    "rights": "Tous droits reserves."
   },
   "home": {
     "welcome_guest": "Bienvenue sur Limoneo",
@@ -249,6 +265,12 @@
       "kicker": "Processus d'achat",
       "title": "Paiement",
       "subtitle": "Vérifiez votre commande, confirmez vos informations et choisissez la meilleure option de livraison avant de payer.",
+      "hero_badge": "checkout actif",
+      "hero_title": "Confirmez votre commande avec adresse, livraison et total synchronisés en temps réel.",
+      "hero_body": "Le checkout partage maintenant la même structure, les mêmes adresses et le même état que le reste du storefront pour éviter les pertes de contexte.",
+      "summary_items_label": "Articles",
+      "summary_shipping_label": "Livraison active",
+      "summary_total_label": "Total",
       "summary_title": "Récapitulatif de la commande",
       "summary_subtitle": "Inclut vos articles, vos coordonnées, votre adresse et les avantages de livraison.",
       "items_title": "Articles ({count})",
@@ -266,34 +288,68 @@
       "user_phone": "Téléphone",
       "user_phone_missing": "Indisponible",
       "address_title": "Adresse de livraison",
+      "address_body": "Utilisez le même carnet d'adresses du profil pour créer, modifier, définir l'adresse par défaut et choisir l'adresse de cette commande.",
       "address_guest_hint": "Connectez-vous ou créez un compte pour gérer vos adresses.",
       "address_selected": "Sélectionnée",
       "address_none": "Aucune",
       "address_edit_selected": "Modifier l'adresse sélectionnée",
       "address_add_new": "Ajouter une nouvelle adresse",
+      "active_address": "Adresse active pour cette commande",
       "address_empty": "Vous n'avez aucune adresse enregistrée.",
+      "address_empty_body": "Ajoutez votre première adresse pour débloquer le paiement et recalculer la commande sans quitter le checkout.",
       "address_add": "Ajouter une adresse",
+      "coverage_title": "Couverture et garanties",
       "benefits_title": "Avantages de votre achat",
       "benefit_1": "Livraison fiable avec suivi pour toutes les options disponibles.",
       "benefit_2": "Paiements sécurisés avec protection contre la fraude et chiffrement avancé.",
       "benefit_3": "Support 24/7 pour répondre à vos questions et gérer les incidents.",
       "benefit_4": "Plusieurs moyens de paiement, dont Stripe et PayPal.",
+      "benefits": {
+        "tracking_title": "Livraison suivie",
+        "tracking_body": "Chaque option affiche délai estimé et coût avant le paiement.",
+        "payment_title": "Paiement protégé",
+        "payment_body": "Stripe et PayPal ne démarrent qu'après validation de l'adresse et de la session.",
+        "traceability_title": "Traçabilité de la commande",
+        "traceability_body": "Coupon, livraison et références de paiement restent dans le même résumé opérationnel.",
+        "addresses_title": "Adresses unifiées",
+        "addresses_body": "Le profil et le checkout utilisent exactement le même flux d'adresses."
+      },
+      "financial_title": "Résumé financier",
+      "live_badge": "Live",
       "subtotal": "Sous-total",
       "coupon_applied": "Coupon appliqué",
+      "coupon_applied_title": "Coupon appliqué",
+      "coupon_applied_body": "Le résumé de commande a été mis à jour.",
+      "coupon_removed_title": "Coupon retiré",
+      "coupon_removed_body": "Le total de la commande a été recalculé.",
       "remove_coupon": "Retirer",
       "shipping": "Livraison",
       "shipping_select": "Sélectionnez une méthode",
+      "shipping_updated_title": "Livraison mise à jour",
+      "shipping_updated_body": "La sélection de livraison a bien été enregistrée.",
       "estimated_total": "Total estimé",
+      "sync_note": "Les totaux réagissent instantanément lorsque la livraison, le coupon ou les quantités changent.",
       "tax_note": "Taxes applicables incluses. Le montant final dépendra du mode de livraison sélectionné.",
       "coupon_title": "Vous avez un coupon ?",
       "coupon_placeholder": "Saisir le code",
       "coupon_applying": "Application…",
       "coupon_apply": "Appliquer",
       "shipping_method": "Mode de livraison",
+      "active_badge": "Actif",
       "redirecting_stripe": "Redirection vers Stripe…",
       "pay_with_card": "Payer par carte (Stripe)",
+      "stripe_init_failed": "Stripe n'a pas pu être initialisé.",
+      "stripe_redirect_failed": "Stripe n'a pas pu poursuivre le paiement.",
+      "stripe_session_missing": "La session Stripe n'a pas été reçue.",
+      "stripe_error_title": "Échec du démarrage Stripe",
+      "stripe_error_body": "La passerelle de paiement n'a pas pu être ouverte.",
       "redirecting_paypal": "Redirection vers PayPal…",
       "pay_with_paypal": "Payer avec PayPal",
+      "paypal_link_missing": "Le lien d'approbation PayPal n'a pas été reçu.",
+      "paypal_error_title": "Échec du démarrage PayPal",
+      "paypal_error_body": "Impossible de rediriger vers PayPal.",
+      "cart_update_failed_title": "Panier non mis à jour",
+      "cart_update_failed_body": "La quantité du produit n'a pas pu être mise à jour. Veuillez réessayer.",
       "payment_disabled_hint": "Vous avez besoin d'une adresse valide pour continuer.",
       "security_title": "Sécurité et confidentialité",
       "security_1": "✓ Données chiffrées et vérification en deux étapes.",
@@ -416,6 +472,7 @@
       "view_detail": "Voir le détail",
       "view_detail_full": "Voir les détails de la commande →",
       "view_details": "Voir les détails",
+      "external_tracking": "Suivi externe",
       "not_available": "N/A"
     },
     "actions": {
@@ -1453,6 +1510,11 @@
       "no_general_notes": "Aucune note générale",
       "actions_title": "Actions de commande",
       "reason_placeholder": "Motif administratif",
+      "tracking_carrier_placeholder": "Transporteur",
+      "tracking_number_placeholder": "Numéro de suivi",
+      "tracking_url_placeholder": "URL de suivi externe",
+      "save_tracking": "Enregistrer le suivi",
+      "current_tracking": "Suivi actuel",
       "cancel_eligible": "Annuler les éligibles",
       "ship_active": "Expédier les actives",
       "deliver_active": "Livrer les actives",
@@ -1467,6 +1529,7 @@
         "approve_returns": "Approuver les retours demandés pour cette commande ?",
         "reject_returns": "Rejeter les retours demandés pour cette commande ?",
         "process_refunds": "Traiter les remboursements approuvés pour cette commande ?",
+        "save_tracking": "Enregistrer ou mettre à jour le suivi externe de cette commande ?",
         "cancel_line": "Annuler cette ligne ?",
         "approve_item": "Approuver le retour de cette ligne ?",
         "reject_item": "Rejeter le retour de cette ligne ?",
@@ -1638,28 +1701,94 @@
     "label": "Promotion en vedette",
     "dismiss_today": "Ne plus afficher aujourd’hui",
     "close": "Fermer la promotion",
+    "live_now": "En direct",
+    "hover_hint": "Pause au survol",
     "global": {
       "autumn_flash": {
+        "eyebrow": "Offre limitée",
         "title": "Vente flash en vedette",
         "message": "Profitez de remises à durée limitée sur une sélection soignée du catalogue.",
+        "detail": "Pensée pour une décision rapide : moins de bruit, plus de références prêtes à partir.",
+        "benefit_primary": "Sélection filtrée pour réduire la fatigue de comparaison.",
+        "benefit_secondary": "Les conditions restent claires avant l’entrée en paiement.",
         "cta": "Voir la vente flash"
       },
       "bundle_warm": {
+        "eyebrow": "Pack recommandé",
         "title": "Pack maison cosy",
         "message": "Combinez produits maison et accessoires avec une livraison optimisée en une seule commande.",
+        "detail": "Utile pour augmenter le panier sans rendre le choix plus complexe.",
+        "benefit_primary": "Produits compatibles regroupés pour réduire la friction d’achat.",
+        "benefit_secondary": "Promesse de valeur claire même sur mobile.",
         "cta": "Composer mon pack"
       }
     },
     "category": {
       "category_extra": {
+        "eyebrow": "Conversion directe",
         "title": "10 % en plus dans votre catégorie",
         "message": "Utilisez le coupon CATEGORIA10 au paiement sur les produits vedettes.",
+        "detail": "L’incitation apparaît dans le bon contexte, au moment où l’utilisateur compare la catégorie.",
+        "benefit_primary": "Ancre la remise sur une action simple et compréhensible.",
+        "benefit_secondary": "Conduit vers le bon bloc sans ouvrir un parcours parallèle.",
         "cta": "Appliquer le coupon"
       },
       "free_shipping": {
+        "eyebrow": "Moins de friction",
         "title": "Livraison express offerte",
         "message": "Livraison en 48 h disponible sur les articles avec étiquette de livraison rapide.",
+        "detail": "Pertinent quand la vitesse de livraison pèse plus que la remise pure.",
+        "benefit_primary": "Réduit les doutes sur le délai et le coût avant la fiche produit.",
+        "benefit_secondary": "Garde l’offre visible sans masquer le contenu principal.",
         "cta": "Trouver la livraison rapide"
+      }
+    }
+  },
+  "cookies": {
+    "banner": {
+      "kicker": "Préférences cookies",
+      "privacy_note": "Aucun cookie non essentiel par défaut",
+      "title": "Votre vie privée mérite une décision claire, pas une bannière confuse.",
+      "description": "Nous utilisons des cookies fonctionnels pour assurer la continuité de la boutique et, uniquement si vous l’autorisez, des cookies d’analyse et marketing pour mesurer la performance et personnaliser les campagnes.",
+      "secondary": "Vous pouvez tout accepter, ne garder que l’essentiel ou personnaliser chaque catégorie en quelques secondes.",
+      "policy_link": "Voir la politique des cookies",
+      "footer_note": "Votre choix est enregistré et peut être modifié plus tard depuis la politique des cookies."
+    },
+    "actions": {
+      "accept_all": "Tout accepter",
+      "customize": "Personnaliser les préférences",
+      "reject_optional": "Refuser le non essentiel",
+      "only_essential": "Utiliser seulement l’essentiel",
+      "save_preferences": "Enregistrer les préférences",
+      "cancel": "Annuler",
+      "close_customizer": "Fermer la personnalisation"
+    },
+    "customize": {
+      "kicker": "Centre de préférences",
+      "title": "Décidez quelles données vous nous autorisez à utiliser",
+      "description": "Cette configuration vous permet de comprendre l’impact de chaque catégorie sans noyer le parcours dans du texte juridique.",
+      "info_title": "Ce qui change si vous désactivez les catégories optionnelles",
+      "info_body": "La boutique continuera de fonctionner, mais certaines mesures de performance, recommandations et campagnes de remarketing ne seront plus disponibles."
+    },
+    "categories": {
+      "required": "Nécessaires",
+      "optional": "Optionnelles",
+      "enabled": "Activées",
+      "disabled": "Désactivées",
+      "functional": {
+        "label": "Cookies fonctionnels",
+        "summary": "Maintiennent la session, la langue et la continuité d’achat.",
+        "description": "Ils sont indispensables pour naviguer, se connecter, conserver le panier et préserver les préférences minimales du storefront."
+      },
+      "analytics": {
+        "label": "Cookies d’analyse",
+        "summary": "Nous aident à repérer les parties du parcours les plus efficaces.",
+        "description": "Ils mesurent les vues, l’interaction avec le catalogue et la performance des campagnes pour améliorer UX et conversion."
+      },
+      "marketing": {
+        "label": "Cookies marketing",
+        "summary": "Servent à personnaliser les messages et limiter les sollicitations inutiles.",
+        "description": "Ils activent le ciblage d’audience et le suivi promotionnel pour proposer des offres plus cohérentes avec l’intérêt réel."
       }
     }
   }

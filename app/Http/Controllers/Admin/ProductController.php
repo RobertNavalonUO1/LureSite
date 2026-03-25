@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\TemporaryProduct;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -25,6 +26,66 @@ class ProductController extends Controller
 
     public function index(Request $request): Response
     {
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:120'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:10', 'max:100'],
+        ]);
+
+        $search = trim((string) ($filters['search'] ?? ''));
+        $categoryId = isset($filters['category_id']) ? (int) $filters['category_id'] : null;
+        $page = isset($filters['page']) ? (int) $filters['page'] : 1;
+        $perPage = isset($filters['per_page']) ? (int) $filters['per_page'] : 20;
+
+        $paginator = Product::query()
+            ->with('category:id,name')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($innerQuery) use ($search) {
+                    $innerQuery
+                        ->where('products.name', 'like', '%' . $search . '%')
+                        ->orWhere('products.description', 'like', '%' . $search . '%')
+                        ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery->where('name', 'like', '%' . $search . '%'));
+                });
+            })
+            ->when($categoryId, fn ($query) => $query->where('category_id', $categoryId))
+            ->orderByDesc('created_at')
+            ->paginate($perPage, ['id', 'name', 'category_id', 'price', 'stock', 'created_at'], 'page', $page)
+            ->withQueryString();
+
+        return Inertia::render('Admin/Products', [
+            'products' => [
+                'data' => $paginator->getCollection()->map(fn (Product $product) => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'price' => round((float) $product->price, 2),
+                    'stock' => (int) $product->stock,
+                    'created_at' => $product->created_at?->format('d/m/Y H:i'),
+                    'category' => $product->category ? [
+                        'id' => $product->category->id,
+                        'name' => $product->category->name,
+                    ] : null,
+                ])->values(),
+                'meta' => [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                    'from' => $paginator->firstItem(),
+                    'to' => $paginator->lastItem(),
+                ],
+            ],
+            'filters' => [
+                'search' => $search,
+                'category_id' => $categoryId,
+                'per_page' => $perPage,
+            ],
+            'categories' => Category::orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    public function editor(Request $request): Response
+    {
         $filters = $this->validatedFilters($request);
 
         return Inertia::render('Admin/ProductManager', [
@@ -34,6 +95,13 @@ class ProductController extends Controller
             'categories' => Category::orderBy('name')->get(['id', 'name']),
             'commercialStates' => $this->commercialStateOptions(),
         ]);
+    }
+
+    public function destroyFromIndex(Product $product): RedirectResponse
+    {
+        $product->delete();
+
+        return back()->with('success', 'Producto eliminado correctamente.');
     }
 
     public function list(Request $request): JsonResponse

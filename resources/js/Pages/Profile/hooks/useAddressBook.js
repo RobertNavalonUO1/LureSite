@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useI18n } from '@/i18n';
 import { addressClient } from '@/Pages/Profile/api/addressClient.js';
 
@@ -19,6 +19,10 @@ export function useAddressBook({ initialAddresses = [], initialDefaultAddressId 
     setDefaultAddressId(nextDefaultAddressId);
     setAddresses(syncDefaultState(nextAddresses, nextDefaultAddressId));
   }, []);
+
+  useEffect(() => {
+    applyDefaultState(initialAddresses, initialDefaultAddressId);
+  }, [applyDefaultState, initialAddresses, initialDefaultAddressId]);
 
   const handleError = useCallback((error, fallbackMessage) => {
     onToast?.({

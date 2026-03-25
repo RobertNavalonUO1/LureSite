@@ -33,6 +33,7 @@ import StorefrontLayout from "@/Layouts/StorefrontLayout.jsx";
 import { repairTextTree, useI18n } from "@/i18n";
 import { CATALOG_STICKY_TOP_WITH_RAIL } from "@/config/catalogLayout.js";
 import { addCartItem } from "@/utils/cartClient";
+import { acceptAllCookies, hasSavedCookieConsent, rejectOptionalCookies, saveCustomCookieSelection } from "@/utils/cookieConsent";
 
 const CATEGORY_ACCENTS = [
   {
@@ -167,8 +168,7 @@ const Home = () => {
   );
 
   useEffect(() => {
-    const accepted = localStorage.getItem("cookiesAccepted");
-    if (!accepted && UI_CONFIG.cookies.showConsentByDefault) {
+    if (!hasSavedCookieConsent() && UI_CONFIG.cookies.showConsentByDefault) {
       setShowCookiesModal(true);
     }
 
@@ -196,12 +196,20 @@ const Home = () => {
   );
 
   const handleAcceptCookies = () => {
-    localStorage.setItem("cookiesAccepted", "true");
+    acceptAllCookies();
     setShowCookiesModal(false);
+    setShowCustomizeModal(false);
   };
 
   const handleRejectCookies = () => {
-    localStorage.setItem("cookiesAccepted", "false");
+    rejectOptionalCookies();
+    setShowCookiesModal(false);
+    setShowCustomizeModal(false);
+  };
+
+  const handleSaveCookiePreferences = (settings) => {
+    saveCustomCookieSelection(settings);
+    setShowCustomizeModal(false);
     setShowCookiesModal(false);
   };
 
@@ -862,10 +870,10 @@ const Home = () => {
       <CustomizeCookiesModal
         isOpen={showCustomizeModal}
         onClose={() => setShowCustomizeModal(false)}
-        onSave={handleAcceptCookies}
+        onSave={handleSaveCookiePreferences}
       />
 
-      <PromoPopups context="global" />
+      <PromoPopups context="global" suppressed={showCookiesModal || showCustomizeModal} />
     </div>
   );
 };

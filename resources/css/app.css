@@ -11,10 +11,69 @@
 	--topnav-sticky-height: 4rem;
 	--category-rail-height: 6.75rem;
 	--category-rail-height-compact: 3.75rem;
+	--brand-ink: 15 23 42;
+	--brand-surface: 255 251 235;
+	--brand-panel: 255 255 255;
+	--brand-line: 253 230 138;
+	--brand-primary: 217 119 6;
+	--brand-primary-strong: 180 83 9;
+	--brand-accent: 101 163 13;
+	--brand-muted: 71 85 105;
 }
 
 html {
 	scrollbar-gutter: stable;
+}
+
+body {
+	background:
+		radial-gradient(circle at top left, rgba(250, 204, 21, 0.14), transparent 24%),
+		radial-gradient(circle at top right, rgba(132, 204, 22, 0.10), transparent 22%),
+		linear-gradient(180deg, #fffdf7 0%, #fff8eb 38%, #fffdf9 100%);
+	color: rgb(var(--brand-ink));
+}
+
+@layer components {
+	.storefront-shell {
+		background:
+			radial-gradient(circle at top left, rgba(250, 204, 21, 0.12), transparent 26%),
+			radial-gradient(circle at top right, rgba(132, 204, 22, 0.10), transparent 24%),
+			linear-gradient(180deg, #fffdf7 0%, #fff8eb 38%, #fffdf9 100%);
+	}
+
+	.storefront-panel {
+		border: 1px solid rgba(255, 255, 255, 0.74);
+		background: rgba(255, 255, 255, 0.9);
+		backdrop-filter: blur(18px);
+		box-shadow: 0 24px 80px -48px rgba(15, 23, 42, 0.32);
+	}
+
+	.storefront-primary-button {
+		background-image: linear-gradient(135deg, rgb(var(--brand-primary)) 0%, rgb(var(--brand-primary-strong)) 100%);
+	}
+
+	.storefront-primary-button:hover {
+		filter: brightness(0.98);
+	}
+
+	.storefront-secondary-button {
+		border: 1px solid rgba(var(--brand-line), 0.8);
+		background: rgba(255, 251, 235, 0.92);
+		color: rgb(var(--brand-primary-strong));
+	}
+
+	.storefront-secondary-button:hover {
+		background: rgba(254, 243, 199, 0.92);
+	}
+
+	.storefront-brand-chip {
+		border: 1px solid rgba(var(--brand-line), 0.72);
+		background: rgba(255, 251, 235, 0.88);
+	}
+
+	.storefront-kicker {
+		color: rgb(var(--brand-primary));
+	}
 }
 
 @media (min-width: 768px) {

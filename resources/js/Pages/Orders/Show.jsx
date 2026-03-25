@@ -1,6 +1,6 @@
 ﻿import React, { useMemo } from 'react';
 import { Link, router } from '@inertiajs/react';
-import { CheckCircle2, ChevronLeft, RotateCcw, XCircle } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ExternalLink, RotateCcw, XCircle } from 'lucide-react';
 import OrdersDashboardLayout from '@/Layouts/OrdersDashboardLayout.jsx';
 import OrderStatusBadge from '@/Components/orders/OrderStatusBadge.jsx';
 import OrderLineItemCard from '@/Components/orders/OrderLineItemCard.jsx';
@@ -77,6 +77,10 @@ const OrderShow = ({ order }) => {
                 <div className="mt-1 text-sm text-slate-700">{order.shipping_label ?? order.shipping_method ?? '-'}</div>
               </div>
               <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Tracking</div>
+                <div className="mt-1 text-sm text-slate-700">{order.tracking_number ?? t('orders.common.not_available')}</div>
+              </div>
+              <div>
                 <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Cupón</div>
                 <div className="mt-1 text-sm text-slate-700">{order.coupon_code ? `${order.coupon_code} (-${formatCurrency(order.discount, locale)})` : 'Ninguno'}</div>
               </div>
@@ -135,6 +139,18 @@ const OrderShow = ({ order }) => {
                 <RotateCcw className="h-4 w-4" />
                 {t('orders.actions.grouped_refund')}
               </button>
+            ) : null}
+
+            {order.tracking_url ? (
+              <a
+                href={order.tracking_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
+              >
+                <ExternalLink className="h-4 w-4" />
+                {t('orders.common.external_tracking')}
+              </a>
             ) : null}
 
             {order.status === 'entregado' ? (

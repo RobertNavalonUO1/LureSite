@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Address;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\ProfileService;
 use App\Services\ShoppingCartService;
+use App\Services\TransactionalEmailService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -23,65 +27,19 @@ class CheckoutController extends Controller
 {
     public function __construct(
         private readonly ShoppingCartService $shoppingCartService,
+        private readonly ProfileService $profileService,
+        private readonly TransactionalEmailService $transactionalEmailService,
     ) {
     }
 
     public function index(Request $request)
     {
-        $cart = array_values($this->shoppingCartService->itemsForRequest($request));
-        $totals = $this->calculateTotals($cart);
-        $user = Auth::user()?->load('addresses');
+        return Inertia::render('Shop/Checkout', $this->checkoutPayload($request));
+    }
 
-        $addresses = $user
-            ? $user->addresses->map(fn ($address) => [
-                'id' => $address->id,
-                'street' => $address->street,
-                'city' => $address->city,
-                'province' => $address->province,
-                'zip_code' => $address->zip_code,
-                'country' => $address->country,
-                'created_at' => $address->created_at,
-                'make_default' => $address->id === $user->default_address_id,
-            ])->values()->all()
-            : [];
-
-        $shippingOptions = array_values($this->shippingOptionsForSubtotal($totals['subtotal']));
-
-        return Inertia::render('Shop/Checkout', [
-            'cartItems' => $cart,
-            'totals' => [
-                'subtotal' => $totals['subtotal'],
-                'discount' => $totals['discount'],
-                'shipping' => $totals['shipping_cost'],
-                'total' => $totals['total'],
-            ],
-            'shipping' => [
-                'method' => $totals['shipping_method'],
-                'label' => $totals['shipping_label'],
-                'description' => $totals['shipping_description'],
-                'eta' => $totals['shipping_eta'],
-                'cost' => $totals['shipping_cost'],
-            ],
-            'shippingOptions' => $shippingOptions,
-            'coupon' => [
-                'code' => $totals['coupon_code'],
-                'label' => $totals['coupon_label'],
-                'amount' => $totals['discount'],
-            ],
-            'currency' => 'EUR',
-            'auth' => [
-                'user' => $user ? [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'lastname' => $user->lastname,
-                    'email' => $user->email,
-                    'phone' => $user->phone ?? null,
-                    'default_address_id' => $user->default_address_id,
-                ] : null,
-            ],
-            'addresses' => $addresses,
-            'defaultAddressId' => $user?->default_address_id,
-        ]);
+    public function summary(Request $request): JsonResponse
+    {
+        return response()->json($this->checkoutPayload($request));
     }
 
     public function applyCoupon(Request $request)
@@ -406,6 +364,8 @@ class CheckoutController extends Controller
                 Coupon::whereRaw('UPPER(code) = ?', [strtoupper($totals['coupon_code'])])->increment('used_count');
             }
 
+            $this->transactionalEmailService->sendOrderConfirmation($order);
+
             $this->clearCouponSession();
             if ($user) {
                 $this->shoppingCartService->clearUserCart($user);
@@ -434,6 +394,57 @@ class CheckoutController extends Controller
     public function cancel()
     {
         return redirect()->route('checkout')->with('error', 'El pago fue cancelado.');
+    }
+
+    private function checkoutPayload(Request $request): array
+    {
+        $cart = array_values($this->shoppingCartService->itemsForRequest($request));
+        $totals = $this->calculateTotals($cart);
+        $user = Auth::user()?->loadMissing('addresses');
+
+        $addresses = $user
+            ? $user->addresses
+                ->sortByDesc('id')
+                ->values()
+                ->map(fn (Address $address) => $this->profileService->serializeAddress($address, $user))
+                ->all()
+            : [];
+
+        return [
+            'cartItems' => $cart,
+            'totals' => [
+                'subtotal' => $totals['subtotal'],
+                'discount' => $totals['discount'],
+                'shipping' => $totals['shipping_cost'],
+                'total' => $totals['total'],
+            ],
+            'shipping' => [
+                'method' => $totals['shipping_method'],
+                'label' => $totals['shipping_label'],
+                'description' => $totals['shipping_description'],
+                'eta' => $totals['shipping_eta'],
+                'cost' => $totals['shipping_cost'],
+            ],
+            'shippingOptions' => array_values($this->shippingOptionsForSubtotal($totals['subtotal'])),
+            'coupon' => [
+                'code' => $totals['coupon_code'],
+                'label' => $totals['coupon_label'],
+                'amount' => $totals['discount'],
+            ],
+            'currency' => 'EUR',
+            'auth' => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'lastname' => $user->lastname,
+                    'email' => $user->email,
+                    'phone' => $user->phone ?? null,
+                    'default_address_id' => $user->default_address_id,
+                ] : null,
+            ],
+            'addresses' => $addresses,
+            'defaultAddressId' => $user?->default_address_id,
+        ];
     }
 
     private function calculateTotals(?array $cart = null): array

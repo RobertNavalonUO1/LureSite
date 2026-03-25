@@ -19,24 +19,27 @@ const Results = () => {
   } = usePage().props;
   const { t } = useI18n();
 
+  const safeFilters = filters && typeof filters === 'object' && !Array.isArray(filters) ? filters : {};
+  const safeProducts = products && typeof products === 'object' && !Array.isArray(products) ? products : {};
+
   const paginated = {
     data: [],
     current_page: 1,
     last_page: 1,
     total: 0,
-    ...products,
+    ...safeProducts,
   };
 
   const items = paginated.data ?? [];
   const total = paginated.total ?? 0;
   const currentPage = paginated.current_page ?? 1;
   const lastPage = paginated.last_page ?? 1;
-  const initialQuery = filters.query ?? '';
-  const initialCategory = filters.category ? String(filters.category) : 'all';
-  const initialMinPrice = filters.min_price ?? '';
-  const initialMaxPrice = filters.max_price ?? '';
-  const initialSort = filters.sort ?? 'relevance';
-  const activeFlags = Array.isArray(filters.flags) ? filters.flags : [];
+  const initialQuery = safeFilters.query ?? '';
+  const initialCategory = safeFilters.category ? String(safeFilters.category) : 'all';
+  const initialMinPrice = safeFilters.min_price ?? '';
+  const initialMaxPrice = safeFilters.max_price ?? '';
+  const initialSort = typeof safeFilters.sort === 'string' ? safeFilters.sort : 'relevance';
+  const activeFlags = Array.isArray(safeFilters.flags) ? safeFilters.flags : [];
 
   const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
@@ -49,7 +52,7 @@ const Results = () => {
 
   const buildQuery = (overrides = {}) => {
     const params = new URLSearchParams();
-    const merged = { ...filters, ...overrides };
+    const merged = { ...safeFilters, ...overrides };
 
     Object.entries(merged).forEach(([key, value]) => {
       if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
@@ -69,7 +72,7 @@ const Results = () => {
   };
 
   const toggleFlag = (flag) => {
-    const current = new Set(Array.isArray(filters.flags) ? filters.flags : []);
+    const current = new Set(Array.isArray(safeFilters.flags) ? safeFilters.flags : []);
     current.has(flag) ? current.delete(flag) : current.add(flag);
     buildQuery({ flags: Array.from(current), page: 1 });
   };
@@ -174,7 +177,7 @@ const Results = () => {
           <section className="bg-white/80 border-b border-slate-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <h1 className="text-2xl font-semibold text-slate-900">
-                {hasActiveQuery && filters.query ? t('catalog.results.title_with_query', { query: filters.query }) : t('catalog.results.title')}
+                {hasActiveQuery && safeFilters.query ? t('catalog.results.title_with_query', { query: safeFilters.query }) : t('catalog.results.title')}
               </h1>
               <p className="mt-1 text-sm text-slate-500">
                 {t('catalog.results.subtitle')}

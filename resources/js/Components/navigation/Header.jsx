@@ -52,8 +52,8 @@ const Header = ({ isCompact: isCompactProp }) => {
     header: clsx(
       'sticky top-0 z-50 backdrop-blur transition-all duration-300',
       isCompact
-        ? 'bg-white/70 shadow-lg border-b border-slate-200/70'
-        : 'bg-white/90 border-b border-slate-200 shadow-sm'
+        ? 'border-b border-amber-100/80 bg-[rgba(255,251,235,0.8)] shadow-lg'
+        : 'border-b border-amber-100 bg-[rgba(255,253,247,0.92)] shadow-sm'
     ),
     rowPadding: isCompact ? 'py-2 md:py-2.5' : 'py-2.5 md:py-3',
     rowScale: isCompact ? 'scale-[0.98] md:scale-[0.96]' : 'scale-100',
@@ -61,17 +61,17 @@ const Header = ({ isCompact: isCompactProp }) => {
     rowWrap: isCompact ? 'flex-nowrap' : 'flex-wrap',
     sideGap: isCompact ? 'gap-2 md:gap-3' : 'gap-3 md:gap-4',
     loginButton: clsx(
-      'inline-flex items-center rounded-full bg-indigo-600 text-white shadow-md transition hover:bg-indigo-700',
+      'inline-flex items-center rounded-full bg-amber-600 text-white shadow-md transition hover:bg-amber-700',
       isCompact
         ? 'px-4 py-2 text-sm font-semibold sm:px-5 sm:py-2.5 sm:text-base'
         : 'px-5 py-2.5 text-base font-bold sm:px-7 sm:py-2.5 sm:text-lg'
     ),
     menuButton: clsx(
-      'lg:hidden inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/80 text-slate-700 shadow-md hover:bg-white transition',
+      'lg:hidden inline-flex items-center justify-center rounded-full border border-amber-100 bg-white/90 text-slate-700 shadow-md hover:bg-white transition',
       isCompact ? 'p-2.5' : 'p-3'
     ),
     localeSelect: clsx(
-      'hidden sm:block rounded-full border border-slate-200 bg-white/80 text-slate-700 shadow-sm hover:bg-white transition',
+      'hidden sm:block rounded-full border border-amber-100 bg-white/90 text-slate-700 shadow-sm hover:bg-white transition',
       isCompact ? 'px-2.5 py-1.5 text-xs font-semibold' : 'px-3 py-2 text-sm font-semibold'
     ),
   };

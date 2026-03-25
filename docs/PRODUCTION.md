@@ -1,6 +1,6 @@
 # Production Runbook
 
-Last updated: 2026-03-23
+Last updated: 2026-03-25
 
 This is the operational source of truth for Limoneo production.
 
@@ -23,18 +23,27 @@ Payments:
 - Stripe: test
 - PayPal: sandbox
 
+Transactional email:
+
+- Zoho SMTP is configured on production as of 2026-03-25
+- app password is stored only in the live server `.env` and local ignored `.env.production`
+- never commit the real SMTP secret to tracked docs or example env files
+
 OAuth:
 
 - mobile browser OAuth routes are deployed and return provider redirects
+- allowed mobile auth callbacks are `limoneo://auth/complete` and `https://limoneo.com/app/auth/complete`
 - Facebook data deletion endpoints are deployed
 - end-to-end provider login still needs manual validation on production
 
 Mobile/API:
 
 - canonical mobile API: `api/mobile/v1`
+- web and mobile users share the same backend identity store and profile serializer
 - product list endpoint fixed on 2026-03-17
 - mobile checkout sandbox smoke passes on production
 - checkout/order metadata and checkout UI refresh deployed on 2026-03-23
+- admin tracking persistence and shipment update email deployed on 2026-03-25
 
 ## Verified on 2026-03-23
 
@@ -108,6 +117,13 @@ Use this sequence instead:
 4. rebuild Laravel caches
 5. verify the public routes that matter
 
+If email settings change, also:
+
+6. back up the live `.env`
+7. update only the required `MAIL_*` variables on the server
+8. rebuild Laravel caches
+9. send one controlled test email before closing the intervention
+
 Minimal post-upload commands:
 
 ```bash
@@ -144,12 +160,27 @@ When payment code changes or secrets change:
 php artisan mobile:checkout-sandbox-smoke
 ```
 
+When mail settings change:
+
+```bash
+php artisan route:list --path=admin/orders
+php artisan tinker --execute="Illuminate\\Support\\Facades\\Mail::raw('SMTP smoke', function (\$message) { \$message->to('limoneo@limoneo.com')->subject('SMTP smoke'); });"
+```
+
 When social auth changes:
 
 ```bash
 curl -I https://limoneo.com/auth/mobile/google/redirect
 curl -I https://limoneo.com/auth/mobile/facebook/redirect
 curl -I https://limoneo.com/facebook/data-deletion
+```
+
+When preparing Android continuation work, also verify the contract docs are still aligned:
+
+```bash
+php artisan route:list --path=api/mobile/v1
+php artisan route:list --path=auth/mobile
+php artisan test --filter=MobileApiV1Test
 ```
 
 When checkout or order persistence changes:
@@ -169,6 +200,23 @@ These items are not code blockers anymore, but they are still operational blocke
 4. PayPal is still using sandbox mode.
 5. Web checkout manual smoke for address selection, shipping update, and order metadata should still be run on production.
 6. Android device smoke still needs to be run against the live server.
+7. Google and Facebook mobile callback success paths still need to be validated with a real device/app build.
+
+## Recent mail and tracking release deployed on 2026-03-25
+
+Production received these changes:
+
+- order tracking fields are now persisted on orders
+- admin can save external carrier, tracking number, and tracking URL
+- marking an order as shipped now sends a shipment update email with external tracking
+- customer order views now expose the external tracking CTA when present
+- Zoho SMTP was configured on the live server
+- this tracking data is currently documented for web/admin flows; Android should not surface a tracking CTA until the mobile order payload exposes those fields
+
+Important security note:
+
+- the real Zoho app password must remain only in server-side secrets storage and local ignored files
+- `.env.production.example` must keep placeholders only
 
 Because of that, production is functional for web/mobile backend flows and sandbox payments, but not yet fully closed for real provider login and live payments.
 

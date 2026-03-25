@@ -14,10 +14,10 @@ const UI_CONFIG = {
   },
 
   theme: {
-    primaryColor: 'blue-600',
-    accentColor: 'green-600',
-    cardShadow: 'shadow-md',
-    borderRadius: 'rounded-lg',
+    primaryColor: 'amber-600',
+    accentColor: 'lime-600',
+    cardShadow: 'shadow-lg',
+    borderRadius: 'rounded-2xl',
   },
 
   cookies: {

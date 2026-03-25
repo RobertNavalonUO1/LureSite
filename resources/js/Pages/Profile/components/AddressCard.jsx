@@ -14,7 +14,7 @@ export default function AddressCard({
   const { t } = useI18n();
 
   return (
-    <article className={`flex h-full flex-col rounded-[24px] border p-5 transition ${selected ? 'border-sky-300 bg-sky-50/70 ring-2 ring-sky-100' : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'}`}>
+    <article className={`flex h-full flex-col rounded-[24px] border p-5 transition ${selected ? 'border-amber-300 bg-amber-50/80 ring-2 ring-amber-100' : 'border-slate-200 bg-slate-50 hover:border-amber-200 hover:bg-white'}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -42,10 +42,10 @@ export default function AddressCard({
             type="button"
             onClick={onSelect}
             disabled={isBusy}
-            className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${selected ? 'border border-sky-200 bg-sky-600 text-white hover:bg-sky-700' : 'border border-sky-200 bg-sky-50 text-sky-800 hover:bg-sky-100'}`}
+            className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${selected ? 'border border-amber-200 bg-amber-600 text-white hover:bg-amber-700' : 'border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100'}`}
           >
             <Check className="h-4 w-4" />
-            {selected ? 'Seleccionada para este pedido' : 'Usar esta direccion'}
+            {selected ? t('profile.address_book.selected_for_checkout') : t('profile.address_book.select_for_checkout')}
           </button>
         ) : null}
 
@@ -64,7 +64,7 @@ export default function AddressCard({
             type="button"
             onClick={onSetDefault}
             disabled={isBusy}
-            className="inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-sm font-medium text-sky-800 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Star className="h-4 w-4" />
             {isSettingDefault ? t('profile.address_book.updating') : t('profile.address_book.set_default')}

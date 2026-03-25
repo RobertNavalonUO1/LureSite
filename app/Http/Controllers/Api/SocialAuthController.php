@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\ProfileService;
 use App\Services\ShoppingCartService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
@@ -91,6 +92,7 @@ class SocialAuthController extends Controller
 
         $user->oauth_provider = $provider;
         $user->oauth_provider_id = (string) $socialUser->getId();
+        $user->email_verified_at = $user->email_verified_at ?: Carbon::now();
         $user->save();
 
         $warnings = $this->shoppingCartService->mergeSnapshot($user, $validated['cart']['items'] ?? []);

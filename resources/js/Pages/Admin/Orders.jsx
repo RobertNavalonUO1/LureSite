@@ -6,9 +6,9 @@ import { useI18n } from '@/i18n';
 import Notification from './Notification';
 
 function exportCSV(orders) {
-  const headers = ['ID', 'Cliente', 'Total', 'Estado', 'Resumen', 'Cancelado por', 'Motivo', 'Fecha Cancelación', 'Refund Ref', 'Refund Error'];
+  const headers = ['ID', 'Cliente', 'Total', 'Estado', 'Resumen', 'Tracking carrier', 'Tracking number', 'Tracking url', 'Cancelado por', 'Motivo', 'Fecha Cancelación', 'Refund Ref', 'Refund Error'];
   const rows = orders.map(o => [
-    o.id, o.user?.name, o.total, o.status, o.summary_status_label || '', o.cancelled_by || '', o.cancellation_reason || '', o.cancelled_at || '', o.refund_reference_id || '', o.refund_error || ''
+    o.id, o.user?.name, o.total, o.status, o.summary_status_label || '', o.tracking_carrier || '', o.tracking_number || '', o.tracking_url || '', o.cancelled_by || '', o.cancellation_reason || '', o.cancelled_at || '', o.refund_reference_id || '', o.refund_error || ''
   ]);
   const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -23,8 +23,25 @@ function exportCSV(orders) {
 export default function Orders({ orders }) {
   const { locale, t } = useI18n();
   const [reason, setReason] = useState({});
+  const [tracking, setTracking] = useState(() => Object.fromEntries(
+    orders.map((order) => [order.id, {
+      tracking_carrier: order.tracking_carrier || '',
+      tracking_number: order.tracking_number || '',
+      tracking_url: order.tracking_url || '',
+    }])
+  ));
 
   const prompt = (key) => t(`admin.orders_module.prompts.${key}`);
+
+  const updateTrackingField = (orderId, field, value) => {
+    setTracking((current) => ({
+      ...current,
+      [orderId]: {
+        ...(current[orderId] || {}),
+        [field]: value,
+      },
+    }));
+  };
 
   const patchOrder = (orderId, path, data = {}, confirmMessage = null) => {
     if (confirmMessage && !window.confirm(confirmMessage)) {
@@ -52,6 +69,15 @@ export default function Orders({ orders }) {
       'cancel',
       { reason: reason[order.id] || '' },
       prompt('cancel_order'),
+    );
+  };
+
+  const handleSaveTracking = (order) => {
+    patchOrder(
+      order.id,
+      'tracking',
+      tracking[order.id] || {},
+      prompt('save_tracking'),
     );
   };
 
@@ -97,6 +123,34 @@ export default function Orders({ orders }) {
 
               <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{t('admin.orders_module.actions_title')}</div>
+                <div className="mb-3 grid gap-2 sm:grid-cols-3">
+                  <input
+                    type="text"
+                    value={tracking[order.id]?.tracking_carrier || ''}
+                    onChange={(event) => updateTrackingField(order.id, 'tracking_carrier', event.target.value)}
+                    placeholder={t('admin.orders_module.tracking_carrier_placeholder')}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+                  />
+                  <input
+                    type="text"
+                    value={tracking[order.id]?.tracking_number || ''}
+                    onChange={(event) => updateTrackingField(order.id, 'tracking_number', event.target.value)}
+                    placeholder={t('admin.orders_module.tracking_number_placeholder')}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+                  />
+                  <input
+                    type="url"
+                    value={tracking[order.id]?.tracking_url || ''}
+                    onChange={(event) => updateTrackingField(order.id, 'tracking_url', event.target.value)}
+                    placeholder={t('admin.orders_module.tracking_url_placeholder')}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+                  />
+                </div>
+                {order.tracking_url ? (
+                  <div className="mb-3 text-xs text-slate-500">
+                    {t('admin.orders_module.current_tracking')}: <a href={order.tracking_url} target="_blank" rel="noreferrer" className="font-medium text-sky-700 underline">{order.tracking_number || order.tracking_url}</a>
+                  </div>
+                ) : null}
                 <div className="flex flex-wrap items-center gap-2">
                   <input
                     type="text"
@@ -115,10 +169,17 @@ export default function Orders({ orders }) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => patchOrder(order.id, 'ship')}
+                    onClick={() => patchOrder(order.id, 'ship', tracking[order.id] || {})}
                     className="rounded-xl bg-sky-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-sky-400"
                   >
                     {t('admin.orders_module.ship_active')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSaveTracking(order)}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                  >
+                    {t('admin.orders_module.save_tracking')}
                   </button>
                   <button
                     type="button"

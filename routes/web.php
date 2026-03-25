@@ -184,6 +184,7 @@ Route::prefix('cart')->group(function () {
 
 Route::prefix('checkout')->group(function () {
     Route::get('/', [CheckoutController::class, 'index'])->name('checkout');
+    Route::get('/summary', [CheckoutController::class, 'summary'])->name('checkout.summary');
     Route::post('/coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.coupon');
     Route::post('/shipping', [CheckoutController::class, 'updateShipping'])->name('checkout.shipping');
 });
@@ -263,6 +264,7 @@ Route::middleware(['auth', 'admin'])
         Route::get('/orders', [AdminController::class, 'orders'])->name('orders.index');
         Route::patch('/orders/{order}/cancel', [AdminController::class, 'cancelOrder'])->name('orders.cancel');
         Route::patch('/orders/{order}/items/{item}/cancel', [AdminController::class, 'cancelOrderItem'])->name('orders.items.cancel');
+        Route::patch('/orders/{order}/tracking', [AdminController::class, 'updateTracking'])->name('orders.tracking');
         Route::patch('/orders/{order}/ship', [AdminController::class, 'markAsShipped'])->name('orders.shipped');
         Route::patch('/orders/{order}/deliver', [AdminController::class, 'markAsDelivered'])->name('orders.delivered');
         Route::patch('/orders/{order}/approve-return', [AdminController::class, 'approveReturn'])->name('orders.return.approve');
@@ -278,9 +280,10 @@ Route::middleware(['auth', 'admin'])
 
         // Productos (listado + alta rÃ¡pida)
         Route::get('/products', [AdminProductController::class, 'index'])->name('products.index');
+        Route::get('/productsedit', [AdminProductController::class, 'editor'])->name('products.edit.index');
         Route::get('/products/create', [AddProdukController::class, 'create'])->name('products.create');
         Route::post('/products', [AddProdukController::class, 'store'])->name('products.store');
-        Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.delete');
+        Route::delete('/products/{product}', [AdminProductController::class, 'destroyFromIndex'])->name('products.delete');
 
         // CategorÃ­as
         Route::get('/categories', [AdminController::class, 'categories'])->name('categories.index');

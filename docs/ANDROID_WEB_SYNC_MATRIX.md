@@ -1,6 +1,6 @@
 # Android vs Web Sync Matrix
 
-Last updated: 2026-03-16
+Last updated: 2026-03-25
 
 Purpose:
 
@@ -18,7 +18,7 @@ Important scope note:
 
 Current verdict:
 
-- backend contract: largely implemented
+- backend contract: implemented for core Android flow, with one known follow-up for tracking exposure in mobile order payloads
 - Android implementation: not yet verified from this repo
 - total Android <-> web sync: not yet proven
 
@@ -30,6 +30,7 @@ Meaning:
 ## Status legend
 
 - `backend ready`: implemented and routable in Laravel
+- `backend follow-up required`: backend exists, but one specific field/extension is still missing for full parity
 - `android audit required`: cannot be confirmed from this repo
 - `android must align`: backend exists, Android must adapt to it
 - `qa required`: backend exists but total sync still needs runtime validation
@@ -43,6 +44,7 @@ Meaning:
 | Auth | Login | `POST /api/mobile/v1/auth/login` | backend ready | Send `email`, `password`, `device_name`, optional guest `cart.items`; persist token; consume merge warnings; refresh remote cart after login | P0 | android must align |
 | Auth | Logout | `POST /api/mobile/v1/auth/logout` | backend ready | Delete token locally only after server logout succeeds or after safe fallback on 401/expired token; clear profile and remote cart caches | P1 | android audit required |
 | Auth | Social login | `POST /api/auth/social` | backend ready | Use this exact endpoint for social auth; do not route social login through legacy mobile endpoints | P0 | android must align |
+| Auth | Browser OAuth callback | `GET /auth/mobile/{provider}/redirect`, `GET /auth/mobile/{provider}/callback` | backend ready | Support Google and Facebook browser OAuth using only allowed callbacks `limoneo://auth/complete` and `https://limoneo.com/app/auth/complete`; parse `status`, `provider`, `token`, and `code` from the callback URL | P0 | qa required |
 | Locale | App language sync | all mobile endpoints with `Accept-Language` and `Content-Language` | backend ready | Inject `Accept-Language: es|en|fr`, read `Content-Language`, keep app locale state aligned, never depend on cookies/session locale | P0 | android must align |
 | Home | Home feed | `GET /api/mobile/v1/home` | backend ready | Render campaign banners, category shortcuts, and section rails from real payload; do not hardcode home sections | P1 | android audit required |
 | Catalog | Search suggestions | `GET /api/mobile/v1/search/suggestions?query=&limit=` | backend ready | Debounce queries, require min 2 chars, map suggestion shape exactly, handle empty/error states | P1 | android must align |
@@ -71,7 +73,8 @@ Meaning:
 | Checkout | Payment return deep link | Backend redirect flow via `GET /api/mobile/v1/checkout/payments/{provider}/return` and `/cancel` | backend ready | Register and parse `limoneo://checkout/complete?...` and fallback `https://limoneo.com/app/checkout/complete?...`; never mark order successful locally | P0 | android must align |
 | Checkout | Post-payment order refresh | `GET /api/mobile/v1/orders/{order}` | backend ready | After successful deep link return, refresh order detail from backend; if order is not immediately available, retry or poll briefly | P0 | qa required |
 | Orders | Orders list | `GET /api/mobile/v1/orders?filter=` | backend ready | Support backend filters `all`, `paid`, `shipped`, `cancelled`; reflect summary status from payload, not from client guesses | P1 | android must align |
-| Orders | Order detail | `GET /api/mobile/v1/orders/{order}` | backend ready | Map `summary_status`, `can_cancel`, `can_refund`, `line_counts`, per-line state fields, reasons and refund metadata | P0 | android must align |
+| Orders | Order detail | `GET /api/mobile/v1/orders/{order}` | backend ready | Map `summary_status`, `can_cancel`, `can_refund`, `line_counts`, per-line state fields, reasons and refund metadata; do not assume tracking fields are present yet | P0 | android must align |
+| Orders | External tracking CTA | `GET /api/mobile/v1/orders/{order}` | backend follow-up required | Do not ship Android UI for external shipment tracking until backend exposes `tracking_carrier`, `tracking_number`, and `tracking_url` in the mobile order payload | P1 | backend follow-up required |
 | Orders | Order cancel | `POST /api/mobile/v1/orders/{order}/cancel` | backend ready | Show action only when backend flags allow it; send optional `reason`; refresh order after mutation | P1 | android must align |
 | Orders | Order refund request | `POST /api/mobile/v1/orders/{order}/refund` | backend ready | Use backend action, do not fabricate refund completion in client; refresh order detail after request | P1 | android must align |
 | Orders | Line cancel | `POST /api/mobile/v1/orders/{order}/items/{itemId}/cancel` | backend ready | If UI exposes line-level actions, tie them to backend `can_cancel` flags and refresh detail afterwards | P1 | android must align |
@@ -86,13 +89,14 @@ Meaning:
 
 These are the minimum items required before you can honestly say Android is synced with the web:
 
-1. confirm Android uses only `api/mobile/v1` plus `POST /api/auth/social`
-2. confirm all DTOs match the real backend envelope and field names
-3. close guest cart merge and authenticated cart refresh
-4. close hosted checkout + deep link + post-payment order refresh
-5. close orders detail and order actions against backend flags
-6. close structured address CRUD and profile update
-7. run Android build and real end-to-end QA
+1. confirm Android uses only `api/mobile/v1`, `POST /api/auth/social`, and `/auth/mobile/{provider}/*`
+2. confirm Android account creation and login reuse the same users as the web app
+3. confirm all DTOs match the real backend envelope and field names
+4. close guest cart merge and authenticated cart refresh
+5. close hosted checkout + deep link + post-payment order refresh
+6. close orders detail and order actions against backend flags
+7. close structured address CRUD and profile update
+8. run Android build and real end-to-end QA
 
 ## Exact instructions for the Android Studio agent
 
@@ -105,6 +109,7 @@ Required working rules:
 - do not treat payment success as a local client decision
 - do not use a flat single-string address model
 - do not hardcode language behavior outside `es`, `en`, `fr`
+- do not claim mobile tracking parity until the mobile order payload actually exposes tracking fields
 
 Execution order:
 
@@ -122,8 +127,11 @@ Execution order:
 Backend evidence used here:
 
 - `php artisan route:list --path=api/mobile/v1` shows 34 real routes
+- `php artisan route:list --path=auth/mobile`
 - `tests/Feature/MobileApiV1Test.php`
 - `tests/Feature/OrderLineItemWorkflowTest.php`
+- `app/Http/Controllers/Api/SocialAuthController.php`
+- `app/Http/Controllers/Auth/SocialAuthController.php`
 - `app/Http/Controllers/Api/MobileV1/*`
 - `app/Services/Mobile/MobileCheckoutService.php`
 - `app/Services/Mobile/MobileOrderPresenter.php`
@@ -131,4 +139,4 @@ Backend evidence used here:
 
 ## Repo note
 
-The tracked docs folder currently contains `ANDROID_APP_PROMPT_GUIDE.md` and `ANDROID_APP_BASE_PROMPT.md`, but the file `docs/MOBILE_API_ANDROID_SPEC.md` is referenced by other docs and was not present on disk at the moment this matrix was generated. If that file exists unsaved in your IDE or outside git, keep it and use it as the contract source of truth together with this matrix.
+Use this matrix together with `docs/MOBILE_API_ANDROID_SPEC.md` and `docs/ANDROID_AGENT_SYNC_PROMPT.md`. If one of them changes, update the other two in the same pass.

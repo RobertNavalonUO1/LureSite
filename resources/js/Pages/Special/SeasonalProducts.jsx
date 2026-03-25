@@ -13,6 +13,7 @@ import CookieConsentModal from "@/Components/cookies/CookieConsentModal.jsx";
 import CustomizeCookiesModal from "@/Components/cookies/CustomizeCookiesModal.jsx";
 import UI_CONFIG from "@/config/ui.config";
 import { formatCurrency, normalizePrice } from "@/utils/pricing";
+import { acceptAllCookies, hasSavedCookieConsent, rejectOptionalCookies, saveCustomCookieSelection } from "@/utils/cookieConsent";
 
 const getDiscountPercentage = (currentPrice, previousPrice) => {
   const current = normalizePrice(currentPrice);
@@ -115,8 +116,7 @@ const SeasonalProducts = () => {
   const [sortOrder, setSortOrder] = useState("featured");
 
   useEffect(() => {
-    const accepted = localStorage.getItem("cookiesAccepted");
-    if (!accepted && UI_CONFIG.cookies.showConsentByDefault) {
+    if (!hasSavedCookieConsent() && UI_CONFIG.cookies.showConsentByDefault) {
       setShowCookiesModal(true);
     }
   }, []);
@@ -160,12 +160,20 @@ const SeasonalProducts = () => {
   }, []);
 
   const handleAcceptCookies = () => {
-    localStorage.setItem("cookiesAccepted", "true");
+    acceptAllCookies();
     setShowCookiesModal(false);
+    setShowCustomizeModal(false);
   };
 
   const handleRejectCookies = () => {
-    localStorage.setItem("cookiesAccepted", "false");
+    rejectOptionalCookies();
+    setShowCookiesModal(false);
+    setShowCustomizeModal(false);
+  };
+
+  const handleSaveCookiePreferences = (settings) => {
+    saveCustomCookieSelection(settings);
+    setShowCustomizeModal(false);
     setShowCookiesModal(false);
   };
 
@@ -400,7 +408,7 @@ const SeasonalProducts = () => {
       <CustomizeCookiesModal
         isOpen={showCustomizeModal}
         onClose={() => setShowCustomizeModal(false)}
-        onSave={handleAcceptCookies}
+        onSave={handleSaveCookiePreferences}
       />
     </div>
   );

@@ -12,9 +12,14 @@ const NAV_ITEMS = [
         match: (url) => url.startsWith('/agregador-enlaces') || url.startsWith('/link-aggregator'),
     },
     {
-        label: 'Gestion de Productos',
+        label: 'Productos',
         href: '/admin/products',
-        match: (url) => url.startsWith('/admin/products'),
+        match: (url) => url === '/admin/products',
+    },
+    {
+        label: 'Inventario editable',
+        href: '/admin/productsedit',
+        match: (url) => url.startsWith('/admin/productsedit'),
     },
     {
         label: 'Agregar Producto',

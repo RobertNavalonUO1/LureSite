@@ -1,6 +1,6 @@
 # Next Steps
 
-Last updated: 2026-03-23
+Last updated: 2026-03-25
 
 This is the short operational priority list for Limoneo.
 
@@ -17,11 +17,29 @@ These items are no longer the main blocker:
 - Facebook data deletion public page deployed on production
 - checkout/order metadata persistence deployed on production
 - checkout address-book and shipping-total refresh deployed on production
+- order tracking persistence and shipment update email deployed on production
+- Zoho SMTP verified live on production
 - backend tests for catalog, cart, checkout quote, addresses, order ownership, cancellation, refunds, and admin flows passing locally
 
 ## Immediate priorities
 
-### 1. Validate OAuth end to end in production
+### 1. Audit and align the Android app against the real backend
+
+Minimum Android handoff requirements:
+
+1. confirm the app uses only `api/mobile/v1`, `POST /api/auth/social`, and browser OAuth routes under `/auth/mobile/*`
+2. confirm users created on Android can log in on web immediately, and users created on web can log in on Android immediately
+3. confirm the app uses the shared profile shape returned by register, login, social login, and `GET /api/mobile/v1/me`
+4. confirm guest cart merge, hosted checkout, deep links, and post-payment order refresh match the backend contract
+5. confirm order detail rendering matches current backend fields and note that mobile tracking CTA needs backend exposure before Android can show it
+
+Primary docs to follow:
+
+- `docs/MOBILE_API_ANDROID_SPEC.md`
+- `docs/ANDROID_WEB_SYNC_MATRIX.md`
+- `docs/ANDROID_AGENT_SYNC_PROMPT.md`
+
+### 2. Validate OAuth end to end in production
 
 Still required:
 
@@ -33,7 +51,7 @@ Reason:
 
 - redirects are now live, but provider login is not considered closed until the full callback flow is validated
 
-### 2. Run real checkout smoke against production
+### 3. Run real checkout smoke against production
 
 Minimum web smoke:
 
@@ -45,7 +63,7 @@ Minimum web smoke:
 6. launch Stripe test and PayPal sandbox
 7. confirm the created order shows shipping, coupon, discount, and payment metadata
 
-### 3. Run real Android smoke against production
+### 4. Run real Android smoke against production
 
 Minimum smoke:
 
@@ -53,14 +71,24 @@ Minimum smoke:
 2. load product list
 3. open product detail
 4. login/register
-5. cart sync
-6. checkout quote
-7. payment launch
-8. deep-link return
-9. order refresh
-10. logout
+5. Google social login
+6. cart sync
+7. checkout quote
+8. payment launch
+9. deep-link return
+10. order refresh
+11. logout
 
-### 4. Decide when to switch payments to live
+### 5. Run shipped-order smoke against production
+
+Minimum web/admin smoke:
+
+1. ship a production-safe order from admin with `tracking_url`
+2. confirm shipment email arrives
+3. confirm the external tracking link opens correctly
+4. confirm web order detail reflects the saved tracking state
+
+### 6. Decide when to switch payments to live
 
 Current production state:
 
@@ -73,7 +101,7 @@ Do not switch to live until:
 - order creation is verified against real production flows
 - cancellation/refund expectations are signed off
 
-### 5. Build proper staging parity
+### 7. Build proper staging parity
 
 Still useful:
 
@@ -82,16 +110,18 @@ Still useful:
 - separate database branch or staging database
 - same mobile contract as production
 
-### 6. Keep docs and Android handoff aligned
+### 8. Keep docs and Android handoff aligned
 
 Any backend change that touches:
 
 - catalog payload
 - image URLs
 - auth flow
+- transactional emails
 - checkout UI behavior
 - checkout return
 - orders or addresses
+- order tracking payloads
 
 must be reflected in:
 
@@ -100,6 +130,8 @@ must be reflected in:
 - `docs/ENVIRONMENTS.md`
 - `docs/GUIDE_NEXT_AGENT.md`
 - `docs/MOBILE_API_ANDROID_SPEC.md`
+- `docs/ANDROID_WEB_SYNC_MATRIX.md`
+- `docs/ANDROID_AGENT_SYNC_PROMPT.md`
 
 ## Do not reopen as main workstreams unless a regression appears
 

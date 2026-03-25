@@ -1,6 +1,6 @@
 # Guide For The Next Agent
 
-Last updated: 2026-03-23
+Last updated: 2026-03-25
 
 This is the practical handoff for whoever continues Limoneo after this point.
 
@@ -9,6 +9,9 @@ This is the practical handoff for whoever continues Limoneo after this point.
 ### Backend and API
 
 - canonical mobile API exists under `api/mobile/v1`
+- mobile and web share the same `users` table and `ProfileService::serializeUser()` shape
+- mobile register/login/social auth all create or reuse the same account records used by the web app
+- mobile auth tokens are Sanctum personal access tokens; web login keeps the same identity in session
 - authenticated cart is shared between web and mobile through `cart_items`
 - mobile locale is stateless through `Accept-Language`
 - mobile catalog product sorting is fixed for Postgres
@@ -19,6 +22,10 @@ This is the practical handoff for whoever continues Limoneo after this point.
 - Facebook data deletion callback now exists for app-review compliance:
   - `POST /auth/facebook/data-deletion`
   - `GET /auth/facebook/data-deletion/{confirmationCode}`
+- allowed mobile auth callbacks are:
+  - `limoneo://auth/complete`
+  - `https://limoneo.com/app/auth/complete`
+- profile email changes now clear `email_verified_at` and resend verification mail
 
 ### Orders and payments
 
@@ -27,6 +34,8 @@ This is the practical handoff for whoever continues Limoneo after this point.
 - order creation now persists shipping, coupon, discount, and payment metadata
 - order detail pages now expose shipping method, shipping cost, coupon code, discount, and payment method
 - the checkout page now reuses the profile address-book UX and updates shipping totals immediately in the UI
+- admin orders now support external tracking persistence and shipment update email sending
+- the mobile order payload still needs an explicit backend extension if Android must show external tracking CTA data
 - local tests cover:
   - mobile auth
   - cart replace/add/update/delete
@@ -46,6 +55,7 @@ This is the practical handoff for whoever continues Limoneo after this point.
 - `https://limoneo.com/auth/mobile/google/redirect` returns `302`
 - `https://limoneo.com/auth/mobile/facebook/redirect` returns `302`
 - `https://limoneo.com/facebook/data-deletion` returns `200`
+- Zoho SMTP is configured on the live server for transactional mail
 
 ## What is still open
 
@@ -58,6 +68,9 @@ These are the real blockers still open:
 3. Payments are still not live.
 4. Web checkout manual smoke has not yet been executed on production after the 2026-03-23 checkout refresh.
 5. Android end-to-end device smoke has not been completed.
+
+6. A real manual production smoke for shipped-order email plus external tracking link is still worth doing from the admin UI.
+7. The real Android project itself has not yet been audited against the latest docs, so any claim of parity is still premature.
 
 ### Important nuance
 
@@ -124,6 +137,21 @@ curl -I https://limoneo.com/auth/mobile/facebook/redirect
 curl -I https://limoneo.com/facebook/data-deletion
 ```
 
+Mail and tracking validation:
+
+```bash
+php artisan route:list --path=admin/orders
+php artisan migrate:status | grep add_tracking_fields_to_orders_table
+```
+
+Android continuation validation:
+
+```bash
+php artisan route:list --path=api/mobile/v1
+php artisan route:list --path=auth/mobile
+php artisan test --filter=MobileApiV1Test
+```
+
 ## Rules for the next intervention
 
 1. Do not treat `/api/mobile/*` as the canonical contract.
@@ -131,6 +159,8 @@ curl -I https://limoneo.com/facebook/data-deletion
 3. Back up the production files you touch before patching them.
 4. After any backend deploy, rebuild Laravel caches.
 5. If you change auth, checkout, orders, or catalog payloads, update the docs in the same pass.
+6. Never store the real Zoho app password in tracked files; keep it only in the live `.env` and local ignored `.env.production`.
+7. Do not tell the Android team that tracking is available in mobile order payloads until the backend actually exposes `tracking_carrier`, `tracking_number`, and `tracking_url` there.
 
 ## Where historical context lives now
 

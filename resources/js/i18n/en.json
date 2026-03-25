@@ -50,7 +50,8 @@
     "verify_email_sent": "A new verification link has been sent to your email.",
     "resend_verification": "Resend verification email",
     "social_google": "Google",
-    "social_facebook": "Facebook"
+    "social_facebook": "Facebook",
+    "login_brand_blurb": "Access your orders, addresses, and payments from one account."
   },
   "nav": {
     "deals_today": "Today's deals",
@@ -88,6 +89,21 @@
       "go_to_panel": "Go to user dashboard",
       "avatar_alt": "User avatar"
     }
+  },
+  "footer": {
+    "brand_kicker": "operational catalog",
+    "description": "Limoneo brings together browsable catalog pages, verified checkout, and real support so every order keeps its full context.",
+    "explore_title": "Explore",
+    "catalog": "Catalog",
+    "legal_title": "Legal",
+    "privacy": "Privacy policy",
+    "terms": "Terms of service",
+    "cookies": "Cookie policy",
+    "help_title": "Help",
+    "help_body": "If you need to review an order, a return, or a payment issue, use the site channels so support starts with the right context.",
+    "help_cta": "Help center",
+    "contact_cta": "Contact",
+    "rights": "All rights reserved."
   },
   "home": {
     "welcome_guest": "Welcome to Limoneo",
@@ -249,6 +265,12 @@
       "kicker": "Checkout process",
       "title": "Checkout",
       "subtitle": "Review your order, confirm your details, and choose the best shipping option before completing payment.",
+      "hero_badge": "active checkout",
+      "hero_title": "Confirm your order with address, shipping, and totals synced in real time.",
+      "hero_body": "Checkout now shares layout, address flows, and state with the rest of the storefront so the payment handoff keeps its full context.",
+      "summary_items_label": "Items",
+      "summary_shipping_label": "Active shipping",
+      "summary_total_label": "Total",
       "summary_title": "Order summary",
       "summary_subtitle": "Includes your items, contact details, address, and shipping benefits.",
       "items_title": "Items ({count})",
@@ -266,34 +288,68 @@
       "user_phone": "Phone",
       "user_phone_missing": "Unavailable",
       "address_title": "Shipping address",
+      "address_body": "Use the same profile address book to create, edit, set default, and pick the address for this order.",
       "address_guest_hint": "Sign in or create an account to manage your addresses.",
       "address_selected": "Selected",
       "address_none": "None",
       "address_edit_selected": "Edit selected address",
       "address_add_new": "Add new address",
+      "active_address": "Active address for this order",
       "address_empty": "You don't have any saved addresses.",
+      "address_empty_body": "Add your first address to unlock payment and keep recalculations inside checkout.",
       "address_add": "Add address",
+      "coverage_title": "Coverage and safeguards",
       "benefits_title": "Your purchase benefits",
       "benefit_1": "Reliable delivery with tracking on all available options.",
       "benefit_2": "Secure payments with fraud protection and advanced encryption.",
       "benefit_3": "24/7 support to answer questions and handle issues.",
       "benefit_4": "Multiple payment methods, including Stripe and PayPal.",
+      "benefits": {
+        "tracking_title": "Tracked delivery",
+        "tracking_body": "Each option shows ETA and cost before you pay.",
+        "payment_title": "Protected payment",
+        "payment_body": "Stripe and PayPal only start after address and session validation.",
+        "traceability_title": "Order traceability",
+        "traceability_body": "Coupon, shipping, and payment references stay in the same operational summary.",
+        "addresses_title": "Unified addresses",
+        "addresses_body": "Profile and checkout use the exact same address flow."
+      },
+      "financial_title": "Financial summary",
+      "live_badge": "Live",
       "subtotal": "Subtotal",
       "coupon_applied": "Coupon applied",
+      "coupon_applied_title": "Coupon applied",
+      "coupon_applied_body": "The order summary has been updated.",
+      "coupon_removed_title": "Coupon removed",
+      "coupon_removed_body": "The order total was recalculated.",
       "remove_coupon": "Remove",
       "shipping": "Shipping",
       "shipping_select": "Select a method",
+      "shipping_updated_title": "Shipping updated",
+      "shipping_updated_body": "The shipping selection was saved successfully.",
       "estimated_total": "Estimated total",
+      "sync_note": "Totals react instantly when shipping, coupon, or quantities change.",
       "tax_note": "Includes applicable taxes. Final charges will reflect the selected shipping method.",
       "coupon_title": "Have a coupon?",
       "coupon_placeholder": "Enter code",
       "coupon_applying": "Applying…",
       "coupon_apply": "Apply",
       "shipping_method": "Shipping method",
+      "active_badge": "Active",
       "redirecting_stripe": "Redirecting to Stripe…",
       "pay_with_card": "Pay with card (Stripe)",
+      "stripe_init_failed": "Stripe could not be initialized.",
+      "stripe_redirect_failed": "Stripe could not continue the payment.",
+      "stripe_session_missing": "Stripe session was not received.",
+      "stripe_error_title": "Stripe start failed",
+      "stripe_error_body": "The payment gateway could not be opened.",
       "redirecting_paypal": "Redirecting to PayPal…",
       "pay_with_paypal": "Pay with PayPal",
+      "paypal_link_missing": "PayPal approval link was not received.",
+      "paypal_error_title": "PayPal start failed",
+      "paypal_error_body": "Could not redirect to PayPal.",
+      "cart_update_failed_title": "Cart not updated",
+      "cart_update_failed_body": "The product quantity could not be updated. Please try again.",
       "payment_disabled_hint": "You need a valid address to continue to payment.",
       "security_title": "Security & privacy",
       "security_1": "✓ Encrypted data and two-step verification.",
@@ -416,6 +472,7 @@
       "view_detail": "View detail",
       "view_detail_full": "View order details →",
       "view_details": "View details",
+      "external_tracking": "External tracking",
       "not_available": "N/A"
     },
     "actions": {
@@ -1453,6 +1510,11 @@
       "no_general_notes": "No general notes",
       "actions_title": "Order actions",
       "reason_placeholder": "Administrative reason",
+      "tracking_carrier_placeholder": "Carrier",
+      "tracking_number_placeholder": "Tracking number",
+      "tracking_url_placeholder": "External tracking URL",
+      "save_tracking": "Save tracking",
+      "current_tracking": "Current tracking",
       "cancel_eligible": "Cancel eligible",
       "ship_active": "Ship active",
       "deliver_active": "Deliver active",
@@ -1467,6 +1529,7 @@
         "approve_returns": "Approve the requested returns for this order?",
         "reject_returns": "Reject the requested returns for this order?",
         "process_refunds": "Process the approved refunds for this order?",
+        "save_tracking": "Save or update the external tracking for this order?",
         "cancel_line": "Cancel this line?",
         "approve_item": "Approve the return for this line?",
         "reject_item": "Reject the return for this line?",
@@ -1638,28 +1701,94 @@
     "label": "Featured promotion",
     "dismiss_today": "Do not show today",
     "close": "Close promotion",
+    "live_now": "Live now",
+    "hover_hint": "Pause on hover",
     "global": {
       "autumn_flash": {
+        "eyebrow": "Limited offer",
         "title": "Featured flash sale",
         "message": "Take advantage of limited-time discounts across a curated catalog selection.",
+        "detail": "Built for fast decisions: less noise, more ready-to-ship references.",
+        "benefit_primary": "Curated selection that reduces comparison fatigue.",
+        "benefit_secondary": "Offer conditions stay clear before checkout starts.",
         "cta": "View flash sale"
       },
       "bundle_warm": {
+        "eyebrow": "Recommended bundle",
         "title": "Cozy home bundle",
         "message": "Combine home products and accessories with optimized shipping in one purchase.",
+        "detail": "Useful when you want to raise basket value without making the choice harder.",
+        "benefit_primary": "Compatible products grouped to reduce purchase friction.",
+        "benefit_secondary": "Strong value message even in quick mobile sessions.",
         "cta": "Build my bundle"
       }
     },
     "category": {
       "category_extra": {
+        "eyebrow": "Direct conversion",
         "title": "10% extra in your category",
         "message": "Use coupon CATEGORIA10 at checkout on featured products.",
+        "detail": "The incentive appears in context, right when the user is evaluating the category.",
+        "benefit_primary": "Anchors the discount to one clear action.",
+        "benefit_secondary": "Sends users to the relevant block without opening a parallel path.",
         "cta": "Apply coupon"
       },
       "free_shipping": {
+        "eyebrow": "Lower friction",
         "title": "Free express shipping",
         "message": "48h delivery available on items labeled for fast shipping.",
+        "detail": "Useful when delivery speed matters more than pure discount.",
+        "benefit_primary": "Reduces doubts about speed and cost before product detail.",
+        "benefit_secondary": "Keeps the offer visible without covering the main content.",
         "cta": "Find fast shipping"
+      }
+    }
+  },
+  "cookies": {
+    "banner": {
+      "kicker": "Cookie preferences",
+      "privacy_note": "No non-essential cookies by default",
+      "title": "Your privacy deserves a clear decision, not a confusing banner.",
+      "description": "We use functional cookies to keep the store working smoothly and, only if you allow it, analytics and marketing cookies to measure performance and personalize campaigns.",
+      "secondary": "You can accept everything, keep only the essentials, or customize each category in seconds.",
+      "policy_link": "View cookie policy",
+      "footer_note": "Your choice is saved and can be reviewed later from the cookie policy."
+    },
+    "actions": {
+      "accept_all": "Accept all",
+      "customize": "Customize preferences",
+      "reject_optional": "Reject non-essential",
+      "only_essential": "Use essentials only",
+      "save_preferences": "Save preferences",
+      "cancel": "Cancel",
+      "close_customizer": "Close customizer"
+    },
+    "customize": {
+      "kicker": "Preference center",
+      "title": "Decide which data you allow us to use",
+      "description": "This setup is designed so you can understand the impact of each category without legal noise breaking the flow.",
+      "info_title": "What changes when optional categories are disabled",
+      "info_body": "The store will keep working, but some performance measurement, recommendations, and remarketing campaigns will no longer be available."
+    },
+    "categories": {
+      "required": "Required",
+      "optional": "Optional",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "functional": {
+        "label": "Functional cookies",
+        "summary": "Keep session, language, and basic purchase continuity.",
+        "description": "They are necessary to browse, sign in, keep the cart, and preserve the storefront's minimum working preferences."
+      },
+      "analytics": {
+        "label": "Analytics cookies",
+        "summary": "Help us detect which parts of the journey work best.",
+        "description": "They measure page views, catalog interaction, and campaign performance so we can improve UX and conversion."
+      },
+      "marketing": {
+        "label": "Marketing cookies",
+        "summary": "Used to personalize messages and reduce irrelevant campaign pressure.",
+        "description": "They enable audience targeting and promotional tracking so offers are more aligned with actual interest."
       }
     }
   }

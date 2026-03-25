@@ -1,6 +1,6 @@
 # Android Agent Sync Prompt
 
-Last updated: 2026-03-16
+Last updated: 2026-03-25
 
 Use the prompt below as the canonical instruction block for the Android Studio agent that must synchronize the Android app with the real Laravel backend.
 
@@ -15,6 +15,8 @@ Contexto obligatorio:
 - La fuente de verdad del negocio es la web Laravel.
 - La API movil canonica usa `api/mobile/v1`.
 - Social login usa `POST /api/auth/social`.
+- Los usuarios creados desde Android y desde la web deben terminar en la misma tabla `users` y compartir el mismo perfil backend.
+- El browser OAuth movil usa `GET /auth/mobile/{provider}/redirect` y `GET /auth/mobile/{provider}/callback`.
 - El contrato backend esta documentado en:
   - `webdrop/All/docs/MOBILE_API_ANDROID_SPEC.md`
   - `webdrop/All/docs/ANDROID_WEB_SYNC_MATRIX.md`
@@ -30,6 +32,8 @@ Reglas no negociables:
 - El retorno del pago entra por deep link y luego la app refresca el pedido desde backend.
 - El locale movil es stateless por `Accept-Language: es|en|fr`.
 - No uses un modelo de direccion plano tipo `address: String` si el backend usa campos estructurados.
+- No dupliques usuarios por plataforma: reutiliza la misma identidad por email cuando el backend ya lo hace.
+- No digas que el tracking de envios esta sincronizado en Android mientras `GET /api/mobile/v1/orders/{id}` no exponga `tracking_carrier`, `tracking_number` y `tracking_url`.
 
 Tu trabajo exacto es este:
 
@@ -42,6 +46,7 @@ Tu trabajo exacto es este:
   - modelos fake no alineados
   - errores no mapeados
   - deep links incompletos
+  - callbacks OAuth fuera de `limoneo://auth/complete` o `https://limoneo.com/app/auth/complete`
   - checkout local incorrecto
 
 2. Cruza la app contra la matriz oficial
@@ -56,6 +61,7 @@ Tu trabajo exacto es este:
 - Cambia todos los endpoints remotos para usar:
   - `api/mobile/v1` para auth, catalogo, cart, checkout, orders, profile y addresses
   - `POST /api/auth/social` para social login
+  - `/auth/mobile/{provider}/redirect` y `/auth/mobile/{provider}/callback` para browser OAuth de Google/Facebook cuando la app use Custom Tabs
 - Ajusta DTOs para respetar:
   - envelope `{ data, meta }`
   - errores `422 { message, errors }`
@@ -77,12 +83,19 @@ Tu trabajo exacto es este:
   - launcher externo con `checkout_url`
   - deep link return
   - refresh de pedido post pago
+- Ajusta auth social para:
+  - intercambio por `POST /api/auth/social` cuando uses access token nativo
+  - o flujo browser OAuth con callbacks permitidos y parseo de `status`, `provider`, `token`, `code`
+- Ajusta identidad compartida para:
+  - comprobar que registro/login/social auth devuelven el mismo modelo de usuario que `/api/mobile/v1/me`
+  - comprobar que un usuario creado en Android entra en web y viceversa
 - Ajusta orders para:
   - list
   - detail
   - cancel
   - refund
   - acciones por linea si la UI las soporta
+  - dejar el tracking como follow-up backend si el payload movil aun no lo expone
 - Ajusta profile/addresses para:
   - me
   - update profile
@@ -93,6 +106,7 @@ Tu trabajo exacto es este:
 - Ejecuta el flujo minimo real:
   - session restore
   - login
+  - Google login
   - cart sync
   - checkout quote
   - payment launch
@@ -106,6 +120,7 @@ Tu trabajo exacto es este:
 - guest cart merge
 - logout/login refresh
 - deep link parsing
+- oauth callback parsing
 - order refresh post payment
 
 6. Devuelveme el resultado en este formato exacto

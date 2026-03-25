@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Inertia } from "@inertiajs/inertia";
-import { Heart } from "lucide-react";
+import { ArrowRight, Heart, ShoppingCart } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { formatCurrency, normalizePrice } from "@/utils/pricing";
 
@@ -79,7 +79,7 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
   }, [ratingValue]);
 
   return (
-    <article className="group mx-auto flex h-full w-full max-w-sm flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl focus-within:ring-2 focus-within:ring-indigo-200">
+    <article className="group mx-auto flex h-full w-full max-w-sm flex-col overflow-hidden rounded-3xl border border-amber-100 bg-white/95 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl focus-within:ring-2 focus-within:ring-amber-200">
       <div className="relative">
         <button
           type="button"
@@ -95,7 +95,7 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
         </button>
 
         {(product.badge || product.is_new || product.fast_shipping) && (
-          <span className="absolute left-4 top-4 z-20 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow">
+          <span className="absolute left-4 top-4 z-20 rounded-full bg-amber-600 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow">
             {badgeLabel}
           </span>
         )}
@@ -119,8 +119,8 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
 
       <div className="flex flex-grow flex-col gap-3 p-5">
         <div className="space-y-1">
-          <p className="text-[10px] uppercase tracking-[0.28em] text-indigo-500">{categoryName}</p>
-          <h3 className="line-clamp-1 text-base font-semibold text-slate-900">{title}</h3>
+          <p className="text-[10px] uppercase tracking-[0.28em] text-amber-600">{categoryName}</p>
+          <h3 className="min-h-[3.25rem] line-clamp-2 text-base font-semibold leading-6 text-slate-900">{title}</h3>
         </div>
 
         <div className="flex items-center gap-2 text-xs text-slate-500" aria-label={t("catalog.product_card.rating_aria", { rating: ratingValue.toFixed(1) })}>
@@ -141,10 +141,10 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
               </span>
             ) : null}
           </div>
-          <p className="text-xs font-medium text-emerald-600">{shippingLabel}</p>
+          <p className="text-xs font-medium text-lime-700">{shippingLabel}</p>
         </div>
 
-        <p className="line-clamp-1 text-xs text-slate-500">
+        <p className="min-h-[2.5rem] line-clamp-2 text-xs leading-5 text-slate-500">
           {product.short_description || product.description || t("catalog.product_card.description_fallback")}
         </p>
 
@@ -156,16 +156,18 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
             className={`flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition sm:w-auto ${
               product.stock === 0
                 ? "cursor-not-allowed bg-slate-200 text-slate-500"
-                : "bg-slate-900 text-white hover:bg-slate-800"
+                : "bg-amber-600 text-white hover:bg-amber-700"
             }`}
           >
+            <ShoppingCart className="h-4 w-4" />
             {product.stock === 0 ? t("catalog.product_card.sold_out") : t("catalog.product_card.add_to_cart")}
           </button>
           <button
             type="button"
             onClick={goToProduct}
-            className="flex w-full items-center justify-center rounded-full border border-slate-200 px-5 py-2.5 text-xs font-semibold text-indigo-600 transition hover:border-indigo-200 hover:bg-indigo-50 sm:w-auto"
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-amber-100 px-5 py-2.5 text-xs font-semibold text-amber-700 transition hover:border-amber-200 hover:bg-amber-50 sm:w-auto"
           >
+            <ArrowRight className="h-4 w-4" />
             {t("catalog.product_card.view_details")}
           </button>
         </div>

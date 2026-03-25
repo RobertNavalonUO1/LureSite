@@ -1,6 +1,6 @@
 # Limoneo Android Base Prompt
 
-Last updated: 2026-03-15
+Last updated: 2026-03-25
 
 Use the prompt below as the canonical copy-paste prompt to generate the Android app base for Limoneo.
 
@@ -20,9 +20,11 @@ You are generating Android code only. Do not generate backend code. Do not inven
 Core business context:
 - The real backend is Laravel 11.
 - The web application is the source of truth for catalog, checkout, orders, profile, addresses, and payment flow.
+- Web and Android share the same backend users and profile serialization rules.
 - There is an older partial mobile API in the backend, but it is legacy and must not define the new Android architecture.
 - The canonical mobile API contract is documented in `docs/MOBILE_API_ANDROID_SPEC.md`.
 - The canonical mobile API is already implemented locally under `api/mobile/v1`, plus `POST /api/auth/social` for social auth.
+- Browser OAuth for mobile also exists through `/auth/mobile/{provider}/redirect` and `/auth/mobile/{provider}/callback`.
 - If you have repo access, follow that spec exactly.
 - If the target environment does not expose the API yet, generate the Android app contract-first with fake repositories and mock DTO payloads that match the spec.
 
@@ -50,9 +52,11 @@ Non-negotiable business rules:
 - No guest checkout.
 - Before login, the cart is local on device.
 - After login, the cart is synced with the server contract from the mobile API spec.
+- A user created on Android must be able to log in on the web immediately, and vice versa.
 - The app must never mark an order as successful on the client.
 - Payments are hosted externally by Stripe or PayPal and launched from the app via Custom Tabs or external provider app.
 - The backend verifies the payment provider callback first, creates the order, and then redirects back into the app.
+- Google and Facebook login must align with either `POST /api/auth/social` or the browser OAuth routes, without creating duplicate accounts.
 - Do not use WebView as the primary payment approach.
 - Supported locales are only `es`, `en`, and `fr`.
 - Currency visible in v1 is `EUR`.
@@ -140,6 +144,8 @@ Navigation requirements:
   - Profile
 - Product detail must be reachable from home, catalog, search, cart-related flows, and orders.
 - Add deep link handling for:
+  - `limoneo://auth/complete?status={status}&provider={provider}&token={token}&code={code}`
+  - `https://limoneo.com/app/auth/complete?status={status}&provider={provider}&token={token}&code={code}`
   - `limoneo://checkout/complete?status={status}&order_id={orderId}&provider={provider}&code={code}`
   - `https://limoneo.com/app/checkout/complete?status={status}&order_id={orderId}&provider={provider}&code={code}`
 
@@ -149,6 +155,7 @@ Feature requirements by package:
 - Login screen
 - Register screen
 - Social login entry points for Google and Facebook
+- Browser OAuth callback handling for Google and Facebook
 - Session restoration on app launch
 - AuthViewModel and session state holder
 
@@ -203,6 +210,7 @@ Feature requirements by package:
 - Filter state: all, paid, shipped, cancelled
 - Line item states matching backend names from the spec
 - Request cancel and request refund actions where allowed
+- Do not add shipment tracking UI unless the mobile order payload exposes the tracking fields defined in the backend docs
 
 8. `feature.profile`
 - Profile screen

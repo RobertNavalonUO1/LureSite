@@ -1,6 +1,6 @@
 # Limoneo Mobile API Android Spec
 
-Last updated: 2026-03-17
+Last updated: 2026-03-25
 
 ## 1. Purpose
 
@@ -8,7 +8,9 @@ This document defines the canonical mobile API contract required for an Android 
 
 It is intentionally based on the current Laravel web application as the source of truth. The existing `MobileApiController` is considered legacy and partial. It is documented here only to explain what must not become the new contract.
 
-This document is both the canonical contract and the implementation reference as of 2026-03-17. Public mobile API routes live in `api/mobile/v1`.
+Identity is shared across platforms. A user created from Android, the web register form, mobile social auth, or browser OAuth must resolve to the same backend account in `users`.
+
+This document is both the canonical contract and the implementation reference as of 2026-03-25. Public mobile API routes live in `api/mobile/v1`.
 
 ## 2. Source of truth and explicit exclusions
 
@@ -209,6 +211,16 @@ Paginated list endpoints use:
   }
 }
 ```
+
+### 4.7 Shared identity rules
+
+- `POST /api/mobile/v1/auth/register` creates the same type of account the web app uses.
+- `POST /api/mobile/v1/auth/login` and `POST /api/auth/social` must return the same serialized user shape as `GET /api/mobile/v1/me`.
+- Mobile auth uses Sanctum tokens, but the underlying account record is shared with the web session-based experience.
+- Social auth must reuse an existing user by email whenever possible instead of creating duplicate accounts.
+- When the social provider returns an email, the backend marks `email_verified_at`.
+- When the user changes email from profile, `email_verified_at` is reset and a verification email is resent.
+- Android must treat `email_verified_at` as authoritative backend state and not infer verification locally.
 
 ## 5. Shared resource shapes
 
@@ -591,6 +603,7 @@ Each endpoint below includes:
 - Status: existing reusable route, but mobile response must be normalized to the envelope used below
 - Purpose: exchange provider access token for a Sanctum token
 - Auth: no
+- Shared-account rule: this endpoint must create or reuse the same user record consumed by the web application
 
 Request:
 
@@ -621,7 +634,8 @@ Response:
     }
   },
   "meta": {
-    "provider": "google"
+    "provider": "google",
+    "merge_warnings": []
   }
 }
 ```
@@ -636,6 +650,7 @@ Source of truth:
 
 - `App\Http\Controllers\Api\SocialAuthController`
 - `User` model fields
+- `ProfileService::serializeUser()`
 
 ### 6.2 Auth endpoints
 
@@ -643,6 +658,7 @@ Source of truth:
 
 - Purpose: create a local account and return a Sanctum token
 - Auth: no
+- Shared-account rule: the resulting account must be immediately usable on the web app with the same email and password
 
 Request:
 
@@ -685,6 +701,7 @@ Source of truth:
 
 - Purpose: authenticate email/password and return a Sanctum token
 - Auth: no
+- Shared-account rule: credentials are checked against the same web `users` records, not a mobile-only store
 
 Request:
 
@@ -754,6 +771,7 @@ Source of truth:
 
 - Purpose: fetch the authenticated profile
 - Auth: yes
+- Note: this is the canonical profile source of truth for Android after register, login, social login, and profile edits
 
 Response:
 
@@ -1980,6 +1998,7 @@ Implementation note:
 
 - Purpose: fetch a single owned order with all mapped line state information
 - Auth: yes
+- Current limitation: the mobile order payload does not yet expose `tracking_carrier`, `tracking_number`, or `tracking_url` even though web/admin flows already persist them
 
 Response:
 
@@ -2209,19 +2228,23 @@ Source of truth:
   - `parcialmente_cancelado`
   - `parcialmente_reembolsado`
 - Do not invent simplified mobile-only statuses.
+- If Android needs an external tracking CTA, add those fields to the mobile presenter first instead of inferring them from web HTML.
 
 ## 8. QA checklist for contract compliance
 
 The implementation of this API should be considered aligned only if:
 
 1. Mobile auth returns the same user shape across register, login, social login, and `GET /me`.
-2. Address payloads match the structured web contract exactly.
-3. Product list and product detail use localized category names and `EUR`.
-4. Order endpoints expose the same line state semantics as the current web UI.
-5. Mobile API does not recreate the old `placeOrder` shortcut.
-6. Payment success always flows through backend verification before order creation.
-7. The authenticated cart can be shared between web and app.
-8. The deep link flow after hosted payment is deterministic and provider-agnostic.
+2. A user created on Android can log in on web immediately, and a user created on web can log in on Android immediately.
+3. Google and Facebook login are validated either through `POST /api/auth/social` token exchange or through `/auth/mobile/{provider}/*` browser OAuth with the documented callback URLs.
+4. Address payloads match the structured web contract exactly.
+5. Product list and product detail use localized category names and `EUR`.
+6. Order endpoints expose the same line state semantics as the current web UI.
+7. Android does not render shipment tracking CTA from the mobile API unless the backend payload explicitly includes the tracking fields.
+8. Mobile API does not recreate the old `placeOrder` shortcut.
+9. Payment success always flows through backend verification before order creation.
+10. The authenticated cart can be shared between web and app.
+11. The deep link flow after hosted payment is deterministic and provider-agnostic.
 
 ## 9. Validation already available in the repo
 

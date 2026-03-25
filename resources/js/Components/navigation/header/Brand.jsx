@@ -10,7 +10,8 @@ import clsx from 'clsx';
  */
 export default function Brand({ isCompact = false, brand }) {
   const logoImageClass = clsx(
-    isCompact ? 'w-10 h-10 rounded-full shadow-md' : 'w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-lg'
+    'object-contain drop-shadow-sm',
+    isCompact ? 'h-12 w-12' : 'h-16 w-16 sm:h-20 sm:w-20'
   );
 
   const logoTextClass = clsx(
@@ -26,7 +27,12 @@ export default function Brand({ isCompact = false, brand }) {
   return (
     <Link href="/" className={linkClass}>
       <img src={brand.logoSrc} alt={brand.logoAlt} className={logoImageClass} />
-      <span className={logoTextClass}>{brand.name}</span>
+      <span className={logoTextClass}>
+        <span className="block text-slate-900">{brand.name}</span>
+        <span className="storefront-kicker hidden text-[10px] font-semibold uppercase tracking-[0.34em] md:block">
+          storefront
+        </span>
+      </span>
     </Link>
   );
 }

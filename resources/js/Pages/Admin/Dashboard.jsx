@@ -74,7 +74,7 @@ export default function Dashboard({
     },
     {
       label: 'Ver inventario',
-      href: '/admin/products',
+      href: '/admin/productsedit',
       color: 'bg-emerald-600 hover:bg-emerald-500',
     },
   ];
@@ -98,7 +98,7 @@ export default function Dashboard({
       label: 'Productos publicados',
       value: formatNumber(productsCount),
       helper: 'Revisar catálogo',
-      href: '/admin/products',
+      href: '/admin/productsedit',
     },
     {
       label: 'Postventa activa',
