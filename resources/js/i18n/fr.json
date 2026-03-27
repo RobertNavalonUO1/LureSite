@@ -221,8 +221,8 @@
       "rating_aria": "Note {rating} sur 5",
       "description_fallback": "Fiche verifiee avec prix actif, stock visible et acces direct aux details complets.",
       "sold_out": "Rupture",
-      "add_to_cart": "Ajouter au panier",
-      "view_details": "Voir les details",
+      "add_to_cart": "Ajouter",
+      "view_details": "Voir",
       "stock_available": "Stock disponible",
       "last_units": "Dernieres unites",
       "out_of_stock": "Rupture de stock"
@@ -283,6 +283,7 @@
       "remove": "Supprimer",
       "user_title": "Informations utilisateur",
       "user_guest_warning": "Vous devez vous connecter pour finaliser l'achat.",
+      "user_guest_register_cta": "Creer un compte",
       "user_name": "Nom",
       "user_email": "Email",
       "user_phone": "Téléphone",

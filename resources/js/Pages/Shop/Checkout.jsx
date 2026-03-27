@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { loadStripe } from '@stripe/stripe-js';
 import { CreditCard, MapPin, Minus, Plus, ShieldCheck } from 'lucide-react';
 import Header from '@/Components/navigation/Header.jsx';
@@ -488,7 +488,13 @@ const Checkout = () => {
                     <h3 className="text-lg font-semibold text-slate-900">{t('shop.checkout.user_title')}</h3>
                     {isGuest ? (
                       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-                        {t('shop.checkout.user_guest_warning')}
+                        <p>{t('shop.checkout.user_guest_warning')}</p>
+                        <Link
+                          href={route('register')}
+                          className="mt-3 inline-flex items-center rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-amber-700"
+                        >
+                          {t('shop.checkout.user_guest_register_cta')}
+                        </Link>
                       </div>
                     ) : (
                       <div className="grid gap-3 md:grid-cols-3">

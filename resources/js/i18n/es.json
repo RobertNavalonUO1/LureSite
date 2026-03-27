@@ -221,8 +221,8 @@
       "rating_aria": "Valoracion {rating} de 5",
       "description_fallback": "Ficha revisada con precio activo, stock visible y acceso directo a su detalle completo.",
       "sold_out": "Agotado",
-      "add_to_cart": "Anadir al carrito",
-      "view_details": "Ver detalles",
+      "add_to_cart": "Anadir",
+      "view_details": "Ver",
       "stock_available": "Stock disponible",
       "last_units": "Ultimas unidades",
       "out_of_stock": "Sin stock"
@@ -283,6 +283,7 @@
       "remove": "Eliminar",
       "user_title": "Datos del usuario",
       "user_guest_warning": "Debes iniciar sesión para completar el proceso de compra.",
+      "user_guest_register_cta": "Crear cuenta",
       "user_name": "Nombre",
       "user_email": "Email",
       "user_phone": "Teléfono",
