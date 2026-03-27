@@ -6,11 +6,16 @@ use App\Models\Address;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentAttempt;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\ShoppingCartService;
+use App\Services\TransactionalEmailService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PayPalCheckoutSdk\Core\LiveEnvironment;
 use PayPalCheckoutSdk\Core\PayPalHttpClient;
@@ -19,12 +24,14 @@ use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;
 use PayPalCheckoutSdk\Orders\OrdersCreateRequest;
 use Stripe\Checkout\Session as StripeSession;
 use Stripe\Stripe;
+use Stripe\Webhook as StripeWebhook;
 
 class MobileCheckoutService
 {
     public function __construct(
         private readonly ShoppingCartService $shoppingCartService,
         private readonly MobileCatalogPresenter $catalogPresenter,
+        private readonly TransactionalEmailService $transactionalEmailService,
     ) {
     }
 
@@ -95,23 +102,41 @@ class MobileCheckoutService
             throw new MobileApiException('Payment provider not supported.', 'payment_provider_not_supported', 409);
         }
 
-        $contextId = 'chk_ctx_' . Str::lower(Str::random(20));
-        $context = [
-            'id' => $contextId,
-            'provider' => $provider,
+        $attempt = PaymentAttempt::create([
+            'context_id' => 'chk_ctx_' . Str::lower(Str::random(24)),
             'user_id' => $user->id,
             'address_id' => $addressId,
-            'items' => $prepared['normalized_items'],
-            'quote' => $prepared['quote'],
+            'provider' => $provider,
+            'channel' => 'mobile',
+            'status' => 'created',
+            'currency' => 'EUR',
+            'amount' => (float) $prepared['quote']['total'],
+            'cart_snapshot' => $prepared['normalized_items'],
+            'quote_snapshot' => $prepared['quote'],
             'mobile_return' => $mobileReturn,
-            'order_id' => null,
-        ];
+            'expires_at' => now()->addMinutes(45),
+        ]);
 
-        $sessionPayload = $provider === 'stripe'
-            ? $this->createStripeSession($context)
-            : $this->createPaypalSession($context);
+        try {
+            $sessionPayload = $provider === 'stripe'
+                ? $this->createStripeSession($attempt)
+                : $this->createPaypalSession($attempt);
 
-        Cache::put($this->cacheKey($contextId), array_merge($context, $sessionPayload['context']), now()->addMinutes(45));
+            $attempt->forceFill([
+                'provider_checkout_id' => $sessionPayload['provider_checkout_id'],
+                'checkout_url' => $sessionPayload['payment_session']['checkout_url'],
+                'provider_payload' => $sessionPayload['provider_payload'] ?? null,
+                'status' => 'pending_user_action',
+            ])->save();
+        } catch (\Throwable $exception) {
+            $attempt->forceFill([
+                'status' => 'failed',
+                'error_code' => 'payment_session_creation_failed',
+                'error_message' => $exception->getMessage(),
+            ])->save();
+
+            throw $exception;
+        }
 
         return [
             'payment_session' => $sessionPayload['payment_session'],
@@ -121,54 +146,193 @@ class MobileCheckoutService
 
     public function handleReturn(string $provider, string $contextId, array $query): array
     {
-        $context = Cache::get($this->cacheKey($contextId));
-        if (!$context) {
+        $attempt = PaymentAttempt::query()->where('context_id', $contextId)->first();
+        if (!$attempt) {
             throw new MobileApiException('Checkout context expired.', 'payment_verification_failed', 409);
         }
 
         $provider = strtolower(trim($provider));
-        if ($provider !== ($context['provider'] ?? null)) {
+        if ($provider !== $attempt->provider) {
             throw new MobileApiException('Checkout context provider mismatch.', 'payment_verification_failed', 409);
         }
 
-        if (!empty($context['order_id'])) {
+        $attempt->forceFill([
+            'last_return_payload' => $query,
+        ])->save();
+
+        if ($attempt->order_id) {
             return [
-                'order' => Order::query()->findOrFail($context['order_id']),
-                'return_url' => $this->successReturnUrl($context['mobile_return'] ?? [], $provider, (int) $context['order_id']),
+                'order' => Order::query()->findOrFail($attempt->order_id)->loadMissing('items.product'),
+                'return_url' => $this->successReturnUrl($attempt, (int) $attempt->order_id),
             ];
         }
 
-        $result = $provider === 'stripe'
-            ? $this->verifyStripeReturn($query)
-            : $this->verifyPaypalReturn($query);
+        $verification = $provider === 'stripe'
+            ? $this->verifyStripeReturn($attempt, $query)
+            : $this->verifyPaypalReturn($attempt, $query);
 
-        $order = $this->createPaidOrder(
-            userId: (int) $context['user_id'],
-            items: $context['items'],
-            quote: $context['quote'],
-            addressId: (int) $context['address_id'],
-            provider: $provider,
-            transactionId: $result['transaction_id'],
-            paymentReferenceId: $result['payment_reference_id'],
+        $attempt = $this->markAttemptPaid(
+            $attempt,
+            $verification['transaction_id'],
+            $verification['payment_reference_id'] ?? null,
+            $verification['provider_payment_status'] ?? 'paid',
+            $verification['provider_payload'] ?? null,
         );
 
-        $context['order_id'] = $order->id;
-        Cache::put($this->cacheKey($contextId), $context, now()->addMinutes(30));
+        $order = $this->finalizeAttempt($attempt);
 
         return [
             'order' => $order,
-            'return_url' => $this->successReturnUrl($context['mobile_return'] ?? [], $provider, $order->id),
+            'return_url' => $this->successReturnUrl($attempt->fresh(), $order->id),
         ];
+    }
+
+    public function paymentStatus(User $user, string $contextId): array
+    {
+        $attempt = PaymentAttempt::query()
+            ->where('context_id', $contextId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$attempt) {
+            throw new MobileApiException('Checkout context not found.', 'payment_verification_failed', 404);
+        }
+
+        if (!$attempt->order_id && in_array($attempt->status, ['paid', 'processing'], true)) {
+            $this->finalizeAttempt($attempt);
+            $attempt = $attempt->fresh();
+        }
+
+        return [
+            'checkout_context_id' => $attempt->context_id,
+            'provider' => $attempt->provider,
+            'status' => $attempt->order_id ? 'succeeded' : $attempt->status,
+            'order_id' => $attempt->order_id,
+            'payment_reference_id' => $attempt->payment_reference_id,
+            'provider_checkout_id' => $attempt->provider_checkout_id,
+            'code' => $attempt->error_code,
+            'message' => $attempt->error_message,
+        ];
+    }
+
+    public function handleStripeWebhook(Request $request): void
+    {
+        $secret = config('services.stripe.webhook_secret');
+        if (!is_string($secret) || trim($secret) === '') {
+            throw new MobileApiException('Stripe webhook secret is missing.', 'payment_verification_failed', 500);
+        }
+
+        $event = StripeWebhook::constructEvent(
+            $request->getContent(),
+            (string) $request->header('Stripe-Signature', ''),
+            $secret,
+        );
+
+        if (($event->type ?? null) === 'checkout.session.completed') {
+            $session = $event->data->object;
+            $contextId = (string) ($session->client_reference_id ?? $session->metadata->context_id ?? '');
+            $attempt = $this->stripeAttemptFromIdentifiers($contextId, (string) ($session->id ?? ''));
+
+            if (!$attempt) {
+                Log::warning('payment.webhook.stripe.attempt_missing', [
+                    'context_id' => $contextId,
+                    'session_id' => $session->id ?? null,
+                ]);
+
+                return;
+            }
+
+            $attempt = $this->markAttemptPaid(
+                $attempt,
+                (string) ($session->id ?? $attempt->provider_checkout_id),
+                is_string($session->payment_intent ?? null) ? $session->payment_intent : ($session->payment_intent->id ?? null),
+                (string) ($session->payment_status ?? 'paid'),
+                $session->toArray(),
+                true,
+            );
+
+            $this->finalizeAttempt($attempt);
+            return;
+        }
+
+        if (($event->type ?? null) === 'checkout.session.expired') {
+            $session = $event->data->object;
+            $attempt = PaymentAttempt::query()->where('provider_checkout_id', $session->id ?? null)->first();
+            if ($attempt && !$attempt->order_id) {
+                $attempt->forceFill([
+                    'status' => 'expired',
+                    'provider_payment_status' => $session->status ?? 'expired',
+                    'provider_payload' => $session->toArray(),
+                    'webhook_last_received_at' => now(),
+                ])->save();
+            }
+        }
+    }
+
+    public function handlePaypalWebhook(Request $request): void
+    {
+        $payload = $request->json()->all();
+        $this->verifyPaypalWebhook($request, $payload);
+
+        $eventType = (string) ($payload['event_type'] ?? '');
+        if (!in_array($eventType, ['CHECKOUT.ORDER.APPROVED', 'PAYMENT.CAPTURE.COMPLETED'], true)) {
+            return;
+        }
+
+        $resource = $payload['resource'] ?? [];
+        $orderId = (string) ($resource['id'] ?? data_get($resource, 'supplementary_data.related_ids.order_id', ''));
+        $attempt = PaymentAttempt::query()
+            ->where('provider', 'paypal')
+            ->where('provider_checkout_id', $orderId)
+            ->first();
+
+        if (!$attempt) {
+            Log::warning('payment.webhook.paypal.attempt_missing', [
+                'order_id' => $orderId,
+                'event_type' => $eventType,
+            ]);
+
+            return;
+        }
+
+        $verification = $eventType === 'CHECKOUT.ORDER.APPROVED'
+            ? $this->capturePaypalOrderForAttempt($attempt, $orderId)
+            : [
+                'transaction_id' => $orderId,
+                'payment_reference_id' => (string) ($resource['id'] ?? ''),
+                'provider_payment_status' => (string) ($resource['status'] ?? 'COMPLETED'),
+                'provider_payload' => $payload,
+            ];
+
+        $attempt = $this->markAttemptPaid(
+            $attempt,
+            $verification['transaction_id'],
+            $verification['payment_reference_id'] ?? null,
+            $verification['provider_payment_status'] ?? 'COMPLETED',
+            $verification['provider_payload'] ?? $payload,
+            true,
+        );
+
+        $this->finalizeAttempt($attempt);
     }
 
     public function cancelReturnUrl(string $provider, string $contextId): string
     {
-        $context = Cache::get($this->cacheKey($contextId));
-        $mobileReturn = is_array($context['mobile_return'] ?? null) ? $context['mobile_return'] : [];
+        $attempt = PaymentAttempt::query()->where('context_id', $contextId)->first();
+        $mobileReturn = is_array($attempt?->mobile_return) ? $attempt->mobile_return : [];
+
+        if ($attempt && !$attempt->order_id) {
+            $attempt->forceFill([
+                'status' => 'cancelled',
+                'error_code' => 'checkout_cancel',
+                'error_message' => 'Payment flow cancelled by user.',
+            ])->save();
+        }
 
         return $this->appendQuery($mobileReturn['cancel_url'] ?? 'limoneo://checkout/complete', [
             'status' => 'cancel',
             'provider' => $provider,
+            'checkout_context_id' => $contextId,
         ]);
     }
 
@@ -279,7 +443,7 @@ class MobileCheckoutService
         return $options;
     }
 
-    private function createStripeSession(array $context): array
+    private function createStripeSession(PaymentAttempt $attempt): array
     {
         $secret = config('services.stripe.secret');
         if (!$secret) {
@@ -287,11 +451,12 @@ class MobileCheckoutService
         }
 
         Stripe::setApiKey($secret);
+        $quote = is_array($attempt->quote_snapshot) ? $attempt->quote_snapshot : [];
 
         $successUrl = route('api.mobile.v1.checkout.payments.return', ['provider' => 'stripe'], true)
-            . '?context=' . urlencode($context['id']) . '&session_id={CHECKOUT_SESSION_ID}';
+            . '?context=' . urlencode($attempt->context_id) . '&session_id={CHECKOUT_SESSION_ID}';
         $cancelUrl = route('api.mobile.v1.checkout.payments.cancel', ['provider' => 'stripe'], true)
-            . '?context=' . urlencode($context['id']);
+            . '?context=' . urlencode($attempt->context_id);
 
         $session = StripeSession::create([
             'payment_method_types' => ['card'],
@@ -302,55 +467,62 @@ class MobileCheckoutService
                         'name' => config('app.name', 'Limoneo'),
                         'description' => sprintf(
                             '%d item(s) - %s',
-                            (int) $context['quote']['items_count'],
-                            $context['quote']['shipping_method']['label'] ?? 'Shipping'
+                            (int) ($quote['items_count'] ?? 0),
+                            $quote['shipping_method']['label'] ?? 'Shipping'
                         ),
                     ],
-                    'unit_amount' => (int) round(((float) $context['quote']['total']) * 100),
+                    'unit_amount' => (int) round(((float) ($quote['total'] ?? 0)) * 100),
                 ],
                 'quantity' => 1,
             ]],
             'mode' => 'payment',
             'success_url' => $successUrl,
             'cancel_url' => $cancelUrl,
-            'customer_email' => User::query()->findOrFail($context['user_id'])->email,
+            'customer_email' => User::query()->findOrFail($attempt->user_id)->email,
+            'client_reference_id' => $attempt->context_id,
             'metadata' => [
-                'context_id' => $context['id'],
-                'user_id' => $context['user_id'],
+                'context_id' => $attempt->context_id,
+                'user_id' => $attempt->user_id,
+                'channel' => 'mobile',
             ],
+        ], [
+            'idempotency_key' => 'mobile-checkout-' . $attempt->context_id,
         ]);
 
         return [
             'payment_session' => [
-                'checkout_context_id' => $context['id'],
+                'checkout_context_id' => $attempt->context_id,
                 'provider' => 'stripe',
                 'method' => 'browser_redirect',
                 'checkout_url' => $session->url,
                 'expires_at' => optional(now()->addMinutes(45))->toISOString(),
             ],
-            'context' => [
-                'stripe_session_id' => $session->id,
-            ],
+            'provider_checkout_id' => $session->id,
+            'provider_payload' => $session->toArray(),
         ];
     }
 
-    private function createPaypalSession(array $context): array
+    private function createPaypalSession(PaymentAttempt $attempt): array
     {
+        $quote = is_array($attempt->quote_snapshot) ? $attempt->quote_snapshot : [];
         $request = new OrdersCreateRequest();
         $request->prefer('return=representation');
+        $request->headers['PayPal-Request-Id'] = 'mobile-checkout-' . $attempt->context_id;
         $request->body = [
             'intent' => 'CAPTURE',
             'purchase_units' => [[
+                'custom_id' => $attempt->context_id,
+                'invoice_id' => 'mobile-' . $attempt->context_id,
                 'amount' => [
                     'currency_code' => 'EUR',
-                    'value' => number_format((float) $context['quote']['total'], 2, '.', ''),
+                    'value' => number_format((float) ($quote['total'] ?? 0), 2, '.', ''),
                 ],
             ]],
             'application_context' => [
                 'return_url' => route('api.mobile.v1.checkout.payments.return', ['provider' => 'paypal'], true)
-                    . '?context=' . urlencode($context['id']),
+                    . '?context=' . urlencode($attempt->context_id),
                 'cancel_url' => route('api.mobile.v1.checkout.payments.cancel', ['provider' => 'paypal'], true)
-                    . '?context=' . urlencode($context['id']),
+                    . '?context=' . urlencode($attempt->context_id),
             ],
         ];
 
@@ -363,32 +535,40 @@ class MobileCheckoutService
 
         return [
             'payment_session' => [
-                'checkout_context_id' => $context['id'],
+                'checkout_context_id' => $attempt->context_id,
                 'provider' => 'paypal',
                 'method' => 'browser_redirect',
                 'checkout_url' => $approvalLink,
                 'expires_at' => optional(now()->addMinutes(45))->toISOString(),
             ],
-            'context' => [
-                'paypal_order_id' => $response->result->id,
-            ],
+            'provider_checkout_id' => $response->result->id,
+            'provider_payload' => json_decode(json_encode($response->result), true),
         ];
     }
 
-    private function verifyStripeReturn(array $query): array
+    private function verifyStripeReturn(PaymentAttempt $attempt, array $query): array
     {
         $secret = config('services.stripe.secret');
         if (!$secret) {
             throw new MobileApiException('Stripe is not configured.', 'payment_verification_failed', 409);
         }
 
-        $sessionId = (string) ($query['session_id'] ?? '');
+        $sessionId = (string) ($query['session_id'] ?? $attempt->provider_checkout_id ?? '');
         if ($sessionId === '') {
             throw new MobileApiException('Stripe session missing.', 'payment_verification_failed', 409);
         }
 
+        if ($attempt->provider_checkout_id && $attempt->provider_checkout_id !== $sessionId) {
+            throw new MobileApiException('Stripe session does not match checkout context.', 'payment_verification_failed', 409);
+        }
+
         Stripe::setApiKey($secret);
         $session = StripeSession::retrieve($sessionId);
+        $sessionContext = (string) ($session->client_reference_id ?? $session->metadata->context_id ?? '');
+
+        if ($sessionContext !== '' && $sessionContext !== $attempt->context_id) {
+            throw new MobileApiException('Stripe session context mismatch.', 'payment_verification_failed', 409);
+        }
 
         if (($session->payment_status ?? null) !== 'paid') {
             throw new MobileApiException('Stripe payment was not completed.', 'payment_verification_failed', 409);
@@ -401,18 +581,30 @@ class MobileCheckoutService
         return [
             'transaction_id' => $sessionId,
             'payment_reference_id' => $paymentIntentId,
+            'provider_payment_status' => (string) ($session->payment_status ?? 'paid'),
+            'provider_payload' => $session->toArray(),
         ];
     }
 
-    private function verifyPaypalReturn(array $query): array
+    private function verifyPaypalReturn(PaymentAttempt $attempt, array $query): array
     {
-        $orderId = (string) ($query['token'] ?? '');
+        $orderId = (string) ($query['token'] ?? $attempt->provider_checkout_id ?? '');
         if ($orderId === '') {
             throw new MobileApiException('PayPal order token missing.', 'payment_verification_failed', 409);
         }
 
+        if ($attempt->provider_checkout_id && $attempt->provider_checkout_id !== $orderId) {
+            throw new MobileApiException('PayPal order does not match checkout context.', 'payment_verification_failed', 409);
+        }
+
+        return $this->capturePaypalOrderForAttempt($attempt, $orderId);
+    }
+
+    private function capturePaypalOrderForAttempt(PaymentAttempt $attempt, string $orderId): array
+    {
         $request = new OrdersCaptureRequest($orderId);
         $request->prefer('return=representation');
+        $request->headers['PayPal-Request-Id'] = 'mobile-capture-' . $attempt->context_id;
         $response = $this->paypalClient()->execute($request);
 
         if (($response->result->status ?? null) !== 'COMPLETED') {
@@ -432,60 +624,9 @@ class MobileCheckoutService
         return [
             'transaction_id' => $orderId,
             'payment_reference_id' => $captureId,
+            'provider_payment_status' => (string) ($response->result->status ?? 'COMPLETED'),
+            'provider_payload' => json_decode(json_encode($response->result), true),
         ];
-    }
-
-    private function createPaidOrder(
-        int $userId,
-        array $items,
-        array $quote,
-        int $addressId,
-        string $provider,
-        string $transactionId,
-        ?string $paymentReferenceId
-    ): Order {
-        $user = User::query()->findOrFail($userId);
-        $address = Address::query()->where('id', $addressId)->where('user_id', $userId)->firstOrFail();
-
-        $order = new Order();
-        $order->user_id = $userId;
-        $order->name = trim(implode(' ', array_filter([$user->name, $user->lastname])));
-        $order->email = $user->email;
-        $order->address = implode(', ', [$address->street, $address->city, $address->province, $address->zip_code, $address->country]);
-        $order->payment_method = $provider;
-        $order->total = (float) $quote['total'];
-        $order->transaction_id = $transactionId;
-        $order->payment_reference_id = $paymentReferenceId;
-        $order->status = 'pagado';
-        $order->save();
-
-        foreach ($items as $productId => $quantity) {
-            $product = Product::query()->findOrFail($productId);
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $productId,
-                'quantity' => $quantity,
-                'price' => $product->price,
-                'status' => 'pagado',
-            ]);
-        }
-
-        if (!empty($quote['coupon']['code'])) {
-            Coupon::whereRaw('UPPER(code) = ?', [strtoupper($quote['coupon']['code'])])->increment('used_count');
-        }
-
-        $this->shoppingCartService->clearUserCart($user);
-
-        return $order->fresh(['items.product']);
-    }
-
-    private function successReturnUrl(array $mobileReturn, string $provider, int $orderId): string
-    {
-        return $this->appendQuery($mobileReturn['success_url'] ?? 'limoneo://checkout/complete', [
-            'status' => 'success',
-            'order_id' => $orderId,
-            'provider' => $provider,
-        ]);
     }
 
     private function appendQuery(string $url, array $params): string
@@ -512,8 +653,196 @@ class MobileCheckoutService
         return new PayPalHttpClient($environment);
     }
 
-    private function cacheKey(string $contextId): string
+    private function markAttemptPaid(
+        PaymentAttempt $attempt,
+        string $transactionId,
+        ?string $paymentReferenceId,
+        string $providerPaymentStatus,
+        ?array $providerPayload,
+        bool $fromWebhook = false,
+    ): PaymentAttempt {
+        $resolvedStatus = ($attempt->order_id || $attempt->status === 'succeeded')
+            ? 'succeeded'
+            : 'paid';
+
+        $attempt->forceFill([
+            'status' => $resolvedStatus,
+            'provider_checkout_id' => $transactionId,
+            'payment_reference_id' => $paymentReferenceId,
+            'provider_payment_status' => $providerPaymentStatus,
+            'provider_payload' => $providerPayload,
+            'error_code' => null,
+            'error_message' => null,
+            'completed_at' => now(),
+            'webhook_last_received_at' => $fromWebhook ? now() : $attempt->webhook_last_received_at,
+        ])->save();
+
+        return $attempt->fresh();
+    }
+
+    private function finalizeAttempt(PaymentAttempt $attempt): Order
     {
-        return 'mobile_checkout:' . $contextId;
+        return DB::transaction(function () use ($attempt) {
+            $lockedAttempt = PaymentAttempt::query()->lockForUpdate()->findOrFail($attempt->id);
+            if ($lockedAttempt->order_id) {
+                return Order::query()->findOrFail($lockedAttempt->order_id)->loadMissing('items.product');
+            }
+
+            $existingOrder = Order::query()
+                ->where('payment_method', $lockedAttempt->provider)
+                ->where(function ($query) use ($lockedAttempt) {
+                    $query->where('transaction_id', $lockedAttempt->provider_checkout_id);
+
+                    if ($lockedAttempt->payment_reference_id) {
+                        $query->orWhere('payment_reference_id', $lockedAttempt->payment_reference_id);
+                    }
+                })
+                ->first();
+
+            if ($existingOrder) {
+                $lockedAttempt->forceFill([
+                    'order_id' => $existingOrder->id,
+                    'status' => 'succeeded',
+                ])->save();
+
+                return $existingOrder->loadMissing('items.product');
+            }
+
+            $user = User::query()->findOrFail($lockedAttempt->user_id);
+            $address = Address::query()
+                ->where('id', $lockedAttempt->address_id)
+                ->where('user_id', $lockedAttempt->user_id)
+                ->firstOrFail();
+            $quote = is_array($lockedAttempt->quote_snapshot) ? $lockedAttempt->quote_snapshot : [];
+            $quoteItems = $quote['items'] ?? [];
+
+            $order = new Order();
+            $order->user_id = $lockedAttempt->user_id;
+            $order->name = trim(implode(' ', array_filter([$user->name, $user->lastname])));
+            $order->email = $user->email;
+            $order->address = implode(', ', [$address->street, $address->city, $address->province, $address->zip_code, $address->country]);
+            $order->shipping_method = $quote['shipping_method']['value'] ?? null;
+            $order->shipping_label = $quote['shipping_method']['label'] ?? null;
+            $order->shipping_description = $quote['shipping_method']['description'] ?? null;
+            $order->shipping_eta = $quote['shipping_method']['eta'] ?? null;
+            $order->shipping_cost = (float) ($quote['shipping'] ?? 0);
+            $order->coupon_code = $quote['coupon']['code'] ?? null;
+            $order->discount = (float) ($quote['discount'] ?? 0);
+            $order->payment_method = $lockedAttempt->provider;
+            $order->total = (float) ($quote['total'] ?? $lockedAttempt->amount);
+            $order->transaction_id = $lockedAttempt->provider_checkout_id;
+            $order->payment_reference_id = $lockedAttempt->payment_reference_id;
+            $order->status = 'pagado';
+            $order->save();
+
+            if ($quoteItems === []) {
+                foreach ($lockedAttempt->cart_snapshot ?? [] as $productId => $quantity) {
+                    $product = Product::query()->findOrFail($productId);
+                    $quoteItems[] = [
+                        'product_id' => $productId,
+                        'quantity' => $quantity,
+                        'unit_price' => round((float) $product->price, 2),
+                    ];
+                }
+            }
+
+            foreach ($quoteItems as $line) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $line['product_id'],
+                    'quantity' => $line['quantity'],
+                    'price' => $line['unit_price'],
+                    'status' => 'pagado',
+                ]);
+            }
+
+            if (!empty($quote['coupon']['code'])) {
+                Coupon::whereRaw('UPPER(code) = ?', [strtoupper($quote['coupon']['code'])])->increment('used_count');
+            }
+
+            $lockedAttempt->forceFill([
+                'order_id' => $order->id,
+                'status' => 'succeeded',
+                'completed_at' => now(),
+            ])->save();
+
+            $this->shoppingCartService->clearUserCart($user);
+            $this->transactionalEmailService->sendOrderConfirmation($order->fresh(['items.product']));
+
+            Log::info('payment.attempt.finalized', [
+                'context_id' => $lockedAttempt->context_id,
+                'provider' => $lockedAttempt->provider,
+                'order_id' => $order->id,
+                'transaction_id' => $lockedAttempt->provider_checkout_id,
+                'payment_reference_id' => $lockedAttempt->payment_reference_id,
+            ]);
+
+            return $order->fresh(['items.product']);
+        });
+    }
+
+    private function successReturnUrl(PaymentAttempt $attempt, int $orderId): string
+    {
+        $mobileReturn = is_array($attempt->mobile_return) ? $attempt->mobile_return : [];
+
+        return $this->appendQuery($mobileReturn['success_url'] ?? 'limoneo://checkout/complete', [
+            'status' => 'success',
+            'order_id' => $orderId,
+            'provider' => $attempt->provider,
+            'checkout_context_id' => $attempt->context_id,
+        ]);
+    }
+
+    private function stripeAttemptFromIdentifiers(string $contextId, string $sessionId): ?PaymentAttempt
+    {
+        return PaymentAttempt::query()
+            ->where('provider', 'stripe')
+            ->where(function ($query) use ($contextId, $sessionId) {
+                if ($contextId !== '') {
+                    $query->where('context_id', $contextId);
+                }
+
+                if ($sessionId !== '') {
+                    $query->orWhere('provider_checkout_id', $sessionId);
+                }
+            })
+            ->first();
+    }
+
+    private function verifyPaypalWebhook(Request $request, array $payload): void
+    {
+        $webhookId = config('services.paypal.webhook_id');
+        if (!is_string($webhookId) || trim($webhookId) === '') {
+            throw new MobileApiException('PayPal webhook id is missing.', 'payment_verification_failed', 500);
+        }
+
+        $baseUrl = config('services.paypal.mode') === 'live'
+            ? 'https://api-m.paypal.com'
+            : 'https://api-m.sandbox.paypal.com';
+
+        $tokenResponse = Http::asForm()
+            ->withBasicAuth((string) config('services.paypal.client_id'), (string) config('services.paypal.client_secret'))
+            ->post($baseUrl . '/v1/oauth2/token', [
+                'grant_type' => 'client_credentials',
+            ]);
+
+        if (!$tokenResponse->successful()) {
+            throw new MobileApiException('PayPal webhook verification failed.', 'payment_verification_failed', 500);
+        }
+
+        $verification = Http::withToken((string) $tokenResponse->json('access_token'))
+            ->post($baseUrl . '/v1/notifications/verify-webhook-signature', [
+                'auth_algo' => $request->header('paypal-auth-algo'),
+                'cert_url' => $request->header('paypal-cert-url'),
+                'transmission_id' => $request->header('paypal-transmission-id'),
+                'transmission_sig' => $request->header('paypal-transmission-sig'),
+                'transmission_time' => $request->header('paypal-transmission-time'),
+                'webhook_id' => $webhookId,
+                'webhook_event' => $payload,
+            ]);
+
+        if (($verification->json('verification_status') ?? '') !== 'SUCCESS') {
+            throw new MobileApiException('PayPal webhook signature is invalid.', 'payment_verification_failed', 400);
+        }
     }
 }

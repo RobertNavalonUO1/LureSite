@@ -249,7 +249,8 @@ class ShoppingCartService
             'id' => $product->id,
             'title' => $product->name,
             'price' => (float) $product->price,
-            'image_url' => $product->image_url ?? '/default-image.jpg',
+            'image_url' => $product->image_url_full ?? $product->image_url ?? '/default-image.jpg',
+            'image_url_full' => $product->image_url_full ?? $product->image_url ?? '/default-image.jpg',
             'quantity' => $quantity,
         ];
     }

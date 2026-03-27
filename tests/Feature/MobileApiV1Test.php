@@ -6,10 +6,16 @@ use App\Models\Address;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Product;
+use App\Models\PaymentAttempt;
+use App\Models\Order;
 use App\Models\Review;
 use App\Models\User;
+use App\Mail\OrderConfirmationMail;
+use App\Services\Mobile\MobileCheckoutService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
+use Mockery;
 use Tests\TestCase;
 
 class MobileApiV1Test extends TestCase
@@ -243,6 +249,298 @@ class MobileApiV1Test extends TestCase
             ->assertJsonCount(3, 'data.shipping_options');
     }
 
+    public function test_mobile_checkout_payment_session_accepts_app_deep_links(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category = $this->createCategory([
+            'slug' => 'mobile-payments',
+        ]);
+        $product = $this->createProduct($category, [
+            'name' => 'Checkout Test Product',
+            'price' => 24.99,
+            'stock' => 10,
+        ]);
+        $address = $this->createAddress($user);
+
+        $service = Mockery::mock(MobileCheckoutService::class);
+        $service->shouldReceive('createPaymentSession')
+            ->once()
+            ->withArgs(function (
+                User $resolvedUser,
+                array $items,
+                int $resolvedAddressId,
+                ?string $couponCode,
+                string $shippingMethod,
+                string $provider,
+                array $mobileReturn
+            ) use ($user, $product, $address) {
+                return $resolvedUser->is($user)
+                    && $items === [[
+                        'product_id' => $product->id,
+                        'quantity' => 1,
+                    ]]
+                    && $resolvedAddressId === $address->id
+                    && $couponCode === null
+                    && $shippingMethod === 'standard'
+                    && $provider === 'stripe'
+                    && $mobileReturn['success_url'] === 'limoneo://checkout/complete'
+                    && $mobileReturn['cancel_url'] === 'limoneo://checkout/cancel'
+                    && $mobileReturn['fallback_success_url'] === 'https://limoneo.com/app/checkout/complete'
+                    && $mobileReturn['fallback_cancel_url'] === 'https://limoneo.com/app/checkout/cancel';
+            })
+            ->andReturn([
+                'payment_session' => [
+                    'provider' => 'stripe',
+                    'checkout_url' => 'https://checkout.example.test/session/abc123',
+                    'checkout_context_id' => 'ctx_123',
+                    'expires_at' => '2026-03-26T12:00:00+00:00',
+                ],
+                'quote' => [
+                    'currency' => 'EUR',
+                    'items_count' => 1,
+                    'subtotal' => 24.99,
+                    'discount' => 0,
+                    'shipping' => 4.99,
+                    'total' => 29.98,
+                ],
+            ]);
+        $this->app->instance(MobileCheckoutService::class, $service);
+
+        $this->postJson('/api/mobile/v1/checkout/payments/stripe/session', [
+            'cart' => [
+                'items' => [
+                    [
+                        'product_id' => $product->id,
+                        'quantity' => 1,
+                    ],
+                ],
+            ],
+            'address_id' => $address->id,
+            'shipping_method' => 'standard',
+            'mobile_return' => [
+                'success_url' => 'limoneo://checkout/complete',
+                'cancel_url' => 'limoneo://checkout/cancel',
+                'fallback_success_url' => 'https://limoneo.com/app/checkout/complete',
+                'fallback_cancel_url' => 'https://limoneo.com/app/checkout/cancel',
+            ],
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.payment_session.provider', 'stripe')
+            ->assertJsonPath('data.payment_session.checkout_context_id', 'ctx_123')
+            ->assertJsonPath('meta.message', 'Payment session created.');
+    }
+
+    public function test_mobile_checkout_payment_session_rejects_invalid_mobile_return_urls(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $category = $this->createCategory([
+            'slug' => 'mobile-payments-invalid',
+        ]);
+        $product = $this->createProduct($category, [
+            'name' => 'Broken Checkout Product',
+            'price' => 19.99,
+            'stock' => 10,
+        ]);
+        $address = $this->createAddress($user);
+
+        $this->postJson('/api/mobile/v1/checkout/payments/paypal/session', [
+            'cart' => [
+                'items' => [
+                    [
+                        'product_id' => $product->id,
+                        'quantity' => 1,
+                    ],
+                ],
+            ],
+            'address_id' => $address->id,
+            'shipping_method' => 'standard',
+            'mobile_return' => [
+                'success_url' => 'checkout/complete',
+                'cancel_url' => 'not a url',
+                'fallback_success_url' => 'https://limoneo.com/app/checkout/complete',
+                'fallback_cancel_url' => 'https://limoneo.com/app/checkout/cancel',
+            ],
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'mobile_return.success_url',
+                'mobile_return.cancel_url',
+            ]);
+    }
+
+    public function test_mobile_checkout_payment_status_returns_succeeded_order_for_owner(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $address = $this->createAddress($user);
+        $order = Order::create([
+            'user_id' => $user->id,
+            'name' => 'Mobile User',
+            'email' => $user->email,
+            'total' => 29.98,
+            'status' => 'pagado',
+            'address' => 'Market Street 10, Valencia, Valencia, 46001, Spain',
+            'payment_method' => 'stripe',
+            'transaction_id' => 'cs_test_status',
+            'payment_reference_id' => 'pi_test_status',
+        ]);
+
+        $attempt = PaymentAttempt::create([
+            'context_id' => 'chk_ctx_status_123',
+            'user_id' => $user->id,
+            'address_id' => $address->id,
+            'order_id' => $order->id,
+            'provider' => 'stripe',
+            'channel' => 'mobile',
+            'status' => 'succeeded',
+            'currency' => 'EUR',
+            'amount' => 29.98,
+            'cart_snapshot' => [1 => 1],
+            'quote_snapshot' => ['total' => 29.98],
+            'mobile_return' => ['success_url' => 'limoneo://checkout/complete'],
+            'provider_checkout_id' => 'cs_test_status',
+            'payment_reference_id' => 'pi_test_status',
+        ]);
+
+        $this->getJson("/api/mobile/v1/checkout/payments/{$attempt->context_id}/status")
+            ->assertOk()
+            ->assertJsonPath('data.checkout_context_id', 'chk_ctx_status_123')
+            ->assertJsonPath('data.status', 'succeeded')
+            ->assertJsonPath('data.order_id', $order->id)
+            ->assertJsonPath('data.provider', 'stripe');
+    }
+
+    public function test_mobile_checkout_return_redirects_existing_order_without_creating_duplicate_order(): void
+    {
+        $user = User::factory()->create();
+        $address = $this->createAddress($user);
+        $order = Order::create([
+            'user_id' => $user->id,
+            'name' => 'Mobile User',
+            'email' => $user->email,
+            'total' => 29.98,
+            'status' => 'pagado',
+            'address' => 'Market Street 10, Valencia, Valencia, 46001, Spain',
+            'payment_method' => 'stripe',
+            'transaction_id' => 'cs_test_return',
+            'payment_reference_id' => 'pi_test_return',
+        ]);
+
+        PaymentAttempt::create([
+            'context_id' => 'chk_ctx_return_123',
+            'user_id' => $user->id,
+            'address_id' => $address->id,
+            'order_id' => $order->id,
+            'provider' => 'stripe',
+            'channel' => 'mobile',
+            'status' => 'succeeded',
+            'currency' => 'EUR',
+            'amount' => 29.98,
+            'cart_snapshot' => [1 => 1],
+            'quote_snapshot' => ['total' => 29.98],
+            'mobile_return' => ['success_url' => 'limoneo://checkout/complete'],
+            'provider_checkout_id' => 'cs_test_return',
+            'payment_reference_id' => 'pi_test_return',
+        ]);
+
+        $response = $this->get('/api/mobile/v1/checkout/payments/stripe/return?context=chk_ctx_return_123&session_id=cs_test_return');
+
+        $response->assertRedirect('limoneo://checkout/complete?status=success&order_id=' . $order->id . '&provider=stripe&checkout_context_id=chk_ctx_return_123');
+        $this->assertDatabaseCount('orders', 1);
+    }
+
+    public function test_stripe_webhook_finalizes_payment_attempt_only_once(): void
+    {
+        Mail::fake();
+        config()->set('services.stripe.webhook_secret', 'whsec_test_mobile');
+
+        $user = User::factory()->create();
+        $category = $this->createCategory(['slug' => 'webhook-checkout']);
+        $product = $this->createProduct($category, [
+            'name' => 'Webhook Product',
+            'price' => 24.99,
+            'stock' => 10,
+        ]);
+        $address = $this->createAddress($user);
+
+        PaymentAttempt::create([
+            'context_id' => 'chk_ctx_webhook_123',
+            'user_id' => $user->id,
+            'address_id' => $address->id,
+            'provider' => 'stripe',
+            'channel' => 'mobile',
+            'status' => 'pending_user_action',
+            'currency' => 'EUR',
+            'amount' => 29.98,
+            'cart_snapshot' => [$product->id => 1],
+            'quote_snapshot' => [
+                'currency' => 'EUR',
+                'items_count' => 1,
+                'subtotal' => 24.99,
+                'discount' => 0.0,
+                'shipping' => 4.99,
+                'total' => 29.98,
+                'coupon' => null,
+                'shipping_method' => [
+                    'value' => 'standard',
+                    'label' => 'Envio estandar',
+                    'description' => 'Gratis en pedidos superiores a 50 EUR',
+                    'eta' => '3-5 dias habiles',
+                    'cost' => 4.99,
+                    'badge' => 'Popular',
+                ],
+                'items' => [[
+                    'product_id' => $product->id,
+                    'quantity' => 1,
+                    'unit_price' => 24.99,
+                ]],
+                'warnings' => [],
+            ],
+            'mobile_return' => ['success_url' => 'limoneo://checkout/complete'],
+            'provider_checkout_id' => 'cs_test_webhook',
+        ]);
+
+        $payload = [
+            'id' => 'evt_test_webhook',
+            'type' => 'checkout.session.completed',
+            'data' => [
+                'object' => [
+                    'id' => 'cs_test_webhook',
+                    'object' => 'checkout.session',
+                    'payment_status' => 'paid',
+                    'client_reference_id' => 'chk_ctx_webhook_123',
+                    'payment_intent' => 'pi_test_webhook',
+                    'metadata' => [
+                        'context_id' => 'chk_ctx_webhook_123',
+                    ],
+                ],
+            ],
+        ];
+
+        $this->postStripeWebhook($payload, 'whsec_test_mobile')->assertOk();
+        $this->postStripeWebhook($payload, 'whsec_test_mobile')->assertOk();
+
+        $order = Order::query()->firstOrFail();
+
+        $this->assertDatabaseCount('orders', 1);
+        $this->assertDatabaseHas('orders', [
+            'payment_method' => 'stripe',
+            'transaction_id' => 'cs_test_webhook',
+            'payment_reference_id' => 'pi_test_webhook',
+        ]);
+        $this->assertDatabaseHas('payment_attempts', [
+            'context_id' => 'chk_ctx_webhook_123',
+            'status' => 'succeeded',
+            'order_id' => $order->id,
+        ]);
+        Mail::assertSent(OrderConfirmationMail::class, 1);
+    }
+
     public function test_mobile_products_supports_rating_sort_when_products_table_has_average_rating_column(): void
     {
         $category = $this->createCategory([
@@ -341,5 +639,25 @@ class MobileApiV1Test extends TestCase
         ])->save();
 
         return $address;
+    }
+
+    private function postStripeWebhook(array $payload, string $secret)
+    {
+        $rawPayload = json_encode($payload, JSON_THROW_ON_ERROR);
+        $timestamp = time();
+        $signature = hash_hmac('sha256', $timestamp . '.' . $rawPayload, $secret);
+
+        return $this->call(
+            'POST',
+            '/api/payments/webhooks/stripe',
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_Stripe-Signature' => 't=' . $timestamp . ',v1=' . $signature,
+            ],
+            $rawPayload,
+        );
     }
 }

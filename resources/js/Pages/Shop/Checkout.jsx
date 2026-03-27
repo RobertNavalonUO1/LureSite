@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { loadStripe } from '@stripe/stripe-js';
 import { CreditCard, MapPin, Minus, Plus, ShieldCheck } from 'lucide-react';
 import Header from '@/Components/navigation/Header.jsx';
@@ -83,6 +83,7 @@ const Checkout = () => {
   const [paymentLoading, setPaymentLoading] = useState(null);
   const [shippingUpdating, setShippingUpdating] = useState(false);
   const [updatingItemId, setUpdatingItemId] = useState(null);
+  const [highlightedItemId, setHighlightedItemId] = useState(null);
   const [selectedAddressId, setSelectedAddressId] = useState(initialSelectedAddressId);
   const [addressModalState, setAddressModalState] = useState({ open: false, mode: 'create', address: null });
   const [addressToDelete, setAddressToDelete] = useState(null);
@@ -209,6 +210,7 @@ const Checkout = () => {
     try {
       const payload = await mutation(productId);
       setItems(normaliseCartItems(payload.cartItems));
+      setHighlightedItemId(productId);
       await syncCheckoutSnapshot(payload.cartItems);
     } catch (error) {
       addToast({
@@ -224,6 +226,18 @@ const Checkout = () => {
   const handleIncrementItem = (productId) => triggerCartMutation(incrementCartItem, productId);
   const handleDecrementItem = (productId) => triggerCartMutation(decrementCartItem, productId);
   const handleRemoveItem = (productId) => triggerCartMutation(removeCartItem, productId);
+
+  useEffect(() => {
+    if (!highlightedItemId) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setHighlightedItemId(null);
+    }, 900);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [highlightedItemId]);
 
   const handleApplyCoupon = (event) => {
     event.preventDefault();
@@ -426,13 +440,20 @@ const Checkout = () => {
                           const price = Number(item.price) || 0;
                           const lineTotal = price * (item.quantity || 0);
                           const isUpdating = updatingItemId === item.id;
+                          const isHighlighted = highlightedItemId === item.id;
 
                           return (
-                            <li key={`${item.id}-${item.title}`} className="flex items-start gap-4 rounded-[24px] border border-slate-100 bg-slate-50/80 p-4">
+                            <li
+                              key={`${item.id}-${item.title}`}
+                              className={`flex items-start gap-4 rounded-[24px] border bg-slate-50/80 p-4 transition-all duration-500 ${isHighlighted ? 'border-emerald-200 bg-emerald-50/80 shadow-[0_18px_40px_-24px_rgba(16,185,129,0.7)] ring-2 ring-emerald-100' : 'border-slate-100'}`}
+                            >
                               <img
-                                src={item.image_url || 'https://via.placeholder.com/80x80.png?text=Producto'}
+                                src={item.image_url_full || item.image_url || '/images/logo.png'}
                                 alt={item.title}
                                 className="h-16 w-16 rounded-2xl border border-slate-200 bg-white object-cover"
+                                onError={(event) => {
+                                  event.currentTarget.src = '/images/logo.png';
+                                }}
                               />
                               <div className="flex-1 space-y-3">
                                 <div className="flex items-start justify-between gap-4">
@@ -488,7 +509,13 @@ const Checkout = () => {
                     <h3 className="text-lg font-semibold text-slate-900">{t('shop.checkout.user_title')}</h3>
                     {isGuest ? (
                       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-                        {t('shop.checkout.user_guest_warning')}
+                        <p>{t('shop.checkout.user_guest_warning')}</p>
+                        <Link
+                          href={route('register')}
+                          className="mt-3 inline-flex items-center rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-amber-700"
+                        >
+                          {t('shop.checkout.user_guest_register_cta')}
+                        </Link>
                       </div>
                     ) : (
                       <div className="grid gap-3 md:grid-cols-3">

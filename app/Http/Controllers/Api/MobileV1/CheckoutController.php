@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Concerns\RespondsWithApi;
 use App\Services\Mobile\MobileApiException;
 use App\Services\Mobile\MobileCheckoutService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CheckoutController extends Controller
 {
@@ -35,12 +36,7 @@ class CheckoutController extends Controller
     public function paymentSession(Request $request, string $provider)
     {
         $data = $this->validateCheckoutRequest($request);
-        $mobileReturn = $request->validate([
-            'mobile_return.success_url' => ['required', 'url'],
-            'mobile_return.cancel_url' => ['required', 'url'],
-            'mobile_return.fallback_success_url' => ['nullable', 'url'],
-            'mobile_return.fallback_cancel_url' => ['nullable', 'url'],
-        ])['mobile_return'];
+        $mobileReturn = $this->validateMobileReturn($request);
 
         $result = $this->checkoutService->createPaymentSession(
             $request->user(),
@@ -70,6 +66,13 @@ class CheckoutController extends Controller
         return redirect()->away($this->checkoutService->cancelReturnUrl($provider, $contextId));
     }
 
+    public function paymentStatus(Request $request, string $contextId)
+    {
+        return $this->success(
+            $this->checkoutService->paymentStatus($request->user(), $contextId)
+        );
+    }
+
     private function validatedQuote(Request $request): array
     {
         $data = $this->validateCheckoutRequest($request);
@@ -93,5 +96,68 @@ class CheckoutController extends Controller
             'coupon_code' => ['nullable', 'string', 'max:40'],
             'shipping_method' => ['nullable', 'string'],
         ]);
+    }
+
+    private function validateMobileReturn(Request $request): array
+    {
+        $mobileReturn = $request->validate([
+            'mobile_return' => ['required', 'array'],
+            'mobile_return.success_url' => ['required', 'string'],
+            'mobile_return.cancel_url' => ['required', 'string'],
+            'mobile_return.fallback_success_url' => ['nullable', 'string'],
+            'mobile_return.fallback_cancel_url' => ['nullable', 'string'],
+        ])['mobile_return'];
+
+        $errors = [];
+
+        foreach ([
+            'success_url' => true,
+            'cancel_url' => true,
+            'fallback_success_url' => false,
+            'fallback_cancel_url' => false,
+        ] as $field => $required) {
+            $value = $mobileReturn[$field] ?? null;
+
+            if (! is_string($value) || trim($value) === '') {
+                if ($required) {
+                    $errors["mobile_return.{$field}"] = 'The mobile return URL is required.';
+                }
+
+                continue;
+            }
+
+            if (! $this->isSupportedReturnUrl($value)) {
+                $errors["mobile_return.{$field}"] = 'The mobile return URL must be an absolute https URL or a valid app deep link.';
+            }
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return $mobileReturn;
+    }
+
+    private function isSupportedReturnUrl(string $value): bool
+    {
+        $scheme = parse_url($value, PHP_URL_SCHEME);
+
+        if (! is_string($scheme) || $scheme === '') {
+            return false;
+        }
+
+        if (in_array(strtolower($scheme), ['http', 'https'], true)) {
+            return filter_var($value, FILTER_VALIDATE_URL) !== false;
+        }
+
+        if (! preg_match('/^[a-z][a-z0-9+.-]*$/i', $scheme)) {
+            return false;
+        }
+
+        $path = parse_url($value, PHP_URL_PATH);
+        $host = parse_url($value, PHP_URL_HOST);
+
+        return is_string($host) && $host !== ''
+            && is_string($path) && $path !== '';
     }
 }

@@ -102,8 +102,15 @@ const CategoryPage = () => {
     );
   };
 
-  const addToCart = (productId) => {
-    addCartItem(productId).catch(() => {
+  const addToCart = (product) => {
+    addCartItem(product.id, {}, {
+        id: product.id,
+        title: product.name,
+        price: product.price,
+        image_url: product.image_url || product.image,
+        image_url_full: product.image_url_full || product.image_url || product.image,
+        quantity: 1,
+    }).catch(() => {
         alert(t('shop.category.add_to_cart_error'));
     });
   };

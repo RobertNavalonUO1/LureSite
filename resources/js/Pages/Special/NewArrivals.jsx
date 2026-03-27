@@ -212,9 +212,16 @@ const NewArrivals = () => {
       return;
     }
 
-    addCartItem(productId)
-      .then((payload) => {
-        showToast(payload.message || "Producto añadido al carrito.");
+    addCartItem(productId, {}, {
+      id: product.id,
+      title: product.name,
+      price: product.price,
+      image_url: product.image || product.image_url,
+      image_url_full: product.image_url_full || product.image || product.image_url,
+      quantity: 1,
+    })
+      .then(() => {
+        setToastVisible(false);
       })
       .catch((cartError) => {
         console.error(cartError);

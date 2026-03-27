@@ -1,4 +1,5 @@
 const CART_UPDATED_EVENT = 'cart:updated';
+const CART_ITEM_ADDED_EVENT = 'cart:item-added';
 
 export const normaliseCartItems = (items) => {
   if (Array.isArray(items)) {
@@ -31,6 +32,16 @@ export const buildCartState = (payload = {}) => ({
   message: payload.message,
 });
 
+const buildAddedItemState = (payload = {}) => ({
+  id: payload.id ?? null,
+  title: payload.title ?? '',
+  quantity: Number(payload.quantity ?? 1),
+  price: Number(payload.price ?? 0),
+  image_url: payload.image_url || payload.image_url_full || '/images/logo.png',
+  image_url_full: payload.image_url_full || payload.image_url || '/images/logo.png',
+  message: payload.message,
+});
+
 const getCsrfToken = () => {
   if (typeof document === 'undefined') {
     return '';
@@ -51,6 +62,18 @@ export const emitCartUpdated = (payload = {}) => {
   );
 };
 
+export const emitCartItemAdded = (payload = {}) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.dispatchEvent(
+    new CustomEvent(CART_ITEM_ADDED_EVENT, {
+      detail: buildAddedItemState(payload),
+    }),
+  );
+};
+
 export const subscribeToCartUpdates = (handler) => {
   if (typeof window === 'undefined') {
     return () => {};
@@ -67,8 +90,24 @@ export const subscribeToCartUpdates = (handler) => {
   };
 };
 
+export const subscribeToCartAdditions = (handler) => {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+
+  const listener = (event) => {
+    handler?.(buildAddedItemState(event.detail ?? {}));
+  };
+
+  window.addEventListener(CART_ITEM_ADDED_EVENT, listener);
+
+  return () => {
+    window.removeEventListener(CART_ITEM_ADDED_EVENT, listener);
+  };
+};
+
 const requestCart = async (endpoint, options = {}) => {
-  const { method = 'POST', data } = options;
+  const { method = 'POST', data, meta } = options;
   const csrfToken = getCsrfToken();
   const response = await fetch(endpoint, {
     method,
@@ -89,11 +128,18 @@ const requestCart = async (endpoint, options = {}) => {
   const payload = buildCartState(await response.json());
   emitCartUpdated(payload);
 
+  if (endpoint.includes('/add') && meta) {
+    emitCartItemAdded({
+      ...meta,
+      message: payload.message,
+    });
+  }
+
   return payload;
 };
 
 export const fetchCartSummary = () => requestCart('/cart/summary', { method: 'GET' });
-export const addCartItem = (productId, data = {}) => requestCart(`/cart/${productId}/add`, { data });
+export const addCartItem = (productId, data = {}, meta = null) => requestCart(`/cart/${productId}/add`, { data, meta });
 export const removeCartItem = (productId) => requestCart(`/cart/${productId}/remove`);
 export const incrementCartItem = (productId) => requestCart(`/cart/${productId}/increment`);
 export const decrementCartItem = (productId) => requestCart(`/cart/${productId}/decrement`);

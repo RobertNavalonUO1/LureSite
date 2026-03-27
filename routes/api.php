@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\MobileApiController;
+use App\Http\Controllers\Api\PaymentsWebhookController;
 use App\Http\Controllers\Api\MobileV1\AddressController as MobileV1AddressController;
 use App\Http\Controllers\Api\MobileV1\AuthController as MobileV1AuthController;
 use App\Http\Controllers\Api\MobileV1\CartController as MobileV1CartController;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('/auth/social', [SocialAuthController::class, 'exchange']);
+Route::post('/payments/webhooks/stripe', [PaymentsWebhookController::class, 'stripe'])->name('api.payments.webhooks.stripe');
+Route::post('/payments/webhooks/paypal', [PaymentsWebhookController::class, 'paypal'])->name('api.payments.webhooks.paypal');
 
 Route::post('/mobile/register', [MobileApiController::class, 'register']);
 Route::post('/mobile/login', [MobileApiController::class, 'login']);
@@ -68,6 +71,7 @@ Route::prefix('mobile/v1')->middleware('api.locale')->name('api.mobile.v1.')->gr
         Route::post('/checkout/coupon', [MobileV1CheckoutController::class, 'coupon'])->name('checkout.coupon');
         Route::post('/checkout/shipping', [MobileV1CheckoutController::class, 'shipping'])->name('checkout.shipping');
         Route::post('/checkout/payments/{provider}/session', [MobileV1CheckoutController::class, 'paymentSession'])->name('checkout.payments.session');
+        Route::get('/checkout/payments/{contextId}/status', [MobileV1CheckoutController::class, 'paymentStatus'])->name('checkout.payments.status');
 
         Route::get('/orders', [MobileV1OrdersController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [MobileV1OrdersController::class, 'show'])->name('orders.show');

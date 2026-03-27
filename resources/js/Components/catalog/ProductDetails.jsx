@@ -90,6 +90,13 @@ const ProductDetails = ({
         quantity: Math.max(1, Number(quantity) || 1),
         color: requiresColor ? selectedColor : null,
         size: requiresSize ? selectedSize : null,
+      }, {
+        id: product.id,
+        title: product.name,
+        price: product.price,
+        image_url: product.image_url,
+        image_url_full: product.image_url_full || product.image_url,
+        quantity: Math.max(1, Number(quantity) || 1),
       })
       .then(() => {
         onCartOpen?.();

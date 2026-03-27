@@ -10,6 +10,7 @@ import {
     incrementCartItem,
     normaliseCartItems,
     removeCartItem,
+    subscribeToCartAdditions,
     subscribeToCartUpdates,
 } from '@/utils/cartClient';
 
@@ -31,6 +32,11 @@ const CartDropdown = () => {
     const [total, setTotal] = useState(() => formatCartTotal(initialTotal));
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 8 });
     const [busyItemId, setBusyItemId] = useState(null);
+    const [justAddedItem, setJustAddedItem] = useState(null);
+    const [isAddToastVisible, setIsAddToastVisible] = useState(false);
+    const [badgePulse, setBadgePulse] = useState(false);
+    const addToastTimeoutRef = useRef(null);
+    const addToastHideTimeoutRef = useRef(null);
 
     const currencyFormatter = useMemo(() => new Intl.NumberFormat(
         locale === 'fr' ? 'fr-FR' : locale === 'en' ? 'en-US' : 'es-ES',
@@ -61,6 +67,31 @@ const CartDropdown = () => {
     }, [initialCartItems, initialCartCount, initialTotal, syncCartState]);
 
     useEffect(() => subscribeToCartUpdates(syncCartState), [syncCartState]);
+
+    useEffect(() => subscribeToCartAdditions((item) => {
+        setJustAddedItem(item);
+        setBadgePulse(true);
+        setIsAddToastVisible(true);
+
+        window.clearTimeout(addToastTimeoutRef.current);
+        window.clearTimeout(addToastHideTimeoutRef.current);
+
+        addToastTimeoutRef.current = window.setTimeout(() => {
+            setIsAddToastVisible(false);
+            addToastHideTimeoutRef.current = window.setTimeout(() => {
+                setJustAddedItem(null);
+            }, 240);
+        }, 2600);
+
+        window.setTimeout(() => {
+            setBadgePulse(false);
+        }, 720);
+    }), []);
+
+    useEffect(() => () => {
+        window.clearTimeout(addToastTimeoutRef.current);
+        window.clearTimeout(addToastHideTimeoutRef.current);
+    }, []);
 
     useEffect(() => {
         setIsDropdownVisible(false);
@@ -178,11 +209,51 @@ const CartDropdown = () => {
                 <span aria-hidden="true">🛒</span>
                 <span className="hidden sm:inline">{t('header.cart.view')}</span>
                 {cartCount > 0 && (
-                    <span className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-red-500 px-2 text-sm font-semibold text-white">
+                    <span className={`ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-red-500 px-2 text-sm font-semibold text-white transition-transform duration-300 ${badgePulse ? 'scale-125 shadow-[0_0_0_8px_rgba(239,68,68,0.14)]' : 'scale-100'}`}>
                         {cartCount}
                     </span>
                 )}
             </button>
+            {justAddedItem && typeof document !== 'undefined' && createPortal(
+                <div
+                    className={`fixed right-4 top-[calc(var(--header-sticky-height-expanded,5rem)+1rem)] z-[10000] w-[min(92vw,24rem)] transition-all duration-300 ${isAddToastVisible ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'}`}
+                >
+                    <div className="overflow-hidden rounded-[26px] border border-emerald-200/80 bg-white/95 shadow-[0_28px_80px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+                        <div className="bg-[linear-gradient(135deg,_rgba(16,185,129,0.18),_rgba(14,165,233,0.08)_52%,_rgba(255,255,255,0.9))] px-4 py-3">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-700">{t('shop.cart.added_badge')}</p>
+                            <p className="mt-1 text-sm font-medium text-slate-700">{justAddedItem.message || t('shop.cart.added_message')}</p>
+                        </div>
+                        <div className="flex items-center gap-4 px-4 py-4">
+                            <img
+                                src={justAddedItem.image_url_full || justAddedItem.image_url || '/images/logo.png'}
+                                alt={justAddedItem.title}
+                                className="h-16 w-16 rounded-2xl border border-slate-200 bg-slate-50 object-cover"
+                                onError={(event) => {
+                                    event.currentTarget.src = '/images/logo.png';
+                                }}
+                            />
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm font-semibold text-slate-900 [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] overflow-hidden">
+                                    {justAddedItem.title || t('shop.cart.added_fallback_title')}
+                                </p>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    {t('shop.cart.added_quantity', { count: justAddedItem.quantity || 1 })}
+                                </p>
+                                <p className="mt-2 text-sm font-semibold text-slate-900">
+                                    {currencyFormatter.format(Number(justAddedItem.price) || 0)}
+                                </p>
+                            </div>
+                            <Link
+                                href="/checkout"
+                                className="inline-flex h-10 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                            >
+                                {t('shop.cart.checkout')}
+                            </Link>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
             {isDropdownVisible && typeof document !== 'undefined' && createPortal(
                 <div
                     ref={dropdownRef}
@@ -223,7 +294,7 @@ const CartDropdown = () => {
                                     <li key={item.id} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-slate-300 hover:shadow-md">
                                         <div className="flex items-start gap-3">
                                             <img
-                                                src={item.image_url || '/images/logo.png'}
+                                                src={item.image_url_full || item.image_url || '/images/logo.png'}
                                                 alt={item.title}
                                                 className="h-16 w-16 flex-shrink-0 rounded-2xl border border-slate-200 object-cover bg-slate-50"
                                                 onError={(event) => {
