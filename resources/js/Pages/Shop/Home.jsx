@@ -359,10 +359,23 @@ const Home = () => {
     return { sections, leftoverProducts: leftover };
   }, [sortedProducts]);
 
-  const addToCart = (productId) => {
-    addCartItem(productId)
-      .then((payload) => {
-        showModal(payload.message || "Producto añadido al carrito.", false);
+  const addToCart = (product) => {
+    const productId = product?.id;
+    if (!productId) {
+      showModal("Hubo un error al agregar el producto al carrito.", true);
+      return;
+    }
+
+    addCartItem(productId, {}, {
+      id: product.id,
+      title: product.name,
+      price: product.price,
+      image_url: product.image_url || product.image,
+      image_url_full: product.image_url_full || product.image_url || product.image,
+      quantity: 1,
+    })
+      .then(() => {
+        setIsModalVisible(false);
       })
       .catch(() => {
         showModal("Hubo un error al agregar el producto al carrito.", true);
@@ -746,7 +759,7 @@ const Home = () => {
                     </div>
                   </div>
 
-                  <div className="relative z-0 hidden rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm lg:block">
+                  <div className="relative z-0 hidden rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm [@media(min-width:1420px)]:block">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-indigo-500">
                       {t('home.aside_tips_title')}
                     </h3>
